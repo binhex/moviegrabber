@@ -1,5 +1,2 @@
 images/posters/thumbnails/history/
 images/posters/thumbnails/queued/
-configs/*.ini
-db/*.db
-logs/*.log
