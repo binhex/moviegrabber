@@ -1,0 +1,11 @@
+[Unit]
+Description=MovieGrabber automated movie downloader
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/env python2 /opt/moviegrabber/MovieGrabber.py
+User=moviegrabber
+Group=moviegrabber
+
+[Install]
+WantedBy=multi-user.target

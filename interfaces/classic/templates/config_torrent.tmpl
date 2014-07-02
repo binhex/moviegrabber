@@ -1,0 +1,184 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="torrent"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<h2>Torrent Index</h2>
+
+<!--
+############
+CREATE INDEX
+############
+-->
+
+<form action="add_config_torrent" method="post" id="add_config_torrent_form">
+</form>
+
+<fieldset class="EntryFieldSet">				
+	<legend>Index Settings</legend>
+	
+	<a title="Allows you to add torrent index sites you wish to use - note some indexers require payment as well as registration or will have API restrictions for free accounts."><strong>(?)</strong></a><strong>Index Site:</strong><br>
+	
+	Add index site.
+	
+	<br>
+
+	<select name="add_torrent_site2" form="add_config_torrent_form">
+		<option value="kat" selected>kickass.to</option>
+	</select>
+	
+	<br>
+	<br>
+	
+	<input type="submit" value="Add Site" form="add_config_torrent_form">
+	
+	<br>
+	
+</fieldset>
+
+<!--
+#################
+EDIT/DELETE INDEX
+#################
+-->
+
+<!--#for $index_site_item in $index_site_list#-->
+
+	<fieldset class="EntryFieldSet">
+		<legend>$index_site_item settings</legend>
+
+		<!--#set $edit_config_torrent = "edit_config_torrent_" + str($index_site_item)#-->		
+		<!--#set $delete_config_torrent = "delete_config_torrent_" + str($index_site_item)#-->
+
+		<form action="edit_config_torrent" method="post" id="$edit_config_torrent">
+		</form>
+		
+		<form action="delete_config_torrent" method="post" id="$delete_config_torrent">
+		</form>
+
+		<a title="Allows you to enable/disable selected index site."><strong>(?)</strong></a><strong>Enabled:</strong>	
+		
+		<!--#set $torrent_enabled = $config_parser.get("torrent", $index_site_item + "_enabled")#-->		
+		
+		<select name="torrent_enabled2" form="$edit_config_torrent">
+		<!--#if $torrent_enabled == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+
+		<a title="Allows you to specify the hostname of the torrent server. This can be a local server or a external hostname, this can specified as an ip address or hostname e.g. https://kickass.to"><strong>(?)</strong></a><strong>Hostname:</strong><br>
+		Define hostname.<br/>
+		
+		<!--#set $torrent_hostname = $config_parser.get("torrent", $index_site_item + "_hostname")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_hostname2" value="$torrent_hostname" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. https://kickass.to" required/>
+		<br>
+		<br>
+		
+		<a title="Allows you to specify the port number of the torrent server e.g. 443."><strong>(?)</strong></a><strong>Port:</strong><br>
+		Define port number.<br/>
+
+		<!--#set $torrent_portnumber = $config_parser.get("torrent", $index_site_item + "_portnumber")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_portnumber2" value="$torrent_portnumber" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 80 or 443" required/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the category you wish to search - note you can only choose one category at present."><strong>(?)</strong></a><strong>Category:</strong><br>
+		Select categories to search.<br/>
+		
+		<!--#set $torrent_cat = $config_parser.get("torrent", $index_site_item + "_cat")#-->
+		
+		<select name="torrent_cat2" form="$edit_config_torrent">
+			<!--#for $torrent_cat_item in $torrent_cat_list#-->
+				<!--#if $torrent_cat_item.lower() == $torrent_cat.lower()#-->
+					<option value="$torrent_cat_item" selected>$torrent_cat_item</option>
+				<!--#else#-->
+					<option value="$torrent_cat_item">$torrent_cat_item</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+		
+		<br>
+		<br>
+
+		
+		<a title="Allows you to specify whether you wish to search english only releases or all languages."><strong>(?)</strong></a><strong>Language:</strong><br>
+		Select allowed movie languages.<br/>
+		
+		<!--#set $torrent_lang = $config_parser.get("torrent", $index_site_item + "_lang")#-->
+		
+		<select name="torrent_lang2" form="$edit_config_torrent">
+			<!--#for $torrent_lang_item in $torrent_lang_list#-->
+				<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
+					<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
+				<!--#else#-->
+					<option value="$torrent_lang_item">$torrent_lang_item</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+		<br>
+		<br>
+				
+		<strong>Search Criteria:</strong><br>
+		<a title="Allows you to specify what you want to search for within the choosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
+
+		<!--#set $torrent_search_and = $config_parser.get("torrent", $index_site_item + "_search_and")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_search_and2" value="$torrent_search_and" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 1080p,bluray"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
+
+		<!--#set $torrent_search_or = $config_parser.get("torrent", $index_site_item + "_search_or")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_search_or2" value="$torrent_search_or" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 720p,1080p"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
+		
+		<!--#set $torrent_search_not = $config_parser.get("torrent", $index_site_item + "_search_not")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_search_not2" value="$torrent_search_not" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. cam,telesync"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the minimum post size in megabytes. If you wish to have an unlimited minimum size then enter a value of 0."><strong>(?)</strong></a><strong>Minimum Size:</strong><br>
+		Define minimum size (MB).<br/>
+
+		<!--#set $torrent_minsize = $config_parser.get("torrent", $index_site_item + "_minsize")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_minsize2" value="$torrent_minsize" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 2000"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the maximum post size in megabytes. If you wish to have an unlimited maximum size then enter a value of 0."><strong>(?)</strong></a><strong>Maximum Size:</strong><br>
+		Define maximum size (MB).<br/>
+		
+		<!--#set $torrent_maxsize = $config_parser.get("torrent", $index_site_item + "_maxsize")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_maxsize2" value="$torrent_maxsize" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 25000"/>
+		<br>
+		<br>
+						
+		<input type="hidden" name="edit_torrent_site2" value="$index_site_item" form="$edit_config_torrent">
+		<input type="submit" value="Save Changes" form="$edit_config_torrent">
+		
+		<input type="hidden" name="delete_torrent_site2" value="$index_site_item" form="$delete_config_torrent">
+		<input type="submit" value="Delete Site" form="$delete_config_torrent">
+		
+	</fieldset>
+		
+<!--#end for#-->		
+
+#include $templates_dir + "/inc_bottom.tmpl"

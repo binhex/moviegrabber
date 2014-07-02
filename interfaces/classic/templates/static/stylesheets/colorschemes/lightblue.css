@@ -1,0 +1,31 @@
+.SubMenu, .blockWithBorder , a.current, tr.even, tr.odd, .history_queue_details, .history_queue_poster, .history_queue_details_resize, .post_processing_div_tr{
+	background-color: #5ca5ff;
+    color:white;
+}
+
+#first, #third {
+color: #5ca5ff;
+}
+
+th {
+background-color: #000;
+color:white;
+}
+
+.SubMenu a.current {
+    color:black;
+}
+
+a.current:hover, a:hover {
+	background-color: black;
+    color:white
+}
+
+td > a, td > a {
+color:white;
+}
+
+a.remove {
+color:black;
+}
+

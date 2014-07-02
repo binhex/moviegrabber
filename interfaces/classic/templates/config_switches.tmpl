@@ -1,0 +1,206 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="switches"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<form action="save_config_switches" method="post">
+
+<h2>Switches</h2>
+
+<div class="EntryBlock">
+
+	<fieldset class="EntryFieldSet">
+		<legend>IMDB Switches</legend>
+	
+		<a title="Allows you to specify whether you have favorite directors/actors/titles enabled. If a match is found then imdb checks will be skipped, once enabled please configure in configuration/imdb."><strong>(?)</strong></a><strong>Enable Favorites:</strong><br>
+		Switch favorite movie checking on/off.<br/>
+
+		<select name="enable_favorites2">
+		<!--#if $enable_favorites == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether preferred genres and rating is enabled. If a matching genre is found then it will use the lower rating value instead of the good rating value, once enabled please configure in configuration/imdb."><strong>(?)</strong></a><strong>Enable Preferred:</strong><br>
+		Switch preferred rating and genre on/off.<br/>
+
+		<select name="enable_preferred2">
+		<!--#if $enable_preferred == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether queue genre and date is specified. If a matching queue genre or matching queue date is found then it will mark the movie as queued for review later, once enabled please configure in configuration/imdb."><strong>(?)</strong></a><strong>Enable Queuing:</strong><br>
+		Switch queue genre and date on/off.<br/>
+
+		<select name="enable_queuing2">
+		<!--#if $enable_queuing == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+
+	</fieldset>		
+
+	<fieldset class="EntryFieldSet">
+		<legend>Folder Switches</legend>
+
+		<a title="Allows you to specify whether checking for already downloaded movies is enabled. If a match is found then the download will be skipped, once enabled please configure in configuration/folders - note this is recursive."><strong>(?)</strong></a><strong>Enable Existing Movie Check:</strong><br>
+		Switch downloaded movie checking on/off.<br/>
+		
+		<select name="enable_downloaded2">
+		<!--#if $movies_downloaded_dir == ""#-->
+			<option disabled value="yes">yes</option>		
+			<option value="no" selected>no</option>
+		<!--#elif $enable_downloaded == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+		
+		<a title="Allows you to specify whether checking for movies to replace is enabled. If a match is found then the movie will be downloaded, once enabled please configure in configuration/folders - note this is recursive."><strong>(?)</strong></a><strong>Enable Replace Movie Check:</strong><br>
+		Switch replacement movie checking on/off.<br/>
+
+		<select name="enable_replace2">
+		<!--#if $movies_replace_dir == ""#-->
+			<option disabled value="yes">yes</option>				
+			<option value="no" selected>no</option>
+		<!--#elif $enable_replace == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+		
+	</fieldset>		
+		
+	<fieldset class="EntryFieldSet">
+		<legend>Misc Switches</legend>
+	
+		<a title="Allows you to specify whether email notification is enabled, once enabled please configure in configuration/notification/email."><strong>(?)</strong></a><strong>Enable Email Notification:</strong><br>
+		Switch email notification on/off.<br/>
+
+		<select name="enable_email_notify2">
+		<!--#if $email_server == "" or $email_server_port == "" or $email_from == "" or $email_to == ""#-->
+			<option disabled value="yes">yes</option>						
+			<option value="no" selected>no</option>			
+		<!--#elif $enable_email_notify == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether post processing is enabled, once enabled please configure in configuration/post processing."><strong>(?)</strong></a><strong>Enable Post Processing:</strong><br>
+		Switch post processing on/off.<br/>
+
+		<select name="enable_post_processing2">
+		<!--#if $enable_post_processing == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+		
+		<a title="Allows you to specify whether appending year to title name is enabled."><strong>(?)</strong></a><strong>Enable Append Year:</strong><br>
+		Switch append year on/off.<br/>
+
+		<select name="enable_append_year2">
+		<!--#if $enable_append_year == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether poster images are displayed in queued/history."><strong>(?)</strong></a><strong>Enable Poster Images:</strong><br>
+		Switch poster images on/off.<br/>
+		
+		<select name="enable_posters2">
+		<!--#if $enable_posters == "yes"#-->		
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->		
+		</select>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether filtering of release group names is enabled, once enabled please configure in configuration/general."><strong>(?)</strong></a><strong>Enable Group Filtering:</strong><br>
+		Switch release group filtering on/off.<br/>
+		
+		<select name="enable_group_filter2">
+		<!--#if $enable_group_filter == "yes"#-->	
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>
+		<!--#else#-->
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->		
+		</select>
+
+		<br>
+		<br>
+		
+	</fieldset>
+
+</div>
+
+<br>
+<br>
+
+<input type="submit" value="Save Changes">
+
+</form>
+
+#include $templates_dir + "/inc_bottom.tmpl"

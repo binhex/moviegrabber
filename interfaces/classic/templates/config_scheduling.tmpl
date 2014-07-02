@@ -1,0 +1,98 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="scheduling"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<form action="save_config_scheduling" method="post">
+
+<h2>Scheduling</h2>
+
+<div class="EntryBlock">
+
+	<fieldset class="EntryFieldSet">
+		<legend>MovieGrabber Schedule</legend>
+
+		<a title="Allows you to specify how often moviegrabber connects to the index site."><strong>(?)</strong></a><strong>Run Every:</strong><br>
+		Define how often to run MovieGrabber.<br>
+		
+		hour(s):
+		<select name="index_schedule_hour2">
+			<!--#for $i in range(24)#-->
+				<!--#if $i == $index_schedule_hour#-->
+					<option value="$index_schedule_hour" selected>$index_schedule_hour</option>
+				<!--#else#-->
+					<option value="$i">$i</option>
+				<!--#end if#-->			
+			<!--#end for#-->
+		</select>
+
+		minute(s):
+		<select name="index_schedule_minute2">
+			<!--#if $index_schedule_hour != 0#-->
+				<!--#for $i in range(60)#-->
+					<!--#if $i == $index_schedule_minute#-->
+						<option value="$index_schedule_minute" selected>$index_schedule_minute</option>
+					<!--#else#-->
+						<option value="$i">$i</option>
+					<!--#end if#-->			
+				<!--#end for#-->
+			<!--#else#-->
+				<!--#for $i in range(30,60)#-->
+					<!--#if $i == $index_schedule_minute#-->
+						<option value="$index_schedule_minute" selected>$index_schedule_minute</option>
+					<!--#else#-->
+						<option value="$i">$i</option>
+					<!--#end if#-->			
+				<!--#end for#-->
+			<!--#end if#-->				
+		</select>
+				
+		<br>
+		<br>
+
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Post Processing Schedule</legend>
+		
+		<a title="Allows you to specify how often post processing runs."><strong>(?)</strong></a><strong>Run Every:</strong><br>
+		Define how often to run post processing.<br>
+		
+		hour(s):
+		<select name="post_schedule_hour2">
+			<!--#for $i in range(24)#-->
+				<!--#if $i == $post_schedule_hour#-->
+					<option value="$post_schedule_hour" selected>$post_schedule_hour</option>
+				<!--#else#-->
+					<option value="$i">$i</option>
+				<!--#end if#-->			
+			<!--#end for#-->
+		</select>
+
+		minute(s):
+		<select name="post_schedule_minute2">
+			<!--#for $i in range(60)#-->
+				<!--#if $i == $post_schedule_minute#-->
+					<option value="$post_schedule_minute" selected>$post_schedule_minute</option>
+				<!--#else#-->
+					<option value="$i">$i</option>
+				<!--#end if#-->			
+			<!--#end for#-->
+		</select>
+				
+		<br>
+		<br>
+
+	</fieldset>
+	
+</div>
+
+<br>
+<br>
+
+<input type="submit" value="Save Changes">
+
+</form>
+
+#include $templates_dir + "/inc_bottom.tmpl"

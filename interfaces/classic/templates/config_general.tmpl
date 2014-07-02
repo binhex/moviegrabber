@@ -1,0 +1,219 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="general"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<form action="save_config_general" method="post">
+
+<h2>General</h2>
+
+<div class="EntryBlock">
+
+	<fieldset class="EntryFieldSet">
+		<legend>Web Server Settings</legend>
+
+		<a title="Allows you to specify the host ip address for the web interface."><strong>(?)</strong></a><strong>Hostname:</strong><br>
+		Enter the host ip address - restart required.<br/>
+
+		<input type="text" class="form_textbox_padding" name="address2" value="$address" maxlength="1000" placeholder="e.g. 192.168.1.10"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the port number for the web interface."><strong>(?)</strong></a><strong>Port:</strong><br>
+		Enter the port number - restart required.<br/>
+
+		<input type="text" class="form_textbox_padding" name="port2" value="$port" maxlength="1000" placeholder="e.g. 9090"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether to use ssl for the web interface."><strong>(?)</strong></a><strong>SSL:</strong><br>
+		Switch SSL on/off - restart required.<br/>
+		
+		<select name="enable_ssl2">
+		<!--#if $enable_ssl == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>			
+		<!--#else#-->		
+			<option value="yes">yes</option>	
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+		
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Web Server Authentication</legend>
+		
+		<a title="Allows you to specify the username for the web interface (case sensitive)."><strong>(?)</strong></a><strong>Username:</strong><br>
+		Enter username - restart required.<br/>
+
+		<input type="text" class="form_textbox_padding" name="username2" value="$username" maxlength="1000" placeholder="e.g. admin"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the password for the web interface (case sensitive)."><strong>(?)</strong></a><strong>Password:</strong><br>
+		Enter password - restart required.<br/>
+
+		<input type="password" class="form_textbox_padding" name="password2" value="$password" maxlength="1000"/>
+		<br>
+		<br>
+
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Web Server Interface</legend>
+		
+		<a title="Allows you to choose the skin for the web interface."><strong>(?)</strong></a><strong>Skin:</strong><br>
+		Choose skin colour.<br/>
+
+		<select name="color_scheme2">
+			<!--#for $color_scheme_item in $color_scheme_list#-->
+				<!--#if $color_scheme_item.lower() == $color_scheme.lower()#-->
+					<option value="$color_scheme_item" selected>$color_scheme_item</option>
+				<!--#else#-->
+					<option value="$color_scheme_item">$color_scheme_item</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the max number of items shown for Queue/History."><strong>(?)</strong></a><strong>Queue/History Max Items:</strong><br>
+		Max number of items shown.<br/>
+
+		<select name="max_items_shown2">
+			<!--#for $max_items_shown_item in $max_items_shown_list#-->
+				<!--#if $max_items_shown_item == $max_items_shown#-->
+					<option value="$max_items_shown_item" selected>$max_items_shown_item</option>
+				<!--#else#-->
+					<option value="$max_items_shown_item">$max_items_shown_item</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+		<br>
+		<br>
+		
+		<a title="Allows you to specify whether you want the default browser to launch when starting MovieGrabber."><strong>(?)</strong></a><strong>Launch Browser:</strong><br>
+		Launch default browser on startup.<br/>
+
+		<select name="launch_browser2">
+		<!--#if $launch_browser == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>				
+		<!--#end if#-->
+		</select>
+		<br>
+		<br>
+		
+	</fieldset>		
+	
+	<fieldset class="EntryFieldSet">
+		<legend>MovieGrabber Settings</legend>
+
+		<a title="Allows you to specify the movie title separator - spaces, hyphens, dots, or underscores."><strong>(?)</strong></a><strong>Movie Title separator:</strong><br>
+		Choose movie title separator.<br/>
+		
+		<select name="movie_title_separator2">
+			<!--#for $movie_title_separator_item in $movie_title_separator_list#-->
+				<!--#if $movie_title_separator_item.lower() == $movie_title_separator.lower()#-->
+					<option value="$movie_title_separator_item" selected>$movie_title_separator_item.lower()</option>
+				<!--#else#-->
+					<option value="$movie_title_separator_item">$movie_title_separator_item.lower()</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+				
+		<br>
+		<br>
+				
+		<a title="Allows you to specify when to check for new moviegrabber releases."><strong>(?)</strong></a><strong>Check Version:</strong><br>
+		Check for new releases.<br/>
+		
+		<select name="check_version2">
+			<!--#for $check_version_item in $check_version_list#-->
+				<!--#if $check_version_item.lower() == $check_version.lower()#-->
+					<option value="$check_version_item" selected>$check_version_item.lower()</option>
+				<!--#else#-->
+					<option value="$check_version_item">$check_version_item.lower()</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+				
+		<br>
+		<br>
+		
+		<a title="Allows you to specify logging level, info being max logging, error being the min amount."><strong>(?)</strong></a><strong>Logging:</strong><br>
+		Choose logging level.<br/>
+		
+		<select name="log_level2">
+			<!--#for $log_level_item in $log_level_list#-->
+				<!--#if $log_level_item.lower() == $log_level.lower()#-->
+					<option value="$log_level_item" selected>$log_level_item.lower()</option>
+				<!--#else#-->
+					<option value="$log_level_item">$log_level_item.lower()</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+				
+		<br>
+		<br>
+		
+	</fieldset>		
+
+	<fieldset class="EntryFieldSet">
+		<legend>Index Settings</legend>
+		
+		<a title="Allows you to specify whether you would like to force downloading/queuing of an existing movie if an extended/directors cut/unrated or uncut version of the movie is released."><strong>(?)</strong></a><strong>Special Cut:</strong><br>
+		Switch special cut checking on/off.<br/>
+						
+		<input type="text" class="form_textbox_padding" name="index_special_cut2" value="$index_special_cut" maxlength="1000" placeholder="e.g. extended,uncut,unrated"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether you want to force downloading/queueing of an existing movie if the release group matches one of your preferred release groups defined below."><strong>(?)</strong></a><strong>Preferred Release Groups:</strong><br>
+		Define preferred release group(s).<br/>	
+				
+		<input type="text" class="form_textbox_padding" name="index_preferred_group2" value="$index_preferred_group" maxlength="1000" placeholder="e.g. ctrlhd,sinners"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the names of the bad release groups, any post matching any of the below release groups will be skipped."><strong>(?)</strong></a><strong>Bad Release Groups:</strong><br>
+		Define bad release group(s).<br/>	
+				
+		<input type="text" class="form_textbox_padding" name="index_bad_group2" value="$index_bad_group" maxlength="1000" placeholder="e.g. ctrlhd,sinners"/>
+		<br>
+		<br>
+
+		<a title="Allows you to specify the id's of any bad post reports, any post report matching any of the below id's will be skipped."><strong>(?)</strong></a><strong>Bad Post Report:</strong><br>
+		Define bad post report.<br/>
+				
+		<input type="text" class="form_textbox_padding" name="index_bad_report2" value="$index_bad_report" maxlength="1000" placeholder="e.g. 1234567,89123456"/>
+		<br>
+		<br>
+		
+		<a title="Allows you to specify the number of posts to process, the default value is 50. The maximum number of posts will depend on the index site, a recommended value would be up to 4000."><strong>(?)</strong></a><strong>Posts to Process:</strong><br>
+		Define the number of posts to process.<br/>
+		
+		<input type="text" class="form_textbox_padding" name="index_posts_to_process2" value="$index_posts_to_process" maxlength="1000" placeholder="e.g. 50"/>
+		<br>
+		<br>
+		
+	</fieldset>			
+		
+</div>
+
+<br>
+<br>
+
+<input type="submit" value="Save Changes">
+
+</form>
+
+#include $templates_dir + "/inc_bottom.tmpl"

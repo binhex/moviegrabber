@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+
+<html manifest="cache.manifest">
+
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<title>$title</title>
+
+<link rel="stylesheet" type="text/css" href="$statpath/stylesheets/default.css">
+<link rel="stylesheet" type="text/css" href="$statpath/stylesheets/defaultcolors.css">
+	
+<!--#if $color_scheme_file#-->
+	<link rel="stylesheet" type="text/css" href="$statpath/stylesheets/colorschemes/$color_scheme_file">
+<!--#end if#-->
+	
+</head>
+<body>
+  <div id="container">
+<h1><span id="first">MovieGrabber</span><span id="third"> ver $local_version</span><span id="catchfrase">$strapline</span></h1>
+
+<!--#set $mypath=$statpath+"/"+$topmenu#-->
+
+<span class="MainMenu">
+<!--#if $topmenu==''#-->
+    <a class="current" href="$mypath">Home</a> |
+<!--#else#-->
+    <a href="$statpath">Home</a> |
+<!--#end if#-->
+
+<!--#if $topmenu=='queue'#-->
+    <a class="current" href="$mypath/">Queue</a> |
+<!--#else#-->
+    <a href="$statpath/queue/">Queue</a> |
+<!--#end if#-->
+
+<!--#if $topmenu=='history'#-->
+    <a class="current" href="$mypath/">History</a> |
+<!--#else#-->
+    <a href="$statpath/history/">History</a>  |
+<!--#end if#-->
+
+<!--#if $topmenu=='config'#-->
+    <a class="current" href="$mypath/">Configuration</a>
+<!--#else#-->
+    <a href="$statpath/config/">Configuration</a>
+<!--#end if#-->
+
+</span>
+
+<!--#note - set javascripts to load last to prevent blocking#-->
+<script src="$statpath/javascript/checkbox.js"></script>
+<script src="$statpath/javascript/dropdown.js"></script>

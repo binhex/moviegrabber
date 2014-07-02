@@ -1,0 +1,554 @@
+/* sets webpage to be minimum width (optimised for 1024) */
+#container {
+  margin: 0 auto;
+  min-width: 960px;
+}
+
+body {
+	font-family: 'Verdana', 'Helvetica', 'Sans-serif', 'sans';
+	font-size: 12px;
+	line-height: 18px;
+	padding: 15px;
+	margin: 0px;
+}
+
+a {
+ text-decoration: none;
+}
+
+form {
+  margin: 0px;
+  padding: 0px;
+  border: none;
+  display: inline;
+}
+
+legend {
+  font-weight: bold;
+}
+
+div.EntryBlock {
+  display: inline;
+}
+
+div.EntryBlock form {
+
+  display: inline;
+}
+
+fieldset.EntryFieldSet {
+  vertical-align: top;
+  display: inline;
+  padding: 7px;
+  margin: 5px;
+}
+
+.MainMenu a {
+	font-weight: bold;
+	padding: 3px;
+    padding-bottom: 7px;
+	text-decoration: none;
+	padding-left: 12px;
+    padding-right: 12px;
+}
+
+.SubMenu a {
+	font-weight: bold;
+	padding: 3px;
+    padding-bottom: 7px;
+	text-decoration: none;
+	padding-left: 12px;
+    padding-right: 12px;
+    /*Stop mid-word wrapping to next link */
+    display: inline-block;
+}
+
+.home_status_div{
+	/* set max-height to prevent chrome font boosting */ 
+	max-height: 999999px;
+}
+
+/* force home status text to be in line with status box*/
+.home_status_text {
+	display: inline; 
+	vertical-align:middle;
+	white-space: nowrap;
+	line-height:250%;	
+}
+
+.home_status_box_red {
+	border:1px solid #000000;
+	padding:2px 4px; 
+	background:#ff0000;
+	font-weight: normal;
+	width: 140px;	
+	display:inline;	
+	font-size: 12px;		
+	vertical-align:middle;		
+	border-radius:5px;
+	text-align: center;
+	margin-right: 7px;	
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.home_status_box_orange {
+	border:1px solid #000000;
+	padding:2px 4px; 
+	background:#E56717;
+	font-weight: normal;		
+	width: 140px;
+	display:inline;
+	font-size: 12px;	
+	vertical-align:middle;		
+	border-radius:5px;
+	text-align: center;
+	margin-right: 7px;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.home_status_box_green {
+	border:1px solid #000000;
+	padding:2px 4px; 
+	background:#458B00;
+	font-weight: normal;		
+	width: 140px;
+	display:inline;
+	font-size: 12px;	
+	vertical-align:middle;		
+	border-radius:5px;
+	text-align: center;
+	margin-right: 7px;	
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_result_box_red {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#FF6666;
+	margin-right: 3px;	
+	vertical-align:middle;		
+	border-radius:5px;
+    font-size: 10px;		
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_result_box_green {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#4D944D;
+	margin-right: 3px;
+	vertical-align:middle;	
+	border-radius:5px;
+    font-size: 10px;			
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_status_box_black{
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#000000;
+	margin-right: 7px;	
+	vertical-align:middle;		
+	border-radius:5px;
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_status_box_red {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#ff0000;
+	margin-right: 7px;	
+	vertical-align:middle;		
+	border-radius:5px;
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_status_box_orange {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#E56717;
+	margin-right: 7px;
+	vertical-align:middle;
+	border-radius:5px;
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_status_box_green {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#458B00;
+	margin-right: 7px;
+	vertical-align:middle;	
+	border-radius:5px;
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+.history_queue_status_box_blue {
+	border:1px solid #ffffff;
+	padding:2px 4px; 
+	background:#000066;
+	margin-right: 7px;
+	vertical-align:middle;	
+	border-radius:5px;
+	text-align: center;
+	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+/* result status label colours */
+a.history_queue_result_details_colour{color:white;}
+a.history_queue_result_details_colour:link {color: white; background: transparent;}
+a.history_queue_result_details_colour:active {color: white; background: transparent;}
+a.history_queue_result_details_colour:visited {color: white; background: transparent;}
+a.history_queue_result_details_colour:hover {color: white; background: transparent;}
+
+/* post details label colours */
+a.history_post_details_colour:link {color: white; background: transparent;}
+a.history_post_details_colour:active {color: white; background: transparent;}
+a.history_post_details_colour:visited {color: white; background: transparent;}
+a.history_post_details_colour:hover {color: white; background: transparent;}
+
+ .history_poster_image {
+    display: block; 
+    margin-left: auto; 
+    margin-right: auto;
+    position:relative;
+	top:4px;
+	border:5px solid #ffffff;
+	background: none;  
+	outline: none; 
+	-moz-box-shadow: 3px 4px 10px #000000; /* Firefox */
+	-webkit-box-shadow: 3px 4px 10px #000000; /* Safari/Chrome */
+	box-shadow: 3px 4px 10px #000000; /* Opera and other CSS3 supporting browsers */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000')";/* IE 8 */
+	: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000');/* IE 5.5 - 7 */ 
+}
+
+/*Used to prevent border on image with links*/ 
+img{border:0;
+}
+
+.history_text_button {
+   background: none;
+   border: 1px solid white;
+   -moz-border-radius: 3px;
+   -webkit-border-radius: 3px;
+   padding: 3px 3px;
+   margin-left: 3px;
+   margin-right: 3px;
+   color: white;
+   font-weight: bold;
+   font-size: 12px;
+   text-align: center;
+}
+
+/* force title to be in line with status box and set line height to stop overlap with status box*/
+.history_post_details_h2 {
+	margin-top: 0; 
+	margin-bottom: 0; 
+	padding-top: 0;   
+	padding-bottom: 0; 
+	display: inline; 
+	vertical-align:middle;
+	line-height:150%;
+	/*white-space:nowrap;  */
+}
+
+.history_checkbox_nomargin {
+	position:relative;
+	top:1px;
+	bottom:0px;	
+	margin-left:0px;
+	margin-right:6px;
+}
+
+#history_queue_wrapper {
+    width: 100%;
+    min-width: 960px;
+    margin: 0 auto;
+}
+
+.history_queue_details_resize {
+    float: left;
+    width: 100%;
+}
+
+.history_queue_details_poster {
+	/* set max-height to prevent chrome font boosting */ 
+	max-height: 999999px;
+	padding: 15px;
+    float: left;	
+	/* margin left calculated - poster width + poster padding + details padding */ 
+    margin-left: 145px;
+	vertical-align: top;
+}
+
+.history_queue_details_no_poster {
+	/* set max-height to prevent chrome font boosting */ 
+	max-height: 999999px;
+	padding: 15px;
+    float: left;	
+	vertical-align: top;
+}
+
+.history_queue_poster {
+	padding: 15px;
+    float: left;
+    width: 115px;
+    margin-left: -100%;
+	vertical-align: top;
+}
+
+/* set post processing div attributes (simulated table)*/
+.post_processing_div {
+	border-collapse:separate;
+	border:none;
+	width:100%;
+    display:table;
+}
+
+.post_processing_div_tr {
+	width: 500px;
+	white-space:nowrap;	
+	text-align: center;
+    display:table-row;
+}
+
+.post_processing_div_td {
+	width: 500px;
+	margin-left:auto;
+	margin-right:auto;
+	white-space:nowrap;	
+    padding: 5px;
+	text-align: center;
+    display:table-cell;
+}
+	
+.imdb_genre_scroll_checkbox {
+	overflow: auto; 
+	height: 150px; 
+	width: 200px;   
+}
+
+.logo_icon_position{
+	position:relative;
+	top:4px;
+	bottom:4px;
+	margin-left:0px;
+	margin-right:3px;
+}
+
+.button:hover {
+   background: white;
+   border: 1px solid white;
+   color: black;
+}
+
+a.current {
+	border: none;
+	padding: 3px;
+	padding-bottom: 7px;
+	padding-left: 12px;
+    padding-right: 12px;
+}
+
+a.current {
+	color:white;
+}
+
+a.current:hover {
+	border: none;
+}
+
+.block {
+	padding: 10px;
+}
+
+.blockWithBorder {
+	display: block;
+	border-width: thin;
+	border-style: solid;
+	padding: 5px;
+}
+
+.MainMenu {
+	display: block;
+	padding: 5px;
+
+}
+
+.SubMenu {
+	display: block;
+	padding: 5px;
+	/* set min-height for empty submenus for history and queue */ 	
+	min-height: 30px;	
+}
+
+.form_textbox_padding{
+	padding-left:2px;
+	padding-right:2px;
+	overflow:visible;
+	width:200px;
+	text-align:left;
+}
+
+/* set other attributes */
+
+th {
+	font-weight: bold;
+}
+
+tr.active {
+	font-weight: bold;
+}
+
+tr.finished {
+	font-weight: normal;
+}
+
+tr.waiting {
+	font-style: italic;
+}
+
+td.pre {
+	font-size: 13px;
+	font-family: 'courier new',courier,serif;
+	font-weight: bold;
+}
+
+h1 {
+  text-align: left;
+  font-size: 19px;
+  font-weight: normal;
+  padding-bottom: 4px;
+}
+
+* html h1 {
+	padding-bottom: 2px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#first {
+	font-size: 33px;
+    font-family: verdana, arial, helvetica, sans-serif;
+    font-style: normal;	
+	font-weight: bold;
+	padding-left: 20px;
+}
+
+#second {
+	font-size: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+	text-transform: lowercase;
+}
+
+#catchfrase {
+  display: block;
+  position: relative;
+  top: -18px;
+  float: right;
+  text-align: right;
+  font-size: 10px;
+  font-weight: normal;
+}
+.footer {
+  text-align: center;
+  padding-bottom: 5px;
+  margin-top: 20px;
+}
+
+#progressBar {
+  height: 6px;
+  width: 90%;
+  margin: 0px;
+  margin-left: auto; 
+  margin-right: auto;
+  padding: 0px;
+  text-align: left;
+}
+	  
+* html #progressBar {
+  height: 8px;
+  he\ight: 6px;
+}
+
+#percentageBar {
+  position: relative; 
+  height: 6px;
+}
+
+#row_del, #row_order, #row_mode {
+width:75px;
+}
+
+.verbosity_link{
+padding:4px;
+}
+
+.normalheight, .doubleheight, .tripleheight, .pattern, .result, .heading1, .heading2, .heading3 {float:left; border-left:1px }
+.normalheight, .doubleheight, .tripleheight, .heading1 {width:125px;}
+.normalheight {}
+.doubleheight {height:30px;}
+.tripleheight {height:60px;}
+.row{clear:left;}
+.pattern, .heading2 {width:70px}
+.result, .heading3  {width:125px}
+#Keytable {text-align:center;}
+.heading1, .heading2, .heading3{font-weight:bold; background-color:black; color:white;}
+
+/*
+Son of Suckerfish Dropdowns
+By Patrick Griffiths and Dan Webb.
+http://htmldog.com/articles/suckerfish/dropdowns/
+*/
+#nav, #nav ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+#nav a {
+	display: block;
+	width: 4em;
+    padding-bottom:0;
+}
+
+
+#nav li ul {
+	position: absolute;
+	width: 6em;
+	left: -999em;
+    background-color:white;
+    
+}
+
+#nav li:hover ul {
+	left: auto;
+}
+
+#nav li:hover ul, #nav li.sfhover ul {
+	left: auto;
+}
+
+#nav{
+	display: inline;
+	display: -moz-inline-box;
+	display: inline-block;
+	width:100px;
+}
+/*
+Son of Suckerfish Dropdowns END
+*/
+
+#speedbox{width:36px;}
+#Keytable,#Keytable2,#Keytable3{display:none;}

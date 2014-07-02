@@ -1,0 +1,216 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="post"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<form action="save_config_post" method="post">
+
+<h2>Post Processing</h2>
+
+<div class="EntryBlock">
+
+	<fieldset class="EntryFieldSet">
+		<legend>General Settings</legend>
+
+		<a title="Allows you to specify whether to rename the movie file to match imdb title or post title for post processing."><strong>(?)</strong></a><strong>Rename Movie File:</strong><br>
+		Choose format to rename movie files.<br/>
+		
+		<select name="post_rename_files2">
+			<!--#for $post_rename_files_item in $post_rename_files_list#-->
+				<!--#if $post_rename_files_item.lower() == $post_rename_files.lower()#-->
+					<option value="$post_rename_files_item" selected>$post_rename_files_item.lower()</option>
+				<!--#else#-->
+					<option value="$post_rename_files_item">$post_rename_files_item.lower()</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+						
+		<br>
+		<br>
+		
+		<a title="Allows you to specify whether to force the replacement of an existing movie in your downloaded folder for post processing."><strong>(?)</strong></a><strong>Replace Existing Movie:</strong><br>
+		Choose whether to replace existing movie.<br/>
+		
+		<select name="post_replace_existing2">
+		<!--#if $post_replace_existing == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>
+		<!--#else#-->		
+			<option value="yes">yes</option>
+			<option value="no" selected>no</option>	
+		<!--#end if#-->
+		</select>
+		<br>
+		<br>
+		
+		<a title="Allows you to specify the certification rating system used for post processing."><strong>(?)</strong></a><strong>Certification System:</strong><br>
+		Select the certification system.<br>
+
+		<select name="post_cert_system2">
+			<!--#if $post_cert_system == "uk"#-->
+				<option value="uk" selected>uk</option>
+				<option value="us">us</option>		
+			<!--#else#-->		
+				<option value="uk">uk</option>					
+				<option value="us" selected>us</option>					
+			<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+	
+		<a title="Allows you to specify whether to force a library update on xbmc once post processing is complete."><strong>(?)</strong></a><strong>XBMC Library Update:</strong><br>
+		Choose whether to enable XBMC library updates.<br/>
+		
+		<select name="xbmc_library_update2">
+		<!--#if $xbmc_library_update == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>
+		<!--#else#-->		
+			<option value="yes">yes</option>
+			<option value="no" selected>no</option>	
+		<!--#end if#-->
+		</select>
+		<br>
+		<br>
+	
+		<input type="submit" value="Save Changes">	
+		
+		<br>
+		
+	</fieldset>			
+
+</div>
+
+</form>
+
+<br>
+
+<!--
+###########
+CREATE RULE
+###########
+-->
+
+<form action="add_config_rule" method="post" id="add_config_rule_form">
+</form>
+
+<fieldset class="EntryFieldSet">				
+	<legend>Create Rule</legend>
+	
+	<a title="Allows you to add post processing rules."><strong>(?)</strong></a><strong>Add Rule:</strong><br>	
+	Add post processing rule.
+		
+	<br>
+	<br>
+	
+	<input type="submit" value="Add Rule" form="add_config_rule_form">
+	
+	<br>	
+	
+</fieldset>
+
+<!--
+#################
+EDIT/DELETE RULES
+#################
+-->
+
+<p>
+
+<!--#set $odd = False#-->
+
+<!--#set $odd = not $odd#-->
+
+<!--#for $post_config_rule_item in $post_config_rule_list#-->
+
+	<div class="post_processing_div">			
+	
+		<div class="post_processing_div_tr #if $odd then "odd" else "even"#">
+	
+			<div class="post_processing_div_td">	
+
+				<!--#set $post_config_dropdown1 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown1")#-->	
+				<!--#set $post_config_dropdown2 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown2")#-->			
+				<!--#set $post_config_dropdown3 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown3")#-->			
+				<!--#set $post_config_textbox1 = $config_parser.get("post_processing", $post_config_rule_item + "_textbox1")#-->			
+				<!--#set $post_config_textbox2 = $config_parser.get("post_processing", $post_config_rule_item + "_textbox2")#-->							
+				
+				<!--#set $edit_config_rule = "edit_config_rule_" + str($post_config_rule_item)#-->		
+				<!--#set $delete_config_rule = "delete_config_rule_" + str($post_config_rule_item)#-->
+																
+				<form action="edit_config_rule" method="post" id="$edit_config_rule">
+				</form>
+				
+				<form action="delete_config_rule" method="post" id="$delete_config_rule">
+				</form>
+				
+				<div class="post_processing_div_td">				
+					<b>If</b>
+					<select name="edit_config_dropdown1" form="$edit_config_rule">
+						<!--#for $dropdown1_item in $dropdown1_list#-->	
+							<!--#if $dropdown1_item == $post_config_dropdown1#-->		
+								<option value="$post_config_dropdown1" selected>$post_config_dropdown1</option>					
+							<!--#else#-->
+								<option value="$dropdown1_item">$dropdown1_item</option>						
+							<!--#end if#-->							
+						<!--#end for#-->
+					</select>
+				</div>
+				
+				<div class="post_processing_div_td">
+					<b>Is</b>					
+					<select name="edit_config_dropdown2" form="$edit_config_rule">
+						<!--#for $dropdown2_item in $dropdown2_list#-->	
+							<!--#if $dropdown2_item == $post_config_dropdown2#-->		
+								<option value="$post_config_dropdown2" selected>$post_config_dropdown2</option>					
+							<!--#else#-->
+								<option value="$dropdown2_item">$dropdown2_item</option>						
+							<!--#end if#-->							
+						<!--#end for#-->
+					</select>
+				</div>
+				
+				<div class="post_processing_div_td">				
+					<b>Value</b>					
+					<input type="text" class="form_textbox_padding" name="edit_config_textbox1" value="$post_config_textbox1" maxlength="1000" form="$edit_config_rule" placeholder="numeric or text value" required>
+				</div>
+				
+				<div class="post_processing_div_td">
+					<b>Then</b>					
+					<select name="edit_config_dropdown3" form="$edit_config_rule">
+						<!--#for $dropdown3_item in $dropdown3_list#-->	
+							<!--#if $dropdown3_item == $post_config_dropdown3#-->		
+								<option value="$post_config_dropdown3" selected>$post_config_dropdown3</option>					
+							<!--#else#-->
+								<option value="$dropdown3_item">$dropdown3_item</option>						
+							<!--#end if#-->							
+						<!--#end for#-->
+					</select>
+				</div>
+				
+				<div class="post_processing_div_td">
+					<b>Value</b>					
+					<input type="text" class="form_textbox_padding" name="edit_config_textbox2" value="$post_config_textbox2" maxlength="1000" form="$edit_config_rule" placeholder="path if move selected">					
+					<input type="hidden" name="edit_config_rule2" value="$post_config_rule_item" form="$edit_config_rule">				
+				</div>
+				
+				<div class="post_processing_div_td">					
+					<input type="submit" value="Save" form="$edit_config_rule">									
+					<input type="hidden" name="delete_config_rule2" value="$post_config_rule_item" form="$delete_config_rule">
+				</div>
+				
+				<div class="post_processing_div_td">					
+					<input type="submit" value="Delete" form="$delete_config_rule">		
+				</div>
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	
+<!--#end for#-->		
+
+#include $templates_dir + "/inc_bottom.tmpl"

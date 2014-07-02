@@ -1,0 +1,228 @@
+#set global $statpath="../.."
+#set global $topmenu="config"
+#set global $submenu="imdb"
+#include $templates_dir + "/inc_top.tmpl"
+#include $templates_dir + "/inc_cmenu.tmpl"
+
+<form action="save_config_imdb" method="post">
+
+<h2>IMDB</h2>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Good Definitions</legend>
+
+		<a title="Allows you to specify the imdb genre(s) you want to match on - note if a movie matches a genre that is not ticked the movie will be skipped."><strong>(?)</strong></a><strong>Good Genre(s):</strong><br>
+		Specify imdb good genre(s)
+	
+		<br>
+
+		<div class="imdb_genre_scroll_checkbox">
+		
+		<!--#for $genre_item_all in $genre_list_all#-->
+			<!--#if $genre_item_all in $good_genre_list_selected#-->
+				<input type="checkbox" name="good_genre_item_selected2" value="$genre_item_all" checked/>$genre_item_all<br />
+			<!--#else#-->
+				<input type="checkbox" name="good_genre_item_selected2" value="$genre_item_all"/>$genre_item_all<br />
+			<!--#end if#-->
+		<!--#end for#-->
+		
+		</div>		
+
+		<br>
+		
+		<a title="Allows you to specify the imdb minimum rating to match on."><strong>(?)</strong></a><strong>Good Rating:</strong><br>
+		Specify imdb min rating.<br/>
+
+		<select name="good_rating2">
+		
+			<!--#set $i = 0.0#-->
+			<!--#while $i <= 9.9#-->
+				<!--#if round($i, 1) == $good_rating#-->
+					<option value="$good_rating" selected>$good_rating</option>
+					<!--#set $i += 0.1#-->
+				<!--#else#-->
+					<option value="$i">$i</option>
+					<!--#set $i += 0.1#-->
+				<!--#end if#-->		
+			<!--#end while#-->
+			
+		</select>
+	
+		<br>
+		<br>
+
+		<a title="Allows you to specify the imdb minimum date you want to match on."><strong>(?)</strong></a><strong>Good Date:</strong><br>
+		Specify imdb min date.<br/>
+
+		<select name="good_date2">
+			<!--#for $i in range(1890, 2100)#-->
+				<!--#if $i == $good_date#-->
+					<option value="$good_date" selected>$good_date</option>
+				<!--#else#-->
+					<option value="$i">$i</option>
+				<!--#end if#-->			
+			<!--#end for#-->
+		</select>
+		
+		<br>
+		<br>
+
+		<a title="Allows you to specify the imdb minimum vote count to match on."><strong>(?)</strong></a><strong>Good Votes:</strong><br>
+		Specify imdb min votes.<br/>
+
+		<input type="text" name="good_votes2" value="$good_votes" size="10" maxlength="300"/>
+	
+		<br>
+		<br>
+		
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Preferred Definitions</legend>
+
+		<a title="Allows you to relax your minimum imdb rating for your preferred genre(s) - note if any of the selected genres below matches then the imdb prefered imdb rating will be used."><strong>(?)</strong></a><strong> Preferred Genre(s):</strong><br>
+		Specify imdb preferred genre(s)
+		<br>
+
+		<div class="imdb_genre_scroll_checkbox">
+		
+		<!--#for $genre_item_all in $genre_list_all#-->
+			<!--#if $genre_item_all in $preferred_genre_list_selected#-->
+				<input type="checkbox" name="preferred_genre_item_selected2" value="$genre_item_all" checked/>$genre_item_all<br />
+			<!--#else#-->
+				<input type="checkbox" name="preferred_genre_item_selected2" value="$genre_item_all"/>$genre_item_all<br />		
+			<!--#end if#-->
+		<!--#end for#-->
+
+		</div>
+		
+		<br>
+
+		<a title="Allows you to specify a lower minimum imdb rating for your preferred genre(s)."><strong>(?)</strong></a><strong> Preferred Rating:</strong><br>
+		Specify imdb preferred min rating.<br>
+		
+		<select name="preferred_rating2">
+		
+			<!--#set $i = 0.0#-->
+			<!--#while $i <= 9.9#-->
+				<!--#if round($i, 1) == $preferred_rating#-->
+					<option value="$preferred_rating" selected>$preferred_rating</option>
+					<!--#set $i += 0.1#-->
+				<!--#else#-->
+					<option value="$i">$i</option>
+					<!--#set $i += 0.1#-->
+				<!--#end if#-->		
+			<!--#end while#-->
+			
+		</select>
+
+		<br>
+		<br>
+		
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Queued Definitions</legend>
+
+		<a title="Allows you to specify imdb genre(s) you want to mark as queue on match, if queue genre match then the movie will be held in the queue (can be viewed in queue/view queue) for review by the user before release to the watched folder."><strong>(?)</strong></a><strong>Queue Genre(s):</strong><br>
+		Specify imdb queue genre(s)
+		<br>
+
+		<div class="imdb_genre_scroll_checkbox">
+		
+		<!--#for $genre_item_all in $genre_list_all#-->
+			<!--#if $genre_item_all in $queue_genre_list_selected#-->
+				<input type="checkbox" name="queue_genre_item_selected2" value="$genre_item_all" checked/>$genre_item_all<br />
+			<!--#else#-->
+				<input type="checkbox" name="queue_genre_item_selected2" value="$genre_item_all"/>$genre_item_all<br />		
+			<!--#end if#-->
+		<!--#end for#-->
+
+		</div>
+		
+		<br>
+		
+		<a title="Allows you to specify min imdb date you want to mark as queued, if movie date is less than the date specified then the movie will be held in the queue (can be viewed in queue/view queue) for review by the user before release to the watched folder."><strong>(?)</strong></a><strong>Queue Date:</strong><br>
+		Specify imdb min queue date.<br/>
+
+		<select name="queue_date2">
+			<!--#for $i in range($good_date, 2100)#-->
+				<!--#if $i == $queue_date#-->
+					<option value="$queue_date" selected>$queue_date</option>
+				<!--#else#-->
+					<option value="$i">$i</option>
+				<!--#end if#-->			
+			<!--#end for#-->
+		</select>
+		
+		<br>
+		<br>
+		
+	</fieldset>
+	
+	<fieldset class="EntryFieldSet">
+		<legend>Favorite Definitions</legend>
+
+		<a title="Allows you to specify director(s) you want to force download whatever the good definition checks are - use commas to seperate names."><strong>(?)</strong></a><strong> Favorite Directors:</strong><br>				
+		Specify your favorite imdb director(s)<br>
+
+		<input type="text" class="form_textbox_padding" name="fav_dir2" value="$fav_dir" maxlength="1000" placeholder="e.g. steven spielberg,ridley scott"/>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify writer(s) you want to force download whatever the good definition checks are - use commas to seperate names."><strong>(?)</strong></a><strong> Favorite Writers:</strong><br>				
+		Specify your favorite imdb writers(s)<br>
+
+		<input type="text" class="form_textbox_padding" name="fav_writer2" value="$fav_writer" maxlength="1000" placeholder="e.g. christopher nolan,james cameron"/>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify actor(s) you want to force download whatever the good definition checks are - use commas to seperate names."><strong>(?)</strong></a><strong> Favorite Actors:</strong><br>		
+		Specify your favorite imdb actor(s)<br>
+		
+		<input type="text" class="form_textbox_padding" name="fav_actor2" value="$fav_actor" maxlength="1000" placeholder="e.g. jack nicholson,robert de niro"/>
+
+		<br>
+		<br>
+
+		<a title="Allows you to specify character(s) you want to force download whatever the good definition checks are - use commas to seperate names."><strong>(?)</strong></a><strong> Favorite Characters:</strong><br>		
+		Specify your favorite imdb characters(s)<br>
+		
+		<input type="text" class="form_textbox_padding" name="fav_char2" value="$fav_char" maxlength="1000" placeholder="e.g. darth vader,harry potter"/>
+
+		<br>
+		<br>
+		
+		<a title="Allows you to specify title(s) you want to force download whatever the good definition checks are, please note you will need to include the year for the movie title - use commas to seperate names."><strong>(?)</strong></a><strong> Favorite Title:</strong><br>		
+		Specify your favorite imdb movie title(s)<br>
+
+		<input type="text" class="form_textbox_padding" name="fav_title2" value="$fav_title" maxlength="1000" placeholder="e.g. ironman (2008),casino (1995)"/>
+
+		<br>
+		<br>
+		
+	</fieldset>
+
+	<fieldset class="EntryFieldSet">
+		<legend>Bad Definitions</legend>
+
+		<a title="Allows you to specify title(s) you want to force skip whatever the good definition checks are, please note you will need to include the year for the movie title - use commas to seperate names."><strong>(?)</strong></a><strong> Bad Titles:</strong><br>		
+		Specify bad imdb movie title(s)<br>
+		
+		<input type="text" class="form_textbox_padding" name="bad_title2" value="$bad_title" maxlength="1000" placeholder="e.g. machete (2010),avatar (2009)"/>
+
+		<br>
+		<br>
+		
+	</fieldset>
+	
+<br>
+<br>
+
+<input type="submit" value="Save Changes">
+
+</form>
+
+#include $templates_dir + "/inc_bottom.tmpl"
