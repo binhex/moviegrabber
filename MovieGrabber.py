@@ -195,18 +195,123 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
 
-#define path to config file
-config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
-config_ini = os.path.normpath(config_ini)
+def cli_arguments():
 
-#define path to logs dir
-logs_dir = os.path.join(moviegrabber_root_dir, "logs")
-logs_dir = os.path.normpath(logs_dir)
+        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
+        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
 
-#define path to sqlite db
-results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
-results_db = os.path.normpath(results_db)
+                #custom argparse to redirect user to help if unknown argument specified
+                class argparse_custom(argparse.ArgumentParser):
 
+                        def error(self, message):
+
+                                sys.stderr.write('error: %s\n' % message)
+                                self.print_help()
+                                sys.exit(2)
+
+                #setup argparse description and usage, also increase spacing for help to 50
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+
+                #add argparse command line flags
+                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
+                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
+                commandline_parser.add_argument("--config", metavar="<path>", help="specify path to config.ini e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path to log files e.g. --logs /opt/moviegrabber/logs/")
+                commandline_parser.add_argument("--db", metavar="<path>", help="specify path to sqlite database e.g. --db /opt/moviegrabber/db/")                        
+                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
+                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
+
+                #save arguments in dictionary
+                args = vars(commandline_parser.parse_args())
+
+                if args["config"] != None and os.path.exists(args["config"]):
+
+                        config_ini = os.path.join(args["config"], "config.ini")                        
+                        config_ini = os.path.normpath(config_ini)
+
+                else:
+                        
+                        #define path to config file
+                        config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
+                        config_ini = os.path.normpath(config_ini)
+
+                if args["ip"] != None:
+
+                        config_parser.set("webconfig", "address", args["ip"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                if args["port"] != None:
+
+                        config_parser.set("webconfig", "port",  args["port"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                if args["logs"] != None and os.path.exists(args["logs"]):
+                        
+                        logs_dir = os.path.normpath(args["logs"])
+
+                else:
+
+                        #define path to logs dir
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                        logs_dir = os.path.normpath(logs_dir)
+                        
+                if args["db"] != None and os.path.exists(args["db"]):
+
+                        results_db = os.path.join(args["db"], "results.db")                        
+                        results_db = os.path.normpath(results_db)
+
+                else:
+
+                        #define path to sqlite db
+                        results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
+                        results_db = os.path.normpath(results_db)                                
+
+                if args["port"] != None:
+
+                        config_parser.set("webconfig", "port",  args["port"])
+
+                #check os is not windows and then create pidfile for cherrypy forked process
+                if args["pidfile"] != None and os.name != "nt":
+
+                        #create pidfile for daemonized process, used to end process in unraid
+                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
+                        pidfile.subscribe()
+
+                #check os is not windows and then run cherrypy as daemonized process
+                if args["daemon"] == True and os.name != "nt":
+
+                        #run cherrypy as daemonized process
+                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+                        daemon.subscribe()
+
+        else:
+
+                #define path to config file
+                config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
+                config_ini = os.path.normpath(config_ini)
+
+                #define path to logs dir
+                logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                logs_dir = os.path.normpath(logs_dir)
+
+                #define path to sqlite db
+                results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
+                results_db = os.path.normpath(results_db)
+
+#read in arguments if specified
+cli_arguments()
+                        
 def config_write():
 
         #create config.ini file with default sections
@@ -4853,7 +4958,6 @@ class ConfigUsenet(object):
                 config_parser.set("usenet", add_newznab_site_index + "_search_not", "")
                 config_parser.set("usenet", add_newznab_site_index + "_minsize", "0")
                 config_parser.set("usenet", add_newznab_site_index + "_maxsize", "0")
-                config_parser.set("usenet", add_newznab_site_index + "_bad_report", "")
                 config_parser.set("usenet", add_newznab_site_index + "_spotweb_support", "no")
                 config_parser.set("usenet", add_newznab_site_index + "_enabled", "yes")
 
@@ -4879,7 +4983,6 @@ class ConfigUsenet(object):
                 config_parser.set("usenet", edit_newznab_site_index + "_search_and", kwargs["newznab_search_and2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_search_or", kwargs["newznab_search_or2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_search_not", kwargs["newznab_search_not2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_bad_report", del_inv_chars(kwargs["newznab_bad_report2"]))
                 config_parser.set("usenet", edit_newznab_site_index + "_spotweb_support", kwargs["spotweb_support2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_enabled", kwargs["newznab_enabled2"])
 
@@ -4950,7 +5053,6 @@ class ConfigUsenet(object):
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_search_not")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_minsize")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_maxsize")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_bad_report")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_spotweb_support")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_enabled")
 
@@ -6525,65 +6627,6 @@ def launch_default_browser():
 
 #required to prevent seperate process (search index) from trying to load parent process (webui)
 if __name__ == '__main__':
-
-        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
-
-                #custom argparse to redirect user to help if unknown argument specified
-                class argparse_custom(argparse.ArgumentParser):
-
-                        def error(self, message):
-
-                                sys.stderr.write('error: %s\n' % message)
-                                self.print_help()
-                                sys.exit(2)
-
-                #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
-
-                #add argparse command line flags
-                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
-                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
-                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
-                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
-
-                #save arguments in dictionary
-                args = vars(commandline_parser.parse_args())
-
-                if args["ip"] != None:
-
-                        config_parser.set("webconfig", "address", args["ip"])
-
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
-
-                if args["port"] != None:
-
-                        config_parser.set("webconfig", "port",  args["port"])
-
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
-
-                #check os is not windows and then create pidfile for cherrypy forked process
-                if args["pidfile"] != None and os.name != "nt":
-
-                        #create pidfile for daemonized process, used to end process in unraid
-                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
-                        pidfile.subscribe()
-
-                #check os is not windows and then run cherrypy as daemonized process
-                if args["daemon"] == True and os.name != "nt":
-
-                        #run cherrypy as daemonized process
-                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
-                        daemon.subscribe()
 
         #create queue to send poison pill to post processing thread
         post_processing_poison_queue = Queue.Queue()
