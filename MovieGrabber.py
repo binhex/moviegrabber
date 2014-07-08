@@ -199,139 +199,7 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
 
-def cli_arguments():
-
-        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
-
-                #custom argparse to redirect user to help if unknown argument specified
-                class argparse_custom(argparse.ArgumentParser):
-
-                        def error(self, message):
-
-                                sys.stderr.write('error: %s\n' % message)
-                                self.print_help()
-                                sys.exit(2)
-
-                #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
-
-                #add argparse command line flags
-                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
-                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
-                commandline_parser.add_argument("--config", metavar="<path>", help="specify path to config.ini e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path to log files e.g. --logs /opt/moviegrabber/logs/")
-                commandline_parser.add_argument("--db", metavar="<path>", help="specify path to sqlite database e.g. --db /opt/moviegrabber/db/")                        
-                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
-                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
-
-                #save arguments in dictionary
-                args = vars(commandline_parser.parse_args())
-
-                if args["config"] != None and os.path.exists(args["config"]):
-
-                        config_dir = os.path.normpath(args["config"])
-
-                else:
-                        
-                        #define path to config file
-                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
-                        config_dir = os.path.normpath(config_dir)
-
-                config_ini = os.path.join(config_dir, "config.ini")
-                
-                if args["ip"] != None:
-
-                        config_parser.set("webconfig", "address", args["ip"])
-
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
-
-                if args["port"] != None:
-
-                        config_parser.set("webconfig", "port",  args["port"])
-
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
-
-                if args["logs"] != None and os.path.exists(args["logs"]):
-                        
-                        logs_dir = os.path.normpath(args["logs"])
-
-                else:
-
-                        #define path to logs dir
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
-                        logs_dir = os.path.normpath(logs_dir)
-                        
-                if args["db"] != None and os.path.exists(args["db"]):
-
-                        results_dir = os.path.normpath(args["db"])
-
-                else:
-
-                        #define path to sqlite db
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
-                        results_dir = os.path.normpath(results_dir)                                
-
-                if args["port"] != None:
-
-                        config_parser.set("webconfig", "port",  args["port"])
-
-                #check os is not windows and then create pidfile for cherrypy forked process
-                if args["pidfile"] != None and os.name != "nt":
-
-                        #create pidfile for daemonized process, used to end process in unraid
-                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
-                        pidfile.subscribe()
-
-                #check os is not windows and then run cherrypy as daemonized process
-                if args["daemon"] == True and os.name != "nt":
-
-                        #run cherrypy as daemonized process
-                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
-                        daemon.subscribe()
-
-        else:
-
-                #define path to config file
-                config_dir = os.path.join(moviegrabber_root_dir, "configs")
-                config_dir = os.path.normpath(config_dir)
-
-                #define path to logs dir
-                logs_dir = os.path.join(moviegrabber_root_dir, "logs")
-                logs_dir = os.path.normpath(logs_dir)
-
-                #define path to sqlite db
-                results_dir = os.path.join(moviegrabber_root_dir, "db")
-                results_dir = os.path.normpath(results_dir)
-
-        #return values in dictionary
-        return {'config_dir': config_dir, 'logs_dir': logs_dir, 'results_dir': results_dir}
-
-#read in cli arguments
-arg_dict = cli_arguments()
-
-#save returned values from dict
-config_dir = arg_dict['config_dir']
-logs_dir = arg_dict['logs_dir']
-results_dir = arg_dict['results_dir']
-
-#create path to files
-config_ini = os.path.join(config_dir, "config.ini")
-cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
-moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
-sqlite_log = os.path.join(logs_dir, "sqlite.log")
-results_db = os.path.join(results_dir, "results.db")
-
-def config_write():
+def config_write(config_ini,logs_dir,results_dir):
 
         #create config.ini file with default sections
         def config_write_section(section_name):
@@ -351,6 +219,7 @@ def config_write():
         config_parser.read(config_ini)
 
         #create config sections
+        config_write_section("system")        
         config_write_section("folders")
         config_write_section("switches")
         config_write_section("imdb")
@@ -363,6 +232,10 @@ def config_write():
         config_write_section("general")
 
         #create config options
+        config_write_option("system","config_ini",config_ini)
+        config_write_option("system","logs_dir",logs_dir)
+        config_write_option("system","results_dir",results_dir)
+
         config_write_option("folders","movies_downloaded_dir","")
         config_write_option("folders","movies_replace_dir","")
         config_write_option("folders","usenet_watch_dir","")
@@ -371,6 +244,7 @@ def config_write():
         config_write_option("folders","torrent_watch_dir","")
         config_write_option("folders","torrent_archive_dir","")
         config_write_option("folders","torrent_completed_dir","")
+        config_write_option("folders","sqlitelog_dir",logs_dir)        
         config_write_option("folders","cherrypylog_dir",logs_dir)
         config_write_option("folders","moviegrabberlog_dir",logs_dir)
 
@@ -464,8 +338,146 @@ def config_write():
         #read config.ini
         config_parser.read(config_ini)
 
-#write config.ini settings if missing
-config_write()
+def cli_arguments():
+
+        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
+        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
+
+                #custom argparse to redirect user to help if unknown argument specified
+                class argparse_custom(argparse.ArgumentParser):
+
+                        def error(self, message):
+
+                                sys.stderr.write('error: %s\n' % message)
+                                self.print_help()
+                                sys.exit(2)
+
+                #setup argparse description and usage, also increase spacing for help to 50
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+
+                #add argparse command line flags
+                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
+                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
+                commandline_parser.add_argument("--config", metavar="<path>", help="specify path to config.ini e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path to log files e.g. --logs /opt/moviegrabber/logs/")
+                commandline_parser.add_argument("--db", metavar="<path>", help="specify path to sqlite database e.g. --db /opt/moviegrabber/db/")                        
+                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
+                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
+
+                #save arguments in dictionary
+                args = vars(commandline_parser.parse_args())
+
+                if args["config"] != None and os.path.exists(args["config"]):
+
+                        config_dir = os.path.normpath(args["config"])
+
+                else:
+                        
+                        #define path to config file
+                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
+                        config_dir = os.path.normpath(config_dir)
+
+                config_ini = os.path.join(config_dir, "config.ini")
+
+                #read config.ini
+                config_parser.read(config_ini)
+
+                if args["ip"] != None:
+
+                        config_parser.set("webconfig", "address", args["ip"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                if args["port"] != None:
+
+                        config_parser.set("webconfig", "port",  args["port"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                if args["logs"] != None and os.path.exists(args["logs"]):
+                        
+                        logs_dir = os.path.normpath(args["logs"])
+
+                else:
+
+                        #define path to logs dir
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
+                        logs_dir = os.path.normpath(logs_dir)
+                        
+                if args["db"] != None and os.path.exists(args["db"]):
+
+                        results_dir = os.path.normpath(args["db"])
+
+                else:
+
+                        #define path to sqlite db
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                        results_dir = os.path.normpath(results_dir)                                
+
+                if args["port"] != None:
+
+                        config_parser.set("webconfig", "port",  args["port"])
+
+                #check os is not windows and then create pidfile for cherrypy forked process
+                if args["pidfile"] != None and os.name != "nt":
+
+                        #create pidfile for daemonized process, used to end process in unraid
+                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
+                        pidfile.subscribe()
+
+                #check os is not windows and then run cherrypy as daemonized process
+                if args["daemon"] == True and os.name != "nt":
+
+                        #run cherrypy as daemonized process
+                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+                        daemon.subscribe()
+
+        #windows compiled binary cannot define config, logs, or db
+        else:
+
+                #default path to config.ini
+                config_dir = os.path.join(moviegrabber_root_dir, "configs")
+                config_dir = os.path.normpath(config_dir)                
+                config_ini = os.path.join(config_dir, "config.ini")
+
+                #default path to logs
+                logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                logs_dir = os.path.normpath(logs_dir)                
+
+                #default path to logs
+                results_dir = os.path.join(moviegrabber_root_dir, "db")
+                results_dir = os.path.normpath(results_dir)                
+
+        #send saved values to config write function
+        config_write(config_ini,logs_dir,results_dir)
+                                        
+        #return config.ini path - used to read logs and results values from ini file
+        return config_ini
+
+#save returned value
+config_ini = cli_arguments()
+
+#read config.ini
+config_parser.read(config_ini)
+
+#read system values
+logs_dir = config_parser.get("system", "logs_dir")
+results_dir = config_parser.get("system", "results_dir")
+
+#create path to files
+cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
+moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
+sqlite_log = os.path.join(logs_dir, "sqlite.log")
+results_db = os.path.join(results_dir, "results.db")
 
 #create connection to sqlite db using sqlalchemy
 engine = create_engine("sqlite:///" + results_db, echo=False)
