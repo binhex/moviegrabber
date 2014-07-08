@@ -10,6 +10,7 @@ bug couldnt remove path from textbox2 if pp rule set to delete
 bug post processing sometimes failing to delete sub-dirs when highly nested
 enhancement option for post processing to rename downloaded movie file with either postname or imdb title
 add in option to overwrite/delete destination if it exists for pp
+add in argument options for config, logs, and db locations
 
 current issues
 --------------
