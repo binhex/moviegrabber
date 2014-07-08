@@ -228,14 +228,13 @@ def cli_arguments():
 
                 if args["config"] != None and os.path.exists(args["config"]):
 
-                        config_ini = os.path.join(args["config"], "config.ini")                        
-                        config_ini = os.path.normpath(config_ini)
+                        config_dir = os.path.normpath(args["config"])
 
                 else:
                         
                         #define path to config file
-                        config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
-                        config_ini = os.path.normpath(config_ini)
+                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
+                        config_dir = os.path.normpath(config_dir)
 
                 if args["ip"] != None:
 
@@ -264,19 +263,18 @@ def cli_arguments():
                 else:
 
                         #define path to logs dir
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
                         logs_dir = os.path.normpath(logs_dir)
                         
                 if args["db"] != None and os.path.exists(args["db"]):
 
-                        results_db = os.path.join(args["db"], "results.db")                        
-                        results_db = os.path.normpath(results_db)
+                        results_dir = os.path.normpath(args["db"])
 
                 else:
 
                         #define path to sqlite db
-                        results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
-                        results_db = os.path.normpath(results_db)                                
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                        results_dir = os.path.normpath(results_dir)                                
 
                 if args["port"] != None:
 
@@ -299,20 +297,35 @@ def cli_arguments():
         else:
 
                 #define path to config file
-                config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
-                config_ini = os.path.normpath(config_ini)
+                config_dir = os.path.join(moviegrabber_root_dir, "configs")
+                config_dir = os.path.normpath(config_dir)
 
                 #define path to logs dir
                 logs_dir = os.path.join(moviegrabber_root_dir, "logs")
                 logs_dir = os.path.normpath(logs_dir)
 
                 #define path to sqlite db
-                results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
-                results_db = os.path.normpath(results_db)
+                results_dir = os.path.join(moviegrabber_root_dir, "db")
+                results_dir = os.path.normpath(results_dir)
 
-#read in arguments if specified
-cli_arguments()
-                        
+        #return values in dictionary
+        return {'config': config_dir, 'logs': logs_dir, 'results': results_dir}
+
+#read in cli arguments
+arg_dict = cli_arguments()
+
+#save returned values from dict
+config_dir = arg_dict['config']
+logs_dir = arg_dict['logs']
+results_dir = arg_dict['results']
+
+#create path to files
+config_ini = os.path.join(config_dir, "config.ini")
+cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
+moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
+sqlite_log = os.path.join(logs_dir, "sqlite.log")
+results_db = os.path.join(results_dir, "results.db")
+
 def config_write():
 
         #create config.ini file with default sections
@@ -353,8 +366,6 @@ def config_write():
         config_write_option("folders","torrent_watch_dir","")
         config_write_option("folders","torrent_archive_dir","")
         config_write_option("folders","torrent_completed_dir","")
-        config_write_option("folders","cherrypylog_dir",logs_dir)
-        config_write_option("folders","moviegrabberlog_dir",logs_dir)
 
         config_write_option("switches","enable_downloaded","no")
         config_write_option("switches","enable_replace","no")
@@ -624,10 +635,11 @@ certs_dir = os.path.normpath(certs_dir)
 # logging #
 ###########
 
-def cherrypy_logging(log_path):
+def cherrypy_logging():
 
+        #specify log filename
         log = cherrypy.log
-
+        
         #remove the default FileHandlers if present
         log.access_file = ""
         log.error_file = ""
@@ -639,7 +651,7 @@ def cherrypy_logging(log_path):
         backupCount = getattr(log, "rot_backupCount", 3)
 
         #create a new rotating log for error logging
-        fname = getattr(log, "rot_error_file", log_path)
+        fname = getattr(log, "rot_error_file", cherrypy_log)
         h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
         h.setLevel(logging.DEBUG)
         h.setFormatter(cherrypy._cplogging.logfmt)
@@ -647,8 +659,7 @@ def cherrypy_logging(log_path):
 
 def moviegrabber_logging():
 
-        #read moviegrabber log directory and log levels
-        moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
+        #read log levels
         log_level = config_parser.get("general", "log_level")
 
         #get current thread name
@@ -658,29 +669,29 @@ def moviegrabber_logging():
         moviegrabber_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
 
         #setup logger for moviegrabber
-        moviegrabber_log = logging.getLogger("moviegrabber")
+        moviegrabber_logger = logging.getLogger("moviegrabber")
 
         #setup logging to file for moviegrabber
-        moviegrabber_filehandler = logging.FileHandler(os.path.join(moviegrabberlog_dir, "moviegrabber.log"), "a")
+        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a")
 
         #set formatter for moviegrabber
         moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
 
         #add handler for formatter to the file logger
-        moviegrabber_log.addHandler(moviegrabber_filehandler)
+        moviegrabber_logger.addHandler(moviegrabber_filehandler)
 
         #set level of logging from config
         if log_level == "INFO":
 
-                moviegrabber_log.setLevel(logging.INFO)
+                moviegrabber_logger.setLevel(logging.INFO)
 
         elif log_level == "WARNING":
 
-                moviegrabber_log.setLevel(logging.WARNING)
+                moviegrabber_logger.setLevel(logging.WARNING)
 
         elif log_level == "exception":
 
-                moviegrabber_log.setLevel(logging.ERROR)
+                moviegrabber_logger.setLevel(logging.ERROR)
 
         #setup logging to console
         console_streamhandler = logging.StreamHandler()
@@ -689,7 +700,7 @@ def moviegrabber_logging():
         console_streamhandler.setFormatter(moviegrabber_formatter)
 
         #add handler for formatter to the console
-        moviegrabber_log.addHandler(console_streamhandler)
+        moviegrabber_logger.addHandler(console_streamhandler)
 
         #set level of logging from config
         if log_level == "INFO":
@@ -704,12 +715,11 @@ def moviegrabber_logging():
 
                 console_streamhandler.setLevel(logging.ERROR)
 
-        return moviegrabber_log
+        return moviegrabber_logger
 
 def sqlite_logging():
 
-        #read moviegrabber log directory and log levels
-        moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
+        #read log levels
         log_level = config_parser.get("general", "log_level")
 
         #get current thread name
@@ -719,35 +729,36 @@ def sqlite_logging():
         sqlite_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
 
         #setup logger for sqlite using sqlalchemy
-        sqlite_log = logging.getLogger("sqlalchemy.engine")
+        sqlite_logger = logging.getLogger("sqlalchemy.engine")
 
         #setup logging to file for sqlite
-        sqlite_filehandler = logging.FileHandler(os.path.join(moviegrabberlog_dir, "sqlite.log"), "a")
+        sqlite_filehandler = logging.FileHandler(sqlite_log, "a")
 
         #set formatter for sqlite
         sqlite_filehandler.setFormatter(sqlite_formatter)
 
         #add handler for formatter to the file logger
-        sqlite_log.addHandler(sqlite_filehandler)
+        sqlite_logger.addHandler(sqlite_filehandler)
 
         #set level of logging from config
         if log_level == "INFO":
 
-                sqlite_log.setLevel(logging.INFO)
+                sqlite_logger.setLevel(logging.INFO)
 
         elif log_level == "WARNING":
 
-                sqlite_log.setLevel(logging.WARNING)
+                sqlite_logger.setLevel(logging.WARNING)
 
         elif log_level == "exception":
 
-                sqlite_log.setLevel(logging.ERROR)
+                sqlite_logger.setLevel(logging.ERROR)
 
-        return sqlite_log
+        return sqlite_logger
 
 #store the logger instances
 mg_log = moviegrabber_logging()
-sql_log = sqlite_logging()
+sql_log = sqlite_logging()        
+cherry_log = cherrypy_logging()
 
 ################
 # sqlite check #
@@ -6118,10 +6129,6 @@ class HomeRoot(object):
                 return str(template)
 
 def start_webgui():
-
-        #define cherrpy logging
-        cherrypylog_dir = config_parser.get("folders", "cherrypylog_dir")
-        cherrypy_logging(os.path.join(cherrypylog_dir, "cherrypy.log"))
 
         #check if webui username and password specified, if exist enable authentication for webconfig_settings
         if (config_parser.get("webconfig", "username")) and (config_parser.get("webconfig", "password")):
