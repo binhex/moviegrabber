@@ -14,6 +14,9 @@ add in argument options for config, logs, and db locations
 
 current issues
 --------------
+add in option to specify sqlite logs, do checks in arguments for entry exists in config.ini and is valid?
+add in option to specify sqlite db using webui
+add in option to specify config.ini location using webui
 remove enable fav switch - if any fav defined then assume enabled
 remove preferred switch -  if genre selected then assume enabled
 remove enable queing switch - if queue date or queue genre defined then assume enabled
@@ -236,6 +239,8 @@ def cli_arguments():
                         config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
                         config_dir = os.path.normpath(config_dir)
 
+                config_ini = os.path.join(config_dir, "config.ini")
+                
                 if args["ip"] != None:
 
                         config_parser.set("webconfig", "address", args["ip"])
@@ -309,15 +314,15 @@ def cli_arguments():
                 results_dir = os.path.normpath(results_dir)
 
         #return values in dictionary
-        return {'config': config_dir, 'logs': logs_dir, 'results': results_dir}
+        return {'config_dir': config_dir, 'logs_dir': logs_dir, 'results_dir': results_dir}
 
 #read in cli arguments
 arg_dict = cli_arguments()
 
 #save returned values from dict
-config_dir = arg_dict['config']
-logs_dir = arg_dict['logs']
-results_dir = arg_dict['results']
+config_dir = arg_dict['config_dir']
+logs_dir = arg_dict['logs_dir']
+results_dir = arg_dict['results_dir']
 
 #create path to files
 config_ini = os.path.join(config_dir, "config.ini")
@@ -366,6 +371,8 @@ def config_write():
         config_write_option("folders","torrent_watch_dir","")
         config_write_option("folders","torrent_archive_dir","")
         config_write_option("folders","torrent_completed_dir","")
+        config_write_option("folders","cherrypylog_dir",logs_dir)
+        config_write_option("folders","moviegrabberlog_dir",logs_dir)
 
         config_write_option("switches","enable_downloaded","no")
         config_write_option("switches","enable_replace","no")
