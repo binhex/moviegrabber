@@ -14,9 +14,7 @@ add in argument options for config, logs, and db locations
 
 current issues
 --------------
-add in option to specify sqlite logs, do checks in arguments for entry exists in config.ini and is valid?
 add in option to specify sqlite db using webui
-add in option to specify config.ini location using webui
 remove enable fav switch - if any fav defined then assume enabled
 remove preferred switch -  if genre selected then assume enabled
 remove enable queing switch - if queue date or queue genre defined then assume enabled
@@ -29,7 +27,6 @@ check certification for pp working
 add in ability to manage multiple files for single movie CDxx for pp
 bug fix up version checking
 still having issues with downloader not downloading correctly, hanging on "downloading"
-caputure error and reset logs IOError: [Errno 2] No such file or directory: 'D:\\mnt\\cache\\cache-only\\Apps\\MovieGrabberDev\\logs\\moviegrabber.log'
 tidy up error message in urlretry
 
 future
@@ -319,23 +316,22 @@ def config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir):
         #force write of version to config.ini
         config_parser.set("general","local_version",latest_mg_version)
 
-        #if value is None then already defined
+        #if value defined then set
         if webconfig_ip != None:
 
                 config_parser.set("webconfig","address",webconfig_ip)
 
-        #if value is None then already defined
+        #if value defined then set
         if webconfig_port != None:
                 
                 config_parser.set("webconfig","port",webconfig_port)
 
-        #if value is None then already defined        
+        #if value defined then set
         if logs_dir != None:
                 
-                config_parser.set("folders","sqlitelog_dir",logs_dir)        
-                config_parser.set("folders","cherrypylog_dir",logs_dir)
-                config_parser.set("folders","moviegrabberlog_dir",logs_dir)
+                config_parser.set("folders","logs_dir",logs_dir)        
 
+        #if value defined then set
         if results_dir != None:
                 
                 config_parser.set("folders","results_dir",results_dir)
@@ -364,7 +360,7 @@ def cli_arguments():
                                 sys.exit(2)
 
                 #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
                 commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
@@ -374,6 +370,7 @@ def cli_arguments():
                 commandline_parser.add_argument("--db", metavar="<path>", help="specify path to sqlite database e.g. --db /opt/moviegrabber/db/")                        
                 commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
                 commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
+                commandline_parser.add_argument("--reset", action="store_true", help="reset config.ini to defaults")          
                 commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
 
                 #save arguments in dictionary
@@ -391,6 +388,11 @@ def cli_arguments():
                         config_dir = os.path.normpath(config_dir)
 
                 config_ini = os.path.join(config_dir, "config.ini")
+
+                #if reset flagged then delete existing config.ini
+                if args["reset"] == True and os.path.exists(config_ini):
+
+                        os.remove(config_ini)
 
                 #if argument specified then use
                 if args["ip"] != None:
@@ -509,11 +511,11 @@ config_ini = cli_arguments()
 #read config.ini
 config_parser.read(config_ini)
 
-#read system values
-logs_dir = config_parser.get("system", "logs_dir")
-results_dir = config_parser.get("system", "results_dir")
+#read values for logs and results db
+logs_dir = config_parser.get("folders", "logs_dir")
+results_dir = config_parser.get("folders", "results_dir")
 
-#create path to files
+#construct full path to files
 cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
 moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
 sqlite_log = os.path.join(logs_dir, "sqlite.log")
@@ -5339,9 +5341,7 @@ class ConfigDirectories(object):
                 template.torrent_watch_dir = config_parser.get("folders", "torrent_watch_dir")
                 template.torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
                 template.torrent_completed_dir = config_parser.get("folders", "torrent_completed_dir")
-                template.cherrypylog_dir = config_parser.get("folders", "cherrypylog_dir")
-                template.moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
-
+                template.logs_dir = config_parser.get("folders", "logs_dir")
                 header()
 
                 footer()
@@ -5377,9 +5377,9 @@ class ConfigDirectories(object):
 
                         config_parser.set("folders", "torrent_completed_dir", del_inv_chars(kwargs["torrent_completed_dir2"]).encode("utf-8"))
 
-                if os.path.exists(kwargs["moviegrabberlog_dir2"]) and kwargs["moviegrabberlog_dir2"]:
+                if os.path.exists(kwargs["logs_dir2"]) and kwargs["logs_dir2"]:
 
-                        config_parser.set("folders", "moviegrabberlog_dir", del_inv_chars(kwargs["moviegrabberlog_dir2"]).encode("utf-8"))
+                        config_parser.set("folders", "logs_dir", del_inv_chars(kwargs["logs_dir2"]).encode("utf-8"))
 
                 #create list of movies to replace
                 movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
