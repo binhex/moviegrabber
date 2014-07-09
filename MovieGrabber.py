@@ -14,6 +14,7 @@ add in argument options for config, logs, and db locations
 
 current issues
 --------------
+bug with current version and remote version in footer
 add in option to specify sqlite db using webui
 remove enable fav switch - if any fav defined then assume enabled
 remove preferred switch -  if genre selected then assume enabled
@@ -360,7 +361,7 @@ def cli_arguments():
                                 sys.exit(2)
 
                 #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--deamon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
                 commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
