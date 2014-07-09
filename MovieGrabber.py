@@ -199,7 +199,7 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
 
-def config_write(config_ini,logs_dir,results_dir):
+def config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir):
 
         #create config.ini file with default sections
         def config_write_section(section_name):
@@ -219,7 +219,6 @@ def config_write(config_ini,logs_dir,results_dir):
         config_parser.read(config_ini)
 
         #create config sections
-        config_write_section("system")        
         config_write_section("folders")
         config_write_section("switches")
         config_write_section("imdb")
@@ -232,10 +231,6 @@ def config_write(config_ini,logs_dir,results_dir):
         config_write_section("general")
 
         #create config options
-        config_write_option("system","config_ini",config_ini)
-        config_write_option("system","logs_dir",logs_dir)
-        config_write_option("system","results_dir",results_dir)
-
         config_write_option("folders","movies_downloaded_dir","")
         config_write_option("folders","movies_replace_dir","")
         config_write_option("folders","usenet_watch_dir","")
@@ -244,9 +239,6 @@ def config_write(config_ini,logs_dir,results_dir):
         config_write_option("folders","torrent_watch_dir","")
         config_write_option("folders","torrent_archive_dir","")
         config_write_option("folders","torrent_completed_dir","")
-        config_write_option("folders","sqlitelog_dir",logs_dir)        
-        config_write_option("folders","cherrypylog_dir",logs_dir)
-        config_write_option("folders","moviegrabberlog_dir",logs_dir)
 
         config_write_option("switches","enable_downloaded","no")
         config_write_option("switches","enable_replace","no")
@@ -290,8 +282,6 @@ def config_write(config_ini,logs_dir,results_dir):
         config_write_option("xbmc","xbmc_notification","no")
         config_write_option("xbmc","xbmc_library_update","no")
 
-        config_write_option("webconfig","address","0.0.0.0")
-        config_write_option("webconfig","port","9191")
         config_write_option("webconfig","username","")
         config_write_option("webconfig","password","")
         config_write_option("webconfig","enable_ssl","no")
@@ -328,6 +318,27 @@ def config_write(config_ini,logs_dir,results_dir):
 
         #force write of version to config.ini
         config_parser.set("general","local_version",latest_mg_version)
+
+        #if value is None then already defined
+        if webconfig_ip != None:
+
+                config_parser.set("webconfig","address",webconfig_ip)
+
+        #if value is None then already defined
+        if webconfig_port != None:
+                
+                config_parser.set("webconfig","port",webconfig_port)
+
+        #if value is None then already defined        
+        if logs_dir != None:
+                
+                config_parser.set("folders","sqlitelog_dir",logs_dir)        
+                config_parser.set("folders","cherrypylog_dir",logs_dir)
+                config_parser.set("folders","moviegrabberlog_dir",logs_dir)
+
+        if results_dir != None:
+                
+                config_parser.set("folders","results_dir",results_dir)
 
         #write settings to config.ini
         with open(config_ini, 'w') as configini:
@@ -368,64 +379,80 @@ def cli_arguments():
                 #save arguments in dictionary
                 args = vars(commandline_parser.parse_args())
 
+                #if argument specified then use
                 if args["config"] != None and os.path.exists(args["config"]):
 
                         config_dir = os.path.normpath(args["config"])
 
+                #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
                         
-                        #define path to config file
                         config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
                         config_dir = os.path.normpath(config_dir)
 
                 config_ini = os.path.join(config_dir, "config.ini")
 
-                #read config.ini
-                config_parser.read(config_ini)
-
+                #if argument specified then use
                 if args["ip"] != None:
 
-                        config_parser.set("webconfig", "address", args["ip"])
+                        webconfig_ip = args["ip"]
 
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
+                #if config.ini exists then do not modify
+                elif os.path.exists(config_ini):
+                        
+                        webconfig_ip = None
 
-                                config_parser.write(configini)
-                                configini.close()
+                #if config.ini does not exist then write default value
+                else:
+                        
+                        webconfig_ip = "0.0.0.0"
 
+                #if argument specified then use                        
                 if args["port"] != None:
 
-                        config_parser.set("webconfig", "port",  args["port"])
+                        webconfig_port = args["port"]
 
-                        #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
+                #if config.ini exists then do not modify
+                elif os.path.exists(config_ini):
+                        
+                        webconfig_port = None
 
-                                config_parser.write(configini)
-                                configini.close()
+                #if config.ini does not exist then write default value
+                else:
 
+                        webconfig_port = "9191"
+
+                #if argument specified then use                                                
                 if args["logs"] != None and os.path.exists(args["logs"]):
                         
                         logs_dir = os.path.normpath(args["logs"])
 
+                #if config.ini exists then do not modify
+                elif os.path.exists(config_ini):
+                        
+                        logs_dir = None
+
+                #if config.ini does not exist then write default value
                 else:
 
-                        #define path to logs dir
                         logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
                         logs_dir = os.path.normpath(logs_dir)
-                        
+
+                #if argument specified then use                                                
                 if args["db"] != None and os.path.exists(args["db"]):
 
                         results_dir = os.path.normpath(args["db"])
 
+                #if config.ini exists then do not modify
+                elif os.path.exists(config_ini):
+                        
+                        results_dir = None
+
+                #if config.ini does not exist then write default value
                 else:
 
-                        #define path to sqlite db
                         results_dir = os.path.join(moviegrabber_root_dir, "db")                        
                         results_dir = os.path.normpath(results_dir)                                
-
-                if args["port"] != None:
-
-                        config_parser.set("webconfig", "port",  args["port"])
 
                 #check os is not windows and then create pidfile for cherrypy forked process
                 if args["pidfile"] != None and os.name != "nt":
@@ -440,8 +467,11 @@ def cli_arguments():
                         #run cherrypy as daemonized process
                         daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
                         daemon.subscribe()
+                        
+                #write values to config write function
+                config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir)
 
-        #windows compiled binary cannot define config, logs, or db
+        #windows compiled binary cannot define config, logs, or db using argparse
         else:
 
                 #default path to config.ini
@@ -449,16 +479,26 @@ def cli_arguments():
                 config_dir = os.path.normpath(config_dir)                
                 config_ini = os.path.join(config_dir, "config.ini")
 
-                #default path to logs
-                logs_dir = os.path.join(moviegrabber_root_dir, "logs")
-                logs_dir = os.path.normpath(logs_dir)                
+                #if config.ini exists then do not modify
+                if os.path.exists(config_ini):
 
-                #default path to logs
-                results_dir = os.path.join(moviegrabber_root_dir, "db")
-                results_dir = os.path.normpath(results_dir)                
+                        webconfig_ip = None
+                        webconfig_port = None
+                        logs_dir = None
+                        results_dir = None
 
-        #send saved values to config write function
-        config_write(config_ini,logs_dir,results_dir)
+                #if config.ini does not exist then write default value
+                else:
+
+                        webconfig_ip = "0.0.0.0"
+                        webconfig_port = "9191"                
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                        logs_dir = os.path.normpath(logs_dir)                
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")
+                        results_dir = os.path.normpath(results_dir)                
+
+                #write values to config write function
+                config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir)
                                         
         #return config.ini path - used to read logs and results values from ini file
         return config_ini
