@@ -116,7 +116,7 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
 
-def config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir):
+def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
         #create config.ini file with default sections
         def config_write_section(section_name):
@@ -235,26 +235,10 @@ def config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir):
 
         #force write of version to config.ini
         config_parser.set("general","local_version",latest_mg_version)
-
-        #if value defined then set
-        if webconfig_ip != None:
-
-                config_parser.set("webconfig","address",webconfig_ip)
-
-        #if value defined then set
-        if webconfig_port != None:
-                
-                config_parser.set("webconfig","port",webconfig_port)
-
-        #if value defined then set
-        if logs_dir != None:
-                
-                config_parser.set("folders","logs_dir",logs_dir)        
-
-        #if value defined then set
-        if results_dir != None:
-                
-                config_parser.set("folders","results_dir",results_dir)
+        config_parser.set("webconfig","address",webconfig_address)        
+        config_parser.set("webconfig","port",webconfig_port)
+        config_parser.set("folders","logs_dir",logs_dir)                        
+        config_parser.set("folders","results_dir",results_dir)
 
         #write settings to config.ini
         with open(config_ini, 'w') as configini:
@@ -285,96 +269,140 @@ def cli_arguments():
                 #add argparse command line flags
                 commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
                 commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
-                commandline_parser.add_argument("--config", metavar="<path>", help="specify path to config.ini e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path to log files e.g. --logs /opt/moviegrabber/logs/")
-                commandline_parser.add_argument("--db", metavar="<path>", help="specify path to sqlite database e.g. --db /opt/moviegrabber/db/")                        
-                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument("--config", metavar="<path>", help="specify path for config file e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path for log files e.g. --logs /opt/moviegrabber/logs/")
+                commandline_parser.add_argument("--db", metavar="<path>", help="specify path for database e.g. --db /opt/moviegrabber/db/")
+                commandline_parser.add_argument("--pidfile", metavar="<path>", help="specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
                 commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--reset", action="store_true", help="reset config.ini to defaults")          
+                commandline_parser.add_argument("--reset-config", action="store_true", help="reset settings to default")
+                commandline_parser.add_argument("--reset-db", action="store_true", help="reset database to default")
                 commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
 
                 #save arguments in dictionary
                 args = vars(commandline_parser.parse_args())
 
                 #if argument specified then use
-                if args["config"] != None and os.path.exists(args["config"]):
+                if args["config"] != None:
 
-                        config_dir = os.path.normpath(args["config"])
+                        if not os.path.exists(args["config"]):
+                                
+                                try:
 
+                                        #create path recursively
+                                        os.makedirs(args["config"])
+                                        config_dir = os.path.normpath(args["config"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
+                                        config_dir = os.path.normpath(config_dir)
+                                        
+                        else:
+
+                                config_dir = os.path.normpath(args["config"])
+                                
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
-                        
+
                         config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
                         config_dir = os.path.normpath(config_dir)
-
+                        
                 config_ini = os.path.join(config_dir, "config.ini")
 
-                #if reset flagged then delete existing config.ini
-                if args["reset"] == True and os.path.exists(config_ini):
+                #read config.ini - used for logs and db path checks in config.ini
+                config_parser.read(config_ini)
 
-                        os.remove(config_ini)
+                try:
+                        
+                        #read values from config.ini
+                        logs_dir = config_parser.get("folders", "logs_dir")
+                        results_dir = config_parser.get("folders", "results_dir")
+                        webconfig_address = config_parser.get("webconfig", "address")
+                        webconfig_port = config_parser.get("webconfig", "port")                
 
+                except ConfigParser.NoSectionError:
+
+                        logs_dir = None
+                        results_dir = None
+                        webconfig_address = None
+                        webconfig_port = None
+                        
+                #if argument specified then use
+                if args["logs"] != None:
+
+                        if not os.path.exists(args["logs"]):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["logs"])
+                                        logs_dir = os.path.normpath(args["logs"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
+                                        logs_dir = os.path.normpath(logs_dir)
+                                        
+                        else:
+
+                                logs_dir = os.path.normpath(args["logs"])
+                
+                #if not specified in config.ini then set to defaults
+                elif logs_dir == None:
+                        
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
+                        logs_dir = os.path.normpath(logs_dir)
+
+                #if argument specified then use
+                if args["db"] != None:
+
+                        if not os.path.exists(args["db"]):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["db"])
+                                        results_dir = os.path.normpath(args["db"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                                        results_dir = os.path.normpath(results_dir)
+                                        
+                        else:
+
+                                results_dir = os.path.normpath(args["db"])
+
+                #if not specified in config.ini then set to defaults
+                elif results_dir == None:
+                
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                        results_dir = os.path.normpath(results_dir)
+
+                results_db = os.path.join(results_dir, "results.db")
+                
                 #if argument specified then use
                 if args["ip"] != None:
 
-                        webconfig_ip = args["ip"]
+                        webconfig_address = args["ip"]
 
-                #if config.ini exists then do not modify
-                elif os.path.exists(config_ini):
+                #if not specified in config.ini then set to defaults
+                elif webconfig_address == None:
                         
-                        webconfig_ip = None
-
-                #if config.ini does not exist then write default value
-                else:
-                        
-                        webconfig_ip = "0.0.0.0"
+                        webconfig_address = "0.0.0.0"
 
                 #if argument specified then use                        
                 if args["port"] != None:
 
                         webconfig_port = args["port"]
 
-                #if config.ini exists then do not modify
-                elif os.path.exists(config_ini):
-                        
-                        webconfig_port = None
-
-                #if config.ini does not exist then write default value
-                else:
+                #if not specified in config.ini then set to defaults
+                elif webconfig_port == None:
 
                         webconfig_port = "9191"
-
-                #if argument specified then use                                                
-                if args["logs"] != None and os.path.exists(args["logs"]):
-                        
-                        logs_dir = os.path.normpath(args["logs"])
-
-                #if config.ini exists then do not modify
-                elif os.path.exists(config_ini):
-                        
-                        logs_dir = None
-
-                #if config.ini does not exist then write default value
-                else:
-
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
-                        logs_dir = os.path.normpath(logs_dir)
-
-                #if argument specified then use                                                
-                if args["db"] != None and os.path.exists(args["db"]):
-
-                        results_dir = os.path.normpath(args["db"])
-
-                #if config.ini exists then do not modify
-                elif os.path.exists(config_ini):
-                        
-                        results_dir = None
-
-                #if config.ini does not exist then write default value
-                else:
-
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
-                        results_dir = os.path.normpath(results_dir)                                
 
                 #check os is not windows and then create pidfile for cherrypy forked process
                 if args["pidfile"] != None and os.name != "nt":
@@ -389,9 +417,19 @@ def cli_arguments():
                         #run cherrypy as daemonized process
                         daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
                         daemon.subscribe()
+
+                #if reset flagged then delete existing config.ini
+                if args["reset_config"] == True and os.path.exists(config_ini):
+
+                        os.remove(config_ini)
+
+                #if reset flagged then delete existing results.db
+                if args["reset_db"] == True and os.path.exists(results_db):
+
+                        os.remove(results_db)
                         
-                #write values to config write function
-                config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir)
+                #send values to config write function
+                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
 
         #windows compiled binary cannot define config, logs, or db using argparse
         else:
@@ -401,26 +439,48 @@ def cli_arguments():
                 config_dir = os.path.normpath(config_dir)                
                 config_ini = os.path.join(config_dir, "config.ini")
 
-                #if config.ini exists then do not modify
-                if os.path.exists(config_ini):
+                #read config.ini - used for logs and db path checks in config.ini
+                config_parser.read(config_ini)
 
-                        webconfig_ip = None
-                        webconfig_port = None
+                try:
+                        
+                        #read values from config.ini
+                        logs_dir = config_parser.get("folders", "logs_dir")
+                        results_dir = config_parser.get("folders", "results_dir")
+                        webconfig_address = config_parser.get("webconfig", "address")
+                        webconfig_port = config_parser.get("webconfig", "port")                
+
+                except ConfigParser.NoSectionError:
+
                         logs_dir = None
                         results_dir = None
+                        webconfig_address = None
+                        webconfig_port = None
 
-                #if config.ini does not exist then write default value
-                else:
+                #if not specified in config.ini then set to defaults
+                if logs_dir == None:
 
-                        webconfig_ip = "0.0.0.0"
-                        webconfig_port = "9191"                
                         logs_dir = os.path.join(moviegrabber_root_dir, "logs")
                         logs_dir = os.path.normpath(logs_dir)                
+
+                #if not specified in config.ini then set to defaults
+                if results_dir == None:
+
                         results_dir = os.path.join(moviegrabber_root_dir, "db")
                         results_dir = os.path.normpath(results_dir)                
 
-                #write values to config write function
-                config_write(config_ini,webconfig_ip,webconfig_port,logs_dir,results_dir)
+                #if not specified in config.ini then set to defaults
+                if webconfig_address == None:
+
+                        webconfig_address = "0.0.0.0"
+                        
+                #if not specified in config.ini then set to defaults
+                if webconfig_port == None:
+
+                        webconfig_port = "9191"                
+
+                #send values to config write function
+                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
                                         
         #return config.ini path - used to read logs and results values from ini file
         return config_ini
