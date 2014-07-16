@@ -1451,7 +1451,6 @@ class SearchIndex(object):
                 self.config_cat = (config_parser.get(download_type, index_site_item + "_cat")).decode("utf-8")
                 self.config_minsize = config_parser.getint(download_type, index_site_item + "_minsize")
                 self.config_maxsize = config_parser.getint(download_type, index_site_item + "_maxsize")
-                self.config_bad_report = (config_parser.get(download_type, index_site_item + "_bad_report")).decode("utf-8")
                 self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname")).decode("utf-8")
                 self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber")).decode("utf-8")
 
@@ -1467,6 +1466,7 @@ class SearchIndex(object):
                 self.config_special_cut = (config_parser.get("general", "index_special_cut")).decode("utf-8")
                 self.config_preferred_group = (config_parser.get("general", "index_preferred_group")).decode("utf-8")                
                 self.config_bad_group = (config_parser.get("general", "index_bad_group")).decode("utf-8")
+                self.config_bad_report = (config_parser.get("general", "index_bad_report")).decode("utf-8")                
                 self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
 
                 if self.download_type == "usenet":
