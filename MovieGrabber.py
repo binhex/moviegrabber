@@ -2942,7 +2942,7 @@ class SearchIndex(object):
                                         config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
 
                                         #convert list back to string
-                                        config_search_and = ''.join(config_search_and_list)
+                                        config_search_and = ','.join(config_search_and_list)
 
                                         #replace any remaining spaces with url encode
                                         config_search_and = re.sub("\s","%20", config_search_and)
