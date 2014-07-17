@@ -2938,10 +2938,17 @@ class SearchIndex(object):
 
                                 else:
 
-                                        config_search_and_url = re.sub(",","%20" ,self.config_search_and)
+                                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
+
+                                        #convert list back to string
+                                        config_search_and = ''.join(config_search_and_list)
+
+                                        #replace any remaining spaces with url encode
+                                        config_search_and = re.sub("\s","%20", config_search_and)
 
                                         #generate newznab api search url xml format
-                                        api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and_url, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                                        api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
 
                                 mg_log.info(u"Newznab Index - API search %s" % api_search)
 
