@@ -113,7 +113,13 @@ EDIT/DELETE INDEX
 
 		<!--#set $newznab_portnumber = $config_parser.get("usenet", $index_site_item + "_portnumber")#-->
 		
-		<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" required/>
+		<!--#if "custom" in $index_site_item#-->
+			<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" required/>
+		<!--#else#-->		
+			<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" disabled/>		
+			<input type="hidden" name="newznab_portnumber2" value="$newznab_portnumber" form="$edit_config_usenet">
+		<!--#end if#-->
+		
 		<br>
 		<br>
 

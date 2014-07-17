@@ -4949,7 +4949,7 @@ class ConfigUsenet(object):
 
                 elif add_newznab_site == "nzb_su":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzb.su")
+                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://api.nzb.su")
                         config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
 
                 elif add_newznab_site == "dognzb_cr":
