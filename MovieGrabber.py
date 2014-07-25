@@ -3162,15 +3162,18 @@ class SearchIndex(object):
                                         #convert to lowercase
                                         self.index_post_title_strip = self.index_post_title_strip.lower()
                                         
+                                        #append dltype to allow usenet/torrent with same postname
+                                        self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
+                                        
                                         #check if post title strip is in sqlite db
                                         sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
 
                                         #remove scoped session
                                         sql_session.remove()
 
-                                        #if != None then append to download list and go to next iteration
-                                        if sqlite_post_name != None:
-
+                                        #if postname already exists then add to download url list and go to next iter
+                                        if sqlite_post_name != None:                                                
+                                                
                                                 #check if download url is in sqlite db (case insensitive), if == None then append
                                                 sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
 
@@ -3544,13 +3547,16 @@ class SearchIndex(object):
                                 #convert to lowercase
                                 self.index_post_title_strip = self.index_post_title_strip.lower()
 
+                                #append dltype to allow usenet/torrent with same postname
+                                self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
+
                                 #check if post title strip is in sqlite db
                                 sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
 
                                 #remove scoped session
                                 sql_session.remove()
 
-                                #if != None then append to download list and go to next iteration
+                                #if postname already exists then add to download url list and go to next iter
                                 if sqlite_post_name != None:
 
                                         #check if download url is in sqlite db (case insensitive), if == None then append
