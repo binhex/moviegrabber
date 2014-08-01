@@ -1,7 +1,30 @@
-moviegrabber
+MovieGrabber
 ============
 
-Python based fully automated Usenet movie downloader
+Description
+-----------
+MovieGrabber is a fully automated way of downloading movie from usenet, it supports any nzb client that has a "watched" or "monitor" folder facility such as Sabnzbd+, Grabit and Newsbin. MovieGrabber works by checking imdb for matching criteria and if a match is found the nzb will be downloaded and stored in either a specified queued folder for user review or sent to the watched folder for processing and automatic downloading via your usenet binary client.
+
+Features
+--------
+- imdb rating filter
+- imdb votes filter
+- imdb genres filter
+- imdb year filter
+- imdb actors filter
+- imdb directors filter
+- imdb characters filter
+- imdb titles filter
+- min/max post size
+- format/resolution filter
+- movie already downloaded
+- replace existing movie
+- nzb already in watched/nzb/completed folders
+- email notification for queued/downloading
+- post processing rules - create flexible rules to delete/move files based on genre, certificate, size etc
+- torrent support for index site kickass torrents
+- xbmc notification for queued/downloading
+- xbmc library update on download complete
 
 Windows Installation
 --------------------

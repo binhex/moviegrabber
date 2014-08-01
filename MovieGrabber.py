@@ -1487,17 +1487,33 @@ class SearchIndex(object):
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
-                        #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_downloaded_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_downloaded_dir_list))
+                        try:
+                                
+                                #use itertools to chain multiple root folders and then use os.walk to produce generator output
+                                self.movies_downloaded_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_downloaded_dir_list))
+
+                        except UnicodeDecodeError:
+
+                                #if cannot decode non ascii char then log error                                
+                                self.movies_downloaded_cache = u""
+                                mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies Downloaded folder, check locale is set correctly")
 
                 if self.config_movies_replace_dir:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
 
-                        #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_replace_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_replace_dir_list))
+                        try:
+                                
+                                #use itertools to chain multiple root folders and then use os.walk to produce generator output
+                                self.movies_replace_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_replace_dir_list))
+                                
+                        except UnicodeDecodeError:
 
+                                #if cannot decode non ascii char then log error
+                                self.movies_replace_cache = u""
+                                mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies to Replace folder, check locale is set correctly")
+                                
                 if self.config_enable_email_notify == "yes":
 
                         #run external_ip() and store return value
