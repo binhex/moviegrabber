@@ -3251,7 +3251,7 @@ class SearchIndex(object):
                                                         mg_log.info(u"Newznab Index - Malformed IMDb tt number")                                                
 
                                         #if imdb id not found from index site then use omdb or tmdb                                                
-                                        elif self.imdb_tt_number_search == None or self.imdb_tt_number == None:
+                                        if self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
                                                 mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
                                                 
@@ -3671,7 +3671,7 @@ class SearchIndex(object):
                                                                 mg_log.info(u"KAT Index - Malformed IMDb tt number")                                                
 
                                 #if imdb id not found from index site then use omdb or tmdb                                               
-                                elif post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
+                                if post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
                                         mg_log.info(u"KAT Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
                                         
