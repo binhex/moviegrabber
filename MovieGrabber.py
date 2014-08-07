@@ -3255,14 +3255,14 @@ class SearchIndex(object):
 
                                                 mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
                                                 
-                                                #remove everything from movie year in post title
-                                                index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+[1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
+                                                #remove post group, encode type etc from end of post title
+                                                index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
 
-                                                #replace dots, hyphens and underscores with spaces
+                                                #replace dots, hyphens and underscores with html spaces
                                                 index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                                 #generate year from post title
-                                                index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9](?![a-z])").search(self.index_post_title)
+                                                index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
 
                                                 if index_post_movie_year_search != None:
 
@@ -3274,7 +3274,7 @@ class SearchIndex(object):
                                                         self.index_post_movie_year = ""
                                                         mg_log.info(u"Newznab Index - Cannot generate movie year from post title")                                                        
                                                         
-                                                #convert to uri for use with html search
+                                                #convert to uri for html find_id
                                                 self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
 
                                                 #attempt to get imdb id from omdb
@@ -3674,15 +3674,15 @@ class SearchIndex(object):
                                 if post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
                                         mg_log.info(u"KAT Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
+                                        
+                                        #remove post group, encode type etc from end of post title
+                                        index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
 
-                                        #remove everything from movie year in post title
-                                        index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+[1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
-
-                                        #replace dots, hyphens and underscores with spaces
+                                        #replace dots, hyphens and underscores with html spaces
                                         index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                         #generate year from post title
-                                        index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9](?![a-z])").search(self.index_post_title)
+                                        index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
 
                                         if index_post_movie_year_search != None:
 
@@ -3694,7 +3694,7 @@ class SearchIndex(object):
                                                 self.index_post_movie_year = ""
                                                 mg_log.info(u"KAT Index - Cannot generate movie year from post title")
                                                 
-                                        #convert to uri for html search
+                                        #convert to uri for html find_id
                                         self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
 
                                         #attempt to get imdb id from omdb
