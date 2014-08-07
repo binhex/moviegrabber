@@ -2324,7 +2324,8 @@ class SearchIndex(object):
 
                 #generate url to find imdb tt number using omdb
                 omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri,self.index_post_movie_year)
-
+                mg_log.info(u"KAT Index - OMDb find tt URL is %s" % (omdb_find_tt_json_url))              
+                
                 #pass to urllib2 retry function - decorator
                 try:
 
@@ -3252,6 +3253,8 @@ class SearchIndex(object):
                                         #if imdb id not found from index site then use omdb or tmdb                                                
                                         elif self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
+                                                mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
+                                                
                                                 #remove post group, encode type etc from end of post title
                                                 index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
 
@@ -3269,6 +3272,7 @@ class SearchIndex(object):
                                                 else:
 
                                                         self.index_post_movie_year = ""
+                                                        mg_log.info(u"Newznab Index - Cannot generate movie year from post title")                                                        
                                                         
                                                 #convert to uri for html find_id
                                                 self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
@@ -3287,7 +3291,7 @@ class SearchIndex(object):
                                                         #if no imdb id from omdb or tmdb then skip post
                                                         if self.imdb_tt_number == None:                                                                
 
-                                                                mg_log.warning(u"Newznab Index - Failed to get IMDb ID from OMDb or TMDb, skipping post")
+                                                                mg_log.warning(u"Newznab Index - Failed to get IMDb ID, skipping post")
                                                                 continue
                                                         
                                         #create imdb json feed (used for iphone/android)
@@ -3633,7 +3637,6 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
                                         
                                         post_description = None
-                                        mg_log.info(u"KAT Index - No description found for post item")
 
                                 if post_description != None:
                                         
@@ -3670,6 +3673,8 @@ class SearchIndex(object):
                                 #if imdb id not found from index site then use omdb or tmdb                                               
                                 elif post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
+                                        mg_log.info(u"KAT Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
+                                        
                                         #remove post group, encode type etc from end of post title
                                         index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
 
@@ -3687,6 +3692,7 @@ class SearchIndex(object):
                                         else:
 
                                                 self.index_post_movie_year = ""
+                                                mg_log.info(u"KAT Index - Cannot generate movie year from post title")
                                                 
                                         #convert to uri for html find_id
                                         self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
@@ -3705,7 +3711,7 @@ class SearchIndex(object):
                                                 #if no imdb id from omdb or tmdb then skip post
                                                 if self.imdb_tt_number == None:                                                                
 
-                                                        mg_log.warning(u"KAT Index - Failed to get IMDb ID from OMDb or TMDb, skipping post")
+                                                        mg_log.warning(u"KAT Index - Failed to get IMDb ID, skipping post")
                                                         continue
                                         
                                 #create imdb json feed (used for iphone/android)
