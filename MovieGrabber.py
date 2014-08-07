@@ -3254,15 +3254,15 @@ class SearchIndex(object):
                                         if self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
                                                 mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
-                                                
-                                                #remove post group, encode type etc from end of post title
-                                                index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
+
+                                                #remove everything from movie year in post title
+                                                index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
                                                 #replace dots, hyphens and underscores with html spaces
                                                 index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                                 #generate year from post title
-                                                index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
+                                                index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                                 if index_post_movie_year_search != None:
 
@@ -3675,14 +3675,14 @@ class SearchIndex(object):
 
                                         mg_log.info(u"KAT Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
                                         
-                                        #remove post group, encode type etc from end of post title
-                                        index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
+                                        #remove everything from movie year in post title
+                                        index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
                                         #replace dots, hyphens and underscores with html spaces
                                         index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                         #generate year from post title
-                                        index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
+                                        index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                         if index_post_movie_year_search != None:
 
