@@ -988,8 +988,8 @@ def external_ip():
 #function to remove comma's, periods and spaces from begining and end of strings
 def del_inv_chars(text):
 
-        text = re.sub("[\s\,\.]+$","" ,text)
-        text = re.sub("^[\s\,\.]+","" ,text)
+        text = re.sub(ur"[\s\,\.]+$","" ,text)
+        text = re.sub(ur"^[\s\,\.]+","" ,text)
 
         return text
 
@@ -1557,7 +1557,7 @@ class SearchIndex(object):
                                         return text
 
                         #return replaced text with substituted entity
-                        return re.sub("&#?\w+;", fixed_text, text)
+                        return re.sub(ur"&#?\w+;", fixed_text, text)
 
                 else:
 
@@ -1780,7 +1780,7 @@ class SearchIndex(object):
                 if self.config_special_cut != "" and self.filter_os_movies_downloaded_result == 0:
 
                         #replace comma's with regex OR symbol
-                        self.config_special_cut = re.sub("[,\s?]+","|",self.config_special_cut)
+                        self.config_special_cut = re.sub(ur"[,\s?]+","|",self.config_special_cut)
                                                 
                         #search for special cut in post title
                         index_post_title_special_cut_search = re.compile("(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(self.index_post_title)
@@ -2316,6 +2316,116 @@ class SearchIndex(object):
 
                         return 0
 
+        ################
+        # Find IMDb ID #
+        ################
+
+        def find_imdb_id_omdb(self):
+
+                #generate url to find imdb tt number using omdb
+                omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri,self.index_post_movie_year)
+
+                #pass to urllib2 retry function - decorator
+                try:
+
+                        #download omdb json (used for iphone/android)
+                        omdb_find_tt_json_request = urllib2_retry(omdb_find_tt_json_url,user_agent_iphone)
+                        omdb_find_tt_json = json.loads(omdb_find_tt_json_request)
+
+                except Exception:
+
+                        mg_log.warning(u"KAT Index - Failed to download OMDb json page %s" % (omdb_find_tt_json))
+                        return None
+
+                #if resulting omdb json page is blank then continue
+                if omdb_find_tt_json == {}:
+                        
+                        mg_log.info(u"KAT Index - No match for movie title %s on OMDb json" % (index_post_movie_title))
+                        return None
+
+                #if json key error then continue
+                try:
+                        
+                        imdb_tt_number = omdb_find_tt_json["imdbID"]
+                        mg_log.info(u"KAT Index - IMDb ID from OMDb is %s" % (imdb_tt_number))                                                
+
+                except (IndexError, KeyError) as e:
+
+                        mg_log.info(u"KAT Index - Cannot find IMDb ID for movie")
+                        return None
+                
+                return imdb_tt_number
+
+        def find_imdb_id_tmdb(self):
+
+                #generate url to find tmdb id number
+                tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=1d93addd6def495cec493845cd3b2788" % (self.index_post_movie_title_uri, self.index_post_movie_year)
+                mg_log.info(u"KAT Index - TMDb find id URL is %s" % (tmdb_find_id_json_url))
+                
+                #pass to urllib2 retry function - decorator
+                try:
+
+                        #download tmdb json (used for iphone/android)
+                        tmdb_find_id_json_request = urllib2_retry(tmdb_find_id_json_url,user_agent_iphone)
+                        tmdb_find_id_json = json.loads(tmdb_find_id_json_request)
+
+                except Exception:
+
+                        mg_log.warning(u"KAT Index - Failed to download TMDb json page %s" % (tmdb_find_id_json_url))
+                        return None
+
+                #if resulting tmdb json page is blank then continue
+                if tmdb_find_id_json == {}:
+                        
+                        mg_log.info(u"KAT Index - No match for movie title %s on TMDb json" % (index_post_movie_title))
+                        return None
+                
+                #if json key error then continue
+                try:
+                        
+                        tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
+                        mg_log.info(u"KAT Index - TMDb id is %s" % (tmdb_movie_id))
+
+                except (IndexError, KeyError) as e:
+
+                        mg_log.info(u"KAT Index - Cannot find TMDb ID for movie")
+                        return None
+                
+                #generate url to find imdb tt number using tmdb id number from previous search
+                tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=7b5e30851a9285340e78c201c4e4ab99" % (tmdb_movie_id)
+                mg_log.info(u"KAT Index - TMDb find tt URL is %s" % (tmdb_find_tt_json_url))
+                
+                #pass to urllib2 retry function - decorator
+                try:
+
+                        #download tmdb json (used for iphone/android)
+                        tmdb_find_tt_json_request = urllib2_retry(tmdb_find_tt_json_url,user_agent_iphone)
+                        tmdb_find_tt_json = json.loads(tmdb_find_tt_json_request)
+
+                except Exception:
+
+                        mg_log.warning(u"KAT Index - Failed to download TMDb json page %s" % (tmdb_find_tt_json_url))
+                        return None
+                
+                #if resulting tmdb json page is blank then continue
+                if tmdb_find_tt_json == {}:
+                        
+                        mg_log.info(u"KAT Index - No IMDb ID for movie title %s on TMDb json" % (index_post_movie_title))
+                        return None
+                
+                #if json key error then continue
+                try:
+                        
+                        imdb_tt_number = tmdb_find_tt_json["imdb_id"]
+                        mg_log.info(u"KAT Index - IMDb ID from TMDb is %s" % (imdb_tt_number))                                                
+
+                except KeyError:
+
+                        mg_log.info(u"KAT Index - Cannot find IMDb ID for movie")
+                        return None
+
+                return imdb_tt_number
+
         ######################
         # IMDb Movie Details #
         ######################
@@ -2327,15 +2437,15 @@ class SearchIndex(object):
                 imdb_movie_title = self.decode_html_entities(imdb_json_title)
 
                 #replace illegal characers from imdb title with hyphens
-                imdb_movie_title = re.sub(r"(?i)\\", "-" ,imdb_movie_title)
-                imdb_movie_title = re.sub(r"(?i)/", "-" ,imdb_movie_title)
-                imdb_movie_title = re.sub(r"(?i)(?<!\s):(?!\s)", "-" ,imdb_movie_title)
+                imdb_movie_title = re.sub(ur"(?i)\\", "-" ,imdb_movie_title)
+                imdb_movie_title = re.sub(ur"(?i)/", "-" ,imdb_movie_title)
+                imdb_movie_title = re.sub(ur"(?i)(?<!\s):(?!\s)", "-" ,imdb_movie_title)
 
                 #remove illegal characters from imdb title
-                imdb_movie_title = re.sub(r"[:\"*?<>|]+","" ,imdb_movie_title)
+                imdb_movie_title = re.sub(ur"[:\"*?<>|]+","" ,imdb_movie_title)
 
                 #remove string "IMDb - " from title if present
-                self.imdb_movie_title = re.sub(r"(?i)^imdb[\s-]+", "" ,imdb_movie_title)
+                self.imdb_movie_title = re.sub(ur"(?i)^imdb[\s-]+", "" ,imdb_movie_title)
 
                 #imdb movie poster url
                 try:
@@ -2343,7 +2453,7 @@ class SearchIndex(object):
                         self.imdb_movie_poster = self.imdb_json_page["data"]["image"]["url"]
 
                         #convert url for thumbnail images (214 x 317)
-                        self.imdb_movie_poster = re.sub(r"_V1_.jpg", "_V1_SY317_CR12,0,214,317_.jpg" ,self.imdb_movie_poster)
+                        self.imdb_movie_poster = re.sub(ur"_V1_.jpg", "_V1_SY317_CR12,0,214,317_.jpg" ,self.imdb_movie_poster)
 
                 except (KeyError, TypeError):
 
@@ -2930,7 +3040,7 @@ class SearchIndex(object):
                                 self.config_cat = "2040"
 
                         #remove slash at end of hostname if present
-                        self.config_hostname = re.sub("/+$", "", self.config_hostname)
+                        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                         #add http:// to hostname if hostname not prefixed with either http or https
                         if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
@@ -2963,7 +3073,7 @@ class SearchIndex(object):
                                         config_search_and = ','.join(config_search_and_list)
 
                                         #replace any remaining spaces with url encode
-                                        config_search_and = re.sub("\s","%20", config_search_and)
+                                        config_search_and = re.sub(ur"\s","%20", config_search_and)
 
                                         #generate newznab api search url xml format
                                         api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
@@ -3034,7 +3144,7 @@ class SearchIndex(object):
                                                 post_title = self.decode_html_entities(post_title)
 
                                                 #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                                post_title = re.sub("^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                                post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
 
                                                 self.index_post_title = post_title
                                                 mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
@@ -3057,63 +3167,6 @@ class SearchIndex(object):
                                                 mg_log.info(u"Newznab Index - Post title not found")
                                                 continue
 
-                                        #if post title filters are not 0 then continue to next post
-                                        if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
-
-                                                mg_log.info(u"Newznab Index - Post title search criteria failed")
-                                                continue
-
-                                        #generate imdb tt number
-                                        self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
-
-                                        if self.imdb_tt_number_search != None:
-
-                                                self.imdb_tt_number = self.imdb_tt_number_search["value"]
-
-                                                #if imdb tt number is not specified then set to none
-                                                if self.imdb_tt_number == "0000000":
-
-                                                        self.imdb_tt_number = ""
-                                                        mg_log.info(u"Newznab Index - Post IMDb link not found")
-                                                        continue
-
-                                                elif len(self.imdb_tt_number) == 6:
-
-                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
-                                                        self.imdb_tt_number = "0" + self.imdb_tt_number
-
-                                                        #create imdb json feed (used for iphone/android)
-                                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
-
-                                                        #generate imdb links for history/queued/email
-                                                        self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
-
-                                                elif len(self.imdb_tt_number) == 7:
-
-                                                        #create imdb json feed (used for iphone/android)
-                                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
-
-                                                        #generate imdb links for history/queued/email
-                                                        self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
-
-                                                else:
-
-                                                        self.imdb_tt_number = ""
-                                                        self.imdb_link = ""
-                                                        mg_log.info(u"Newznab Index - Post IMDb link malformed")
-                                                        continue
-
-                                        else:
-
-                                                self.imdb_tt_number = ""
-                                                self.imdb_link = ""
-                                                mg_log.info(u"Newznab Index - Post IMDb link not found")
-                                                continue
-
                                         #generate download link
                                         download_link_search = node.find("enclosure")
 
@@ -3128,6 +3181,123 @@ class SearchIndex(object):
                                                 mg_log.info(u"Newznab Index - Post download link not found")
                                                 continue
 
+                                        #remove seperators from post title, used for compare
+                                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
+
+                                        #convert to lowercase
+                                        self.index_post_title_strip = self.index_post_title_strip.lower()
+                                        
+                                        #append dltype to allow usenet/torrent with same postname
+                                        self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
+                                        
+                                        #check if post title strip is in sqlite db
+                                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
+
+                                        #remove scoped session
+                                        sql_session.remove()
+
+                                        #if postname already exists then add to download url list and go to next iter
+                                        if sqlite_post_name != None:                                                
+                                                
+                                                #check if download url is in sqlite db (case insensitive), if == None then append
+                                                sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
+
+                                                if sqlite_postdl == None:
+
+                                                        #get download url for post name above
+                                                        sqlite_postdl_history = sqlite_post_name.postdl
+
+                                                        #append current download url to existing download url in db
+                                                        sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
+
+                                                        #change record with updated string
+                                                        sqlite_post_name.postdl = sqlite_postdl_history_append
+
+                                                        #commit download url append to history table
+                                                        sql_session.commit()
+
+                                                #remove scoped session
+                                                sql_session.remove()
+
+                                                mg_log.info(u"Newznab Index - Post title in db history table")
+                                                continue
+
+                                        #if post title filters are not 0 then continue to next post
+                                        if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
+
+                                                mg_log.info(u"Newznab Index - Post title search criteria failed")
+                                                continue
+
+                                        #generate imdb tt number from index site
+                                        self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
+                                        
+                                        if self.imdb_tt_number_search != None:
+
+                                                self.imdb_tt_number = self.imdb_tt_number_search["value"]
+
+                                                if len(self.imdb_tt_number) == 7:
+
+                                                        self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
+                                                        
+                                                elif len(self.imdb_tt_number) == 6:
+
+                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
+                                                        self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
+
+                                                else:
+                                                        
+                                                        self.imdb_tt_number = None
+                                                        mg_log.info(u"Newznab Index - Malformed IMDb tt number")                                                
+
+                                        #if imdb id not found from index site then use omdb or tmdb                                                
+                                        elif self.imdb_tt_number_search == None or self.imdb_tt_number == None:
+
+                                                #remove post group, encode type etc from end of post title
+                                                index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
+
+                                                #replace dots, hyphens and underscores with html spaces
+                                                index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
+
+                                                #generate year from post title
+                                                index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
+
+                                                if index_post_movie_year_search != None:
+
+                                                        self.index_post_movie_year = index_post_movie_year_search.group()
+                                                        mg_log.info(u"Newznab Index - Post title generated movie year is %s" % (self.index_post_movie_year))
+
+                                                else:
+
+                                                        self.index_post_movie_year = ""
+                                                        
+                                                #convert to uri for html find_id
+                                                self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
+
+                                                #attempt to get imdb id from omdb
+                                                self.imdb_tt_number = self.find_imdb_id_omdb()
+
+                                                #if no imdb id then fallback to tmdb (slower)
+                                                if self.imdb_tt_number == None:
+
+                                                        mg_log.info(u"Newznab Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
+                                                        
+                                                        #attempt to get imdb id from tmdb
+                                                        self.imdb_tt_number = self.find_imdb_id_tmdb()
+
+                                                        #if no imdb id from omdb or tmdb then skip post
+                                                        if self.imdb_tt_number == None:                                                                
+
+                                                                mg_log.warning(u"Newznab Index - Failed to get IMDb ID from OMDb or TMDb, skipping post")
+                                                                continue
+                                                        
+                                        #create imdb json feed (used for iphone/android)
+                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
+                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
+
+                                        #generate imdb links for history/queued/email
+                                        self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
+                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
+                                                
                                         #generate post size
                                         post_size_search = node.find(attrs={"name": "size"})
 
@@ -3174,47 +3344,6 @@ class SearchIndex(object):
                                                 mg_log.info(u"Newznab Index - Post Size is NOT within thresholds")
                                                 continue
 
-                                        #remove seperators from post title, used for compare
-                                        self.index_post_title_strip = re.sub("[\.\s\-\_\(\)]+", "", self.index_post_title)
-
-                                        #convert to lowercase
-                                        self.index_post_title_strip = self.index_post_title_strip.lower()
-                                        
-                                        #append dltype to allow usenet/torrent with same postname
-                                        self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
-                                        
-                                        #check if post title strip is in sqlite db
-                                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
-
-                                        #remove scoped session
-                                        sql_session.remove()
-
-                                        #if postname already exists then add to download url list and go to next iter
-                                        if sqlite_post_name != None:                                                
-                                                
-                                                #check if download url is in sqlite db (case insensitive), if == None then append
-                                                sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
-
-                                                if sqlite_postdl == None:
-
-                                                        #get download url for post name above
-                                                        sqlite_postdl_history = sqlite_post_name.postdl
-
-                                                        #append current download url to existing download url in db
-                                                        sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
-
-                                                        #change record with updated string
-                                                        sqlite_post_name.postdl = sqlite_postdl_history_append
-
-                                                        #commit download url append to history table
-                                                        sql_session.commit()
-
-                                                #remove scoped session
-                                                sql_session.remove()
-
-                                                mg_log.info(u"Newznab Index - Post title in db history table")
-                                                continue
-
                                         #generate post date (bs converts tags to lowercase, thus pubDate must be ref as pubdate)
                                         post_date_search = node.find("pubdate")
 
@@ -3223,7 +3352,7 @@ class SearchIndex(object):
                                                 post_date = post_date_search.contents[0]
 
                                                 #remove offset string at end date
-                                                post_date = re.sub("\s?.?\d+$", "", post_date)
+                                                post_date = re.sub(ur"\s?.?\d+$", "", post_date)
 
                                                 #create date tuple
                                                 post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
@@ -3345,7 +3474,7 @@ class SearchIndex(object):
                                 self.config_cat = "highres-movies"
 
                         #remove slash at end of hostname if present
-                        self.config_hostname = re.sub("/+$", "", self.config_hostname)
+                        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                         #add http:// to hostname if hostname not prefixed with either http or https
                         if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
@@ -3354,7 +3483,6 @@ class SearchIndex(object):
 
                         #kat rss feed
                         rss_feed = "%s:%s/usearch/category%%3A%s%%20language%%3A%s%%20seeds%%3A1/?rss=1" % (self.config_hostname, self.config_portnumber, self.config_cat, self.config_lang)
-
                         mg_log.info(u"KAT Index - RSS feed %s" % rss_feed)
 
                         #pass to urllib2 retry function - decorator
@@ -3413,7 +3541,7 @@ class SearchIndex(object):
                                         post_title = self.decode_html_entities(post_title)
 
                                         #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                        post_title = re.sub("^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                        post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
 
                                         self.index_post_title = post_title
                                         mg_log.info(u"KAT Index - Post title is %s" % (self.index_post_title))
@@ -3436,69 +3564,6 @@ class SearchIndex(object):
                                         mg_log.info(u"KAT Index - Post title not found")
                                         continue
 
-                                #if post title filters are not 0 then continue to next post
-                                if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
-
-                                        mg_log.info(u"KAT Index - Post title search criteria failed")
-                                        continue
-
-                                #generate imdb url and tt number
-                                post_description_search = node.find("description")
-
-                                if post_description_search != None:
-
-                                        post_description = post_description_search.contents[0]
-
-                                        imdb_tt_number_search = re.compile("(?<=title/tt)[0-9]{6,7}").search(post_description)
-
-                                        if imdb_tt_number_search != None:
-
-                                                self.imdb_tt_number = imdb_tt_number_search.group(0)
-
-                                                if len(self.imdb_tt_number) == 6:
-
-                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
-                                                        self.imdb_tt_number = "0" + self.imdb_tt_number
-
-                                                        #create imdb json feed (used for iphone/android)
-                                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - IMDb JSON %s" % imdb_json)
-
-                                                        #generate imdb links for history/queued/email
-                                                        self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - Post IMDb link %s" % self.imdb_link)
-
-                                                elif len(self.imdb_tt_number) == 7:
-
-                                                        #create imdb json feed (used for iphone/android)
-                                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - IMDb JSON %s" % imdb_json)
-
-                                                        #generate imdb links for history/queued/email
-                                                        self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - Post IMDb link %s" % self.imdb_link)
-
-                                                else:
-
-                                                        self.imdb_tt_number = ""
-                                                        self.imdb_link = ""
-                                                        mg_log.info(u"KAT Index - Post IMDb link malformed")
-                                                        continue
-
-                                        else:
-
-                                                self.imdb_tt_number = ""
-                                                self.imdb_link = ""
-                                                mg_log.info(u"KAT Index - Post IMDb link not found")
-                                                continue
-
-                                else:
-
-                                        self.imdb_tt_number = ""
-                                        self.imdb_link = ""
-                                        mg_log.info(u"KAT Index - Post IMDb link not found")
-                                        continue
-
                                 #generate download link
                                 download_link_search = node.find("enclosure")
 
@@ -3512,6 +3577,144 @@ class SearchIndex(object):
                                         self.index_download_link = ""
                                         mg_log.info(u"KAT Index - Post download link not found")
                                         continue
+
+                                #remove seperators from post title, used for compare
+                                self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
+
+                                #convert to lowercase
+                                self.index_post_title_strip = self.index_post_title_strip.lower()
+
+                                #append dltype to allow usenet/torrent with same postname
+                                self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
+
+                                #check if post title strip is in sqlite db
+                                sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
+
+                                #remove scoped session
+                                sql_session.remove()
+
+                                #if postname already exists then add to download url list and go to next iter
+                                if sqlite_post_name != None:
+
+                                        #check if download url is in sqlite db (case insensitive), if == None then append
+                                        sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
+
+                                        if sqlite_postdl == None:
+
+                                                #get download url for post name above
+                                                sqlite_postdl_history = sqlite_post_name.postdl
+
+                                                #append current download url to existing download url in db
+                                                sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
+
+                                                #change record with updated string
+                                                sqlite_post_name.postdl = sqlite_postdl_history_append
+
+                                                #commit download url append to history table
+                                                sql_session.commit()
+
+                                        #remove scoped session
+                                        sql_session.remove()
+
+                                        mg_log.info(u"KAT Index - Post title in db history table")
+                                        continue
+
+                                #if post title filters are not 0 then continue to next post
+                                if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
+
+                                        mg_log.info(u"KAT Index - Post title search criteria failed")
+                                        continue
+
+                                #generate imdb url and tt number
+                                try:
+                                        
+                                        post_description = node.find("description").contents[0]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_description = None
+                                        mg_log.info(u"KAT Index - No description found for post item")
+
+                                if post_description != None:
+                                        
+                                        imdb_tt_number_search = re.compile("(?<=title/tt)[0-9]{6,7}").search(post_description)                                        
+
+                                        if imdb_tt_number_search != None:
+
+                                                self.imdb_tt_number = imdb_tt_number_search.group(0)
+
+                                                self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
+
+                                                if self.imdb_tt_number_search != None:
+
+                                                        self.imdb_tt_number = self.imdb_tt_number_search["value"]
+                                                        mg_log.info(u"KAT Index - IMDb ID from description is %s" % (self.imdb_tt_number))
+
+                                                        #if length is equal to 7 then prefix with tt
+                                                        if len(self.imdb_tt_number) == 7:
+
+                                                                self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
+                                                                
+                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
+                                                        elif len(self.imdb_tt_number) == 6:
+
+
+                                                                self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
+
+                                                        #if any other length then mark as none
+                                                        else:
+                                                                
+                                                                self.imdb_tt_number = None
+                                                                mg_log.info(u"KAT Index - Malformed IMDb tt number")                                                
+
+                                #if imdb id not found from index site then use omdb or tmdb                                               
+                                elif post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
+
+                                        #remove post group, encode type etc from end of post title
+                                        index_post_movie_title = re.sub(ur"[\.\-\_\s][1-2][0,9][0-9][0-9].*$", "", self.index_post_title)
+
+                                        #replace dots, hyphens and underscores with html spaces
+                                        index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
+
+                                        #generate year from post title
+                                        index_post_movie_year_search = re.compile(r"[1-2][0,9][0-9][0-9]").search(self.index_post_title)
+
+                                        if index_post_movie_year_search != None:
+
+                                                self.index_post_movie_year = index_post_movie_year_search.group()
+                                                mg_log.info(u"KAT Index - Post title generated movie year is %s" % (self.index_post_movie_year))
+
+                                        else:
+
+                                                self.index_post_movie_year = ""
+                                                
+                                        #convert to uri for html find_id
+                                        self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
+
+                                        #attempt to get imdb id from omdb
+                                        self.imdb_tt_number = self.find_imdb_id_omdb()
+
+                                        #if no imdb id then fallback to tmdb (slower)
+                                        if self.imdb_tt_number == None:
+
+                                                mg_log.info(u"KAT Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
+                                                
+                                                #attempt to get imdb id from tmdb
+                                                self.imdb_tt_number = self.find_imdb_id_tmdb()
+
+                                                #if no imdb id from omdb or tmdb then skip post
+                                                if self.imdb_tt_number == None:                                                                
+
+                                                        mg_log.warning(u"KAT Index - Failed to get IMDb ID from OMDb or TMDb, skipping post")
+                                                        continue
+                                        
+                                #create imdb json feed (used for iphone/android)
+                                imdb_json = "http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
+                                mg_log.info(u"KAT Index - IMDb JSON %s" % (imdb_json))
+
+                                #generate imdb links for history/queued/email
+                                self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
+                                mg_log.info(u"KAT Index - Post IMDb link %s" % (self.imdb_link))
 
                                 #generate post size
                                 post_size_search = node.find("torrent:contentlength")
@@ -3559,47 +3762,6 @@ class SearchIndex(object):
                                         mg_log.info(u"KAT Index - Post Size is NOT within thresholds")
                                         continue
 
-                                #remove seperators from post title, used for compare
-                                self.index_post_title_strip = re.sub("[\.\s\-\_\(\)]+", "", self.index_post_title)
-
-                                #convert to lowercase
-                                self.index_post_title_strip = self.index_post_title_strip.lower()
-
-                                #append dltype to allow usenet/torrent with same postname
-                                self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
-
-                                #check if post title strip is in sqlite db
-                                sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
-
-                                #remove scoped session
-                                sql_session.remove()
-
-                                #if postname already exists then add to download url list and go to next iter
-                                if sqlite_post_name != None:
-
-                                        #check if download url is in sqlite db (case insensitive), if == None then append
-                                        sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
-
-                                        if sqlite_postdl == None:
-
-                                                #get download url for post name above
-                                                sqlite_postdl_history = sqlite_post_name.postdl
-
-                                                #append current download url to existing download url in db
-                                                sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
-
-                                                #change record with updated string
-                                                sqlite_post_name.postdl = sqlite_postdl_history_append
-
-                                                #commit download url append to history table
-                                                sql_session.commit()
-
-                                        #remove scoped session
-                                        sql_session.remove()
-
-                                        mg_log.info(u"KAT Index - Post title in db history table")
-                                        continue
-
                                 #generate post date
                                 post_date_search = node.find("pubdate")
 
@@ -3607,7 +3769,7 @@ class SearchIndex(object):
 
                                         post_date = post_date_search.contents[0]
 
-                                        post_date = re.sub("\s?\+.*", "", post_date)
+                                        post_date = re.sub(ur"\s?\+.*", "", post_date)
                                         post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
 
                                         #reformat time to correct string format
@@ -3977,7 +4139,7 @@ class PostProcessing(object):
                                 search = os.path.splitext(os_movie_filenames)[0].lower()
 
                                 #replace comma's with regex OR symbol
-                                self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
+                                self.config_post_rule_textbox1 = re.sub(ur"[,\s?]+","|",self.config_post_rule_textbox1)
 
                                 #perform regex search (partial match)
                                 if re.compile(self.config_post_rule_textbox1, re.IGNORECASE).search(search):
@@ -4017,7 +4179,7 @@ class PostProcessing(object):
                                 search = os.path.splitext(os_movie_filenames)[1][1:].lower()
 
                                 #replace comma's with regex OR symbol
-                                self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
+                                self.config_post_rule_textbox1 = re.sub(ur"[,\s?]+","|",self.config_post_rule_textbox1)
 
                                 #perform regex search (partial match)
                                 if re.compile(self.config_post_rule_textbox1, re.IGNORECASE).search(search):
@@ -4084,7 +4246,7 @@ class PostProcessing(object):
                 def rules_genre(self):
 
                         #replace comma's with regex OR symbol
-                        self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
+                        self.config_post_rule_textbox1 = re.sub(ur"[,\s?]+","|",self.config_post_rule_textbox1)
 
                         #perform regex search (partial match)
                         if re.compile(self.config_post_rule_textbox1, re.IGNORECASE).search(self.sqlite_history_downloaded_imdbgenre):
@@ -4274,8 +4436,8 @@ def footer():
         remote_download = config_parser.get("general", "remote_download")
 
         #strip non numeric characters from version number
-        local_version_int = int(re.sub(u"[^0-9]+","" ,local_version))
-        remote_version_int = int(re.sub(u"[^0-9]+","" ,remote_version))
+        local_version_int = int(re.sub(ur"[^0-9]+","" ,local_version))
+        remote_version_int = int(re.sub(ur"[^0-9]+","" ,remote_version))
 
         #if local version less than remote version or remove version and remote download url are not empty then flag as update available
         if (local_version < remote_version) and (remote_version and remote_download):
@@ -5398,8 +5560,8 @@ class ConfigDirectories(object):
                 for movies_to_replace_item in movies_to_replace_list:
 
                         #if exist remove spaces at begning and end of string
-                        movies_to_replace_item = re.sub("^\s+","" ,movies_to_replace_item)
-                        movies_to_replace_item = re.sub("\s+$","" ,movies_to_replace_item)
+                        movies_to_replace_item = re.sub(ur"^\s+","" ,movies_to_replace_item)
+                        movies_to_replace_item = re.sub(ur"\s+$","" ,movies_to_replace_item)
 
                         if os.path.exists(movies_to_replace_item) and movies_to_replace_item != kwargs["usenet_completed_dir2"] and movies_to_replace_item != kwargs["torrent_completed_dir2"]:
 
@@ -5421,8 +5583,8 @@ class ConfigDirectories(object):
                 for movies_downloaded_item in movies_downloaded_list:
 
                         #if exist remove spaces at begning and end of string
-                        movies_downloaded_item = re.sub("^\s+","" ,movies_downloaded_item)
-                        movies_downloaded_item = re.sub("\s+$","" ,movies_downloaded_item)
+                        movies_downloaded_item = re.sub(ur"^\s+","" ,movies_downloaded_item)
+                        movies_downloaded_item = re.sub(ur"\s+$","" ,movies_downloaded_item)
 
                         if os.path.exists(movies_downloaded_item) and movies_downloaded_item != kwargs["usenet_completed_dir2"] and movies_downloaded_item != kwargs["torrent_completed_dir2"]:
 
@@ -6680,7 +6842,7 @@ def launch_default_browser():
 
                 website_protocol = "http://"
 
-        config_webconfig_address = re.sub("\"","", config_webconfig_address)
+        config_webconfig_address = re.sub(ur"\"","", config_webconfig_address)
 
         #check for localhost
         if config_webconfig_address == "0.0.0.0":
