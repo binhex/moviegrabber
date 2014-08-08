@@ -25,7 +25,11 @@ CREATE INDEX
 	<br>
 
 	<select name="add_torrent_site2" form="add_config_torrent_form">
-		<option value="kat" selected>kickass.to</option>
+	
+		<option value="kat" selected>KickAssTorrents</option>
+		<option value="piratebay" selected>thePiratebay</option>
+		<option value="bitsnoop" selected>Bitsnoop</option>
+		
 	</select>
 	
 	<br>
@@ -97,7 +101,20 @@ EDIT/DELETE INDEX
 		
 		<!--#set $torrent_cat = $config_parser.get("torrent", $index_site_item + "_cat")#-->
 		
-		<select name="torrent_cat2" form="$edit_config_torrent">
+		<select name="torrent_cat2" form="$edit_config_torrent">		
+		
+			<!--#if "kat" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any", "all movies", "other", "divx/xvid", "hd/x264", "foreign"]#-->
+			<!--#end if#-->				
+			
+			<!--#if "piratebay" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any", "all movies", "dvdr", "hd/x264"]#-->
+			<!--#end if#-->				
+
+			<!--#if "bitsnoop" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
+			<!--#end if#-->				
+			
 			<!--#for $torrent_cat_item in $torrent_cat_list#-->
 				<!--#if $torrent_cat_item.lower() == $torrent_cat.lower()#-->
 					<option value="$torrent_cat_item" selected>$torrent_cat_item</option>
@@ -105,6 +122,7 @@ EDIT/DELETE INDEX
 					<option value="$torrent_cat_item">$torrent_cat_item</option>
 				<!--#end if#-->
 			<!--#end for#-->
+			
 		</select>
 		
 		<br>
@@ -117,6 +135,19 @@ EDIT/DELETE INDEX
 		<!--#set $torrent_lang = $config_parser.get("torrent", $index_site_item + "_lang")#-->
 		
 		<select name="torrent_lang2" form="$edit_config_torrent">
+		
+			<!--#if "kat" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]#-->
+			<!--#end if#-->				
+			
+			<!--#if "piratebay" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->				
+
+			<!--#if "bitsnoop" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->				
+			
 			<!--#for $torrent_lang_item in $torrent_lang_list#-->
 				<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
 					<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
@@ -124,7 +155,9 @@ EDIT/DELETE INDEX
 					<option value="$torrent_lang_item">$torrent_lang_item</option>
 				<!--#end if#-->
 			<!--#end for#-->
+			
 		</select>
+		
 		<br>
 		<br>
 				

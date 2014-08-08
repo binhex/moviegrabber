@@ -89,6 +89,7 @@ import base64
 
 #-------------------- 3rd party -----------------------------
 
+import feedparser
 import cherrypy
 from Cheetah.Template import Template
 from bs4 import BeautifulSoup
@@ -2320,11 +2321,11 @@ class SearchIndex(object):
         # Find IMDb ID #
         ################
 
-        def find_imdb_id_omdb(self):
+        def find_imdb_id_omdb(self,site_name):
 
                 #generate url to find imdb tt number using omdb
                 omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri,self.index_post_movie_year)
-                mg_log.info(u"KAT Index - OMDb find tt URL is %s" % (omdb_find_tt_json_url))              
+                mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name,omdb_find_tt_json_url))              
                 
                 #pass to urllib2 retry function - decorator
                 try:
@@ -2335,33 +2336,33 @@ class SearchIndex(object):
 
                 except Exception:
 
-                        mg_log.warning(u"KAT Index - Failed to download OMDb json page %s" % (omdb_find_tt_json))
+                        mg_log.warning(u"%s Index - Failed to download OMDb json page %s" % (site_name,omdb_find_tt_json))
                         return None
 
                 #if resulting omdb json page is blank then continue
                 if omdb_find_tt_json == {}:
                         
-                        mg_log.info(u"KAT Index - No match for movie title %s on OMDb json" % (index_post_movie_title))
+                        mg_log.info(u"%s Index - No match for movie title %s on OMDb json" % (site_name,index_post_movie_title))
                         return None
 
                 #if json key error then continue
                 try:
                         
                         imdb_tt_number = omdb_find_tt_json["imdbID"]
-                        mg_log.info(u"KAT Index - IMDb ID from OMDb is %s" % (imdb_tt_number))                                                
+                        mg_log.info(u"%s Index - IMDb ID from OMDb is %s" % (site_name,imdb_tt_number))                                                
 
                 except (IndexError, KeyError) as e:
 
-                        mg_log.info(u"KAT Index - Cannot find IMDb ID for movie")
+                        mg_log.info(u"%s Index - Cannot find IMDb ID for movie" % (site_name))
                         return None
                 
                 return imdb_tt_number
 
-        def find_imdb_id_tmdb(self):
+        def find_imdb_id_tmdb(self,site_name):
 
                 #generate url to find tmdb id number
                 tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=1d93addd6def495cec493845cd3b2788" % (self.index_post_movie_title_uri, self.index_post_movie_year)
-                mg_log.info(u"KAT Index - TMDb find id URL is %s" % (tmdb_find_id_json_url))
+                mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name,tmdb_find_id_json_url))
                 
                 #pass to urllib2 retry function - decorator
                 try:
@@ -2372,29 +2373,29 @@ class SearchIndex(object):
 
                 except Exception:
 
-                        mg_log.warning(u"KAT Index - Failed to download TMDb json page %s" % (tmdb_find_id_json_url))
+                        mg_log.warning(u"%s Index - Failed to download TMDb json page %s" % (site_name,tmdb_find_id_json_url))
                         return None
 
                 #if resulting tmdb json page is blank then continue
                 if tmdb_find_id_json == {}:
                         
-                        mg_log.info(u"KAT Index - No match for movie title %s on TMDb json" % (index_post_movie_title))
+                        mg_log.info(u"%s Index - No match for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
                 
                 #if json key error then continue
                 try:
                         
                         tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
-                        mg_log.info(u"KAT Index - TMDb id is %s" % (tmdb_movie_id))
+                        mg_log.info(u"%s Index - TMDb id is %s" % (site_name,tmdb_movie_id))
 
                 except (IndexError, KeyError) as e:
 
-                        mg_log.info(u"KAT Index - Cannot find TMDb ID for movie")
+                        mg_log.info(u"%s Index - Cannot find TMDb ID for movie" % (site_name))
                         return None
                 
                 #generate url to find imdb tt number using tmdb id number from previous search
                 tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=7b5e30851a9285340e78c201c4e4ab99" % (tmdb_movie_id)
-                mg_log.info(u"KAT Index - TMDb find tt URL is %s" % (tmdb_find_tt_json_url))
+                mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name,tmdb_find_tt_json_url))
                 
                 #pass to urllib2 retry function - decorator
                 try:
@@ -2405,24 +2406,24 @@ class SearchIndex(object):
 
                 except Exception:
 
-                        mg_log.warning(u"KAT Index - Failed to download TMDb json page %s" % (tmdb_find_tt_json_url))
+                        mg_log.warning(u"%s Index - Failed to download TMDb json page %s" % (site_name,tmdb_find_tt_json_url))
                         return None
                 
                 #if resulting tmdb json page is blank then continue
                 if tmdb_find_tt_json == {}:
                         
-                        mg_log.info(u"KAT Index - No IMDb ID for movie title %s on TMDb json" % (index_post_movie_title))
+                        mg_log.info(u"%s Index - No IMDb ID for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
                 
                 #if json key error then continue
                 try:
                         
                         imdb_tt_number = tmdb_find_tt_json["imdb_id"]
-                        mg_log.info(u"KAT Index - IMDb ID from TMDb is %s" % (imdb_tt_number))                                                
+                        mg_log.info(u"%s Index - IMDb ID from TMDb is %s" % (site_name,imdb_tt_number))                                                
 
                 except KeyError:
 
-                        mg_log.info(u"KAT Index - Cannot find IMDb ID for movie")
+                        mg_log.info(u"%s Index - Cannot find IMDb ID for movie" % (site_name))
                         return None
 
                 return imdb_tt_number
@@ -3015,514 +3016,114 @@ class SearchIndex(object):
 
         def newznab_index(self):
 
-                try:
+                site_name = u"Newznab"
+                
+                mg_log.info(u"Newznab Index - Newznab search index started")
+                
+                #substitute friendly names for real values for categories
+                if self.config_cat == "all formats":
 
-                        mg_log.info(u"Newznab Index - Newznab search index started")
+                        self.config_cat = "2010,2020,2030,2040"
 
-                        #substitute friendly names for real values for categories
-                        if self.config_cat == "all formats":
+                if self.config_cat == "other":
 
-                                self.config_cat = "2010,2020,2030,2040"
+                        self.config_cat = "2020"
 
-                        if self.config_cat == "other":
+                if self.config_cat == "foreign":
 
-                                self.config_cat = "2020"
+                        self.config_cat = "2010"
 
-                        if self.config_cat == "foreign":
+                if self.config_cat == "divx/xvid":
 
-                                self.config_cat = "2010"
+                        self.config_cat = "2030"
 
-                        if self.config_cat == "divx/xvid":
+                if self.config_cat == "hd/x264":
 
-                                self.config_cat = "2030"
+                        self.config_cat = "2040"
 
-                        if self.config_cat == "hd/x264":
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
-                                self.config_cat = "2040"
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        #remove slash at end of hostname if present
-                        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+                        self.config_hostname = "http://" + self.config_hostname
 
-                        #add http:// to hostname if hostname not prefixed with either http or https
-                        if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                #add start and end slashes to pathname if not present
+                if not re.compile("^/", re.IGNORECASE).search(self.config_path):
 
-                                self.config_hostname = "http://" + self.config_hostname
+                        self.config_path = "/" + self.config_path
 
-                        #add start and end slashes to pathname if not present
-                        if not re.compile("^/", re.IGNORECASE).search(self.config_path):
+                if not re.compile("/$", re.IGNORECASE).search(self.config_path):
 
-                                self.config_path = "/" + self.config_path
+                        self.config_path = self.config_path + "/"
 
-                        if not re.compile("/$", re.IGNORECASE).search(self.config_path):
+                for offset in range(0,self.config_posts_to_process,50):
 
-                                self.config_path = self.config_path + "/"
+                        #use server side for config search AND terms
+                        if self.config_search_and == "":
 
-                        for offset in range(0,self.config_posts_to_process,50):
+                                #generate newznab api search url xml format
+                                api_search = "%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
 
-                                #use server side for config search and terms
-                                if self.config_search_and == "":
+                        else:
 
-                                        #generate newznab api search url xml format
-                                        api_search = "%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                                #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                                config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
 
-                                else:
+                                #convert list back to string
+                                config_search_and = ','.join(config_search_and_list)
 
-                                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
+                                #replace any remaining spaces with url encode
+                                config_search_and = re.sub(ur"\s","%20", config_search_and)
 
-                                        #convert list back to string
-                                        config_search_and = ','.join(config_search_and_list)
+                                #generate newznab api search url xml format
+                                api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
 
-                                        #replace any remaining spaces with url encode
-                                        config_search_and = re.sub(ur"\s","%20", config_search_and)
+                        mg_log.info(u"Newznab Index - API search %s" % api_search)
 
-                                        #generate newznab api search url xml format
-                                        api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                        if self.config_spotweb_support == "yes":
 
-                                mg_log.info(u"Newznab Index - API search %s" % api_search)
-
-                                if self.config_spotweb_support == "yes":
-
-                                        #generate spotweb api search url xml format
-                                        api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize)
-                                        mg_log.info(u"Newznab Index - API search %s" % spotweb_api_search)
-
-                                #pass to urllib2 retry function - decorator
-                                try:
-
-                                        api_search = urllib2_retry(api_search,user_agent_moviegrabber)
-
-                                except Exception:
-
-                                        mg_log.warning(u"Newznab Index - Newznab/Spotweb API XML search failed, site down?")
-                                        return
-
-                                #use bs to parse api
-                                api_search_soup = BeautifulSoup(api_search)
-
-                                #create list of items in xml
-                                api_result_xml = api_search_soup.findAll("item")
-
-                                #if xml feed is empty capture error message
-                                if not api_result_xml:
-
-                                        api_error_xml_search = api_search_soup.find("error")                                        
-
-                                        if api_error_xml_search != None:
-
-                                                api_error_xml_code = api_error_xml_search["code"]
-                                                api_error_xml_description = api_error_xml_search["description"]
-
-                                                mg_log.warning(u"Newznab Index - Newznab API no items found, error code \"%s\", description \"%s\"" % (api_error_xml_code,api_error_xml_description))
-                                                return
-
-                                        else:
-
-                                                mg_log.warning(u"Newznab Index - Newznab API no items found, no error code returned")
-                                                return
-
-                                #this breaks down the xml feed page into tag sections
-                                for node in api_result_xml:
-
-                                        if not search_index_poison_queue.empty():
-
-                                                #get task from queue
-                                                search_index_poison_queue.get()
-
-                                                #send task done and exit function
-                                                search_index_poison_queue.task_done()
-
-                                                mg_log.info(u"Newznab Index - Shutting down search index")
-
-                                                return
-
-                                        #generate post title
-                                        post_title_search = node.find("title")
-
-                                        if post_title_search != None:
-
-                                                post_title = post_title_search.contents[0]
-                                                post_title = self.decode_html_entities(post_title)
-
-                                                #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                                post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
-
-                                                self.index_post_title = post_title
-                                                mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
-
-                                                #search end of post title stopping at period, underscore or space as seperator
-                                                index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
-
-                                                if index_post_group_search != None:
-
-                                                        self.index_post_group = index_post_group_search.group()
-                                                        mg_log.info(u"Newznab Index - Post release group %s" % (self.index_post_group))                                                
-
-                                                else:
-                                                        
-                                                        self.index_post_group = ""
-                                                        mg_log.info(u"Newznab Index - Post release group not found")
-                                                                
-                                        else:
-
-                                                mg_log.info(u"Newznab Index - Post title not found")
-                                                continue
-
-                                        #generate download link
-                                        download_link_search = node.find("enclosure")
-
-                                        if download_link_search != None:
-
-                                                self.index_download_link = download_link_search["url"]
-                                                mg_log.info(u"Newznab Index - Post download link %s" % (self.index_download_link))
-
-                                        else:
-
-                                                self.index_download_link = ""
-                                                mg_log.info(u"Newznab Index - Post download link not found")
-                                                continue
-
-                                        #remove seperators from post title, used for compare
-                                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
-
-                                        #convert to lowercase
-                                        self.index_post_title_strip = self.index_post_title_strip.lower()
-                                        
-                                        #append dltype to allow usenet/torrent with same postname
-                                        self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
-                                        
-                                        #check if post title strip is in sqlite db
-                                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
-
-                                        #remove scoped session
-                                        sql_session.remove()
-
-                                        #if postname already exists then add to download url list and go to next iter
-                                        if sqlite_post_name != None:                                                
-                                                
-                                                #check if download url is in sqlite db (case insensitive), if == None then append
-                                                sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
-
-                                                if sqlite_postdl == None:
-
-                                                        #get download url for post name above
-                                                        sqlite_postdl_history = sqlite_post_name.postdl
-
-                                                        #append current download url to existing download url in db
-                                                        sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
-
-                                                        #change record with updated string
-                                                        sqlite_post_name.postdl = sqlite_postdl_history_append
-
-                                                        #commit download url append to history table
-                                                        sql_session.commit()
-
-                                                #remove scoped session
-                                                sql_session.remove()
-
-                                                mg_log.info(u"Newznab Index - Post title in db history table")
-                                                continue
-
-                                        #if post title filters are not 0 then continue to next post
-                                        if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
-
-                                                mg_log.info(u"Newznab Index - Post title search criteria failed")
-                                                continue
-
-                                        #generate imdb tt number from index site
-                                        self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
-                                        
-                                        if self.imdb_tt_number_search != None:
-
-                                                self.imdb_tt_number = self.imdb_tt_number_search["value"]
-
-                                                if len(self.imdb_tt_number) == 7:
-
-                                                        self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
-                                                        
-                                                elif len(self.imdb_tt_number) == 6:
-
-                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
-                                                        self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
-
-                                                else:
-                                                        
-                                                        self.imdb_tt_number = None
-                                                        mg_log.info(u"Newznab Index - Malformed IMDb tt number")                                                
-
-                                        #if imdb id not found from index site then use omdb or tmdb                                                
-                                        if self.imdb_tt_number_search == None or self.imdb_tt_number == None:
-
-                                                mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
-
-                                                #remove everything from movie year in post title
-                                                index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
-
-                                                #replace dots, hyphens and underscores with html spaces
-                                                index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
-
-                                                #generate year from post title
-                                                index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
-
-                                                if index_post_movie_year_search != None:
-
-                                                        self.index_post_movie_year = index_post_movie_year_search.group()
-                                                        mg_log.info(u"Newznab Index - Post title generated movie year is %s" % (self.index_post_movie_year))
-
-                                                else:
-
-                                                        self.index_post_movie_year = ""
-                                                        mg_log.info(u"Newznab Index - Cannot generate movie year from post title")                                                        
-                                                        
-                                                #convert to uri for html find_id
-                                                self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
-
-                                                #attempt to get imdb id from omdb
-                                                self.imdb_tt_number = self.find_imdb_id_omdb()
-
-                                                #if no imdb id then fallback to tmdb (slower)
-                                                if self.imdb_tt_number == None:
-
-                                                        mg_log.info(u"Newznab Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
-                                                        
-                                                        #attempt to get imdb id from tmdb
-                                                        self.imdb_tt_number = self.find_imdb_id_tmdb()
-
-                                                        #if no imdb id from omdb or tmdb then skip post
-                                                        if self.imdb_tt_number == None:                                                                
-
-                                                                mg_log.warning(u"Newznab Index - Failed to get IMDb ID, skipping post")
-                                                                continue
-                                                        
-                                        #create imdb json feed (used for iphone/android)
-                                        imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
-                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
-
-                                        #generate imdb links for history/queued/email
-                                        self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
-                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
-                                                
-                                        #generate post size
-                                        post_size_search = node.find(attrs={"name": "size"})
-
-                                        if post_size_search != None:
-
-                                                post_size = post_size_search["value"]
-
-                                                #generate size for history/queue sort order
-                                                self.index_post_size_sort = int(post_size)
-
-                                                #generate size in mb for GoodSize checks
-                                                self.index_post_size_check = int(post_size) / 1000000
-
-                                                #if size is greater than 999 mb then convert to gb format
-                                                if int(post_size) > 999999999:
-
-                                                        #limit decimal precision to x.xx
-                                                        decimal.getcontext().prec = 3
-
-                                                        #generate size in gb and append string GB for History/Queue
-                                                        post_size_int = decimal.Decimal(int(post_size)) / 1000000000
-
-                                                        self.index_post_size = "%s GB" % (str(post_size_int))
-                                                        mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
-
-                                                else:
-
-                                                        #generate size in mb and append string mb for History/Queue
-                                                        post_size_int = int(post_size) / 1000000
-
-                                                        self.index_post_size = "%s MB" % (str(post_size_int))
-                                                        mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
-
-                                        else:
-
-                                                self.index_post_size = ""
-                                                self.index_post_size_sort = 0
-                                                self.index_post_size_check = 0
-                                                mg_log.info(u"Newznab Index - Post size not found")
-
-                                        #if size is below min/max then continue to next post - not all newznab sites support size filtering via api, so fallback to client
-                                        if self.filter_index_good_size() != 1:
-
-                                                mg_log.info(u"Newznab Index - Post Size is NOT within thresholds")
-                                                continue
-
-                                        #generate post date (bs converts tags to lowercase, thus pubDate must be ref as pubdate)
-                                        post_date_search = node.find("pubdate")
-
-                                        if post_date_search != None:
-
-                                                post_date = post_date_search.contents[0]
-
-                                                #remove offset string at end date
-                                                post_date = re.sub(ur"\s?.?\d+$", "", post_date)
-
-                                                #create date tuple
-                                                post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
-
-                                                #reformat time to correct string format
-                                                post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
-                                                post_date_string += " UTC"
-                                                self.index_post_date = post_date_string
-                                                mg_log.info(u"Newznab Index - Post date %s" % (self.index_post_date))
-
-                                                #reformat time to correct string format - used by sort order
-                                                post_date_string2 = time.strftime("%Y%m%d%H%M%S", post_date_tuple)
-                                                self.index_post_date_sort = int(post_date_string2)
-
-                                        else:
-
-                                                self.index_post_date = ""
-                                                self.index_post_date_sort = 0
-                                                mg_log.info(u"Newznab Index - Post date not found")
-
-                                        #generate newznab guid
-                                        guid_search = node.find(attrs={"name": "guid"})
-
-                                        if guid_search != None:
-
-                                                self.guid = guid_search["value"]
-
-                                        else:
-
-                                                self.guid = ""
-                                                mg_log.info(u"Newznab Index - Post guid not found")
-
-                                        if self.guid:
-
-                                                #generate newznab post nfo
-                                                self.index_post_nfo = self.config_hostname + ":" + self.config_portnumber + "/nfo/" + self.guid
-                                                mg_log.info(u"Newznab Index - Post nfo %s" % (self.index_post_nfo))
-
-                                                #generate newznab post details
-                                                self.index_post_details = self.config_hostname + ":" + self.config_portnumber + "/details/" + self.guid
-                                                mg_log.info(u"Newznab Index - Post details %s" % (self.index_post_details))
-
-                                                #generate newznab post id
-                                                self.index_post_id = self.guid
-                                                mg_log.info(u"Newznab Index - Post id %s" % self.index_post_id)
-
-                                        else:
-
-                                                self.index_post_id = ""
-                                                self.index_post_nfo = ""
-                                                self.index_post_details = ""
-
-                                        #pass to urllib2 retry function - decorator
-                                        try:
-
-                                                #download imdb json (used for iphone/android)
-                                                imdb_json_page_request = urllib2_retry(imdb_json,user_agent_iphone)
-                                                self.imdb_json_page = json.loads(imdb_json_page_request)
-                                                mg_log.info(u"Newznab Index - IMDb JSON Up %s" % imdb_json)
-
-                                        except Exception:
-
-                                                mg_log.warning(u"Newznab Index - IMDb JSON down %s" % (imdb_json))
-                                                return
-
-                                        #run function to create imdb details
-                                        self.imdb()
-
-                                        #run fuction to check against filter functions
-                                        self.filter_check()
-
-                                        #run function to download thumbnail poster from imdb
-                                        self.poster_download()
-
-                                        #run function to create results string
-                                        self.download_result()
-
-                                        #run function to insert details into history db passing procresult
-                                        self.sqlite_insert()
-
-                                        #check passes filter checks and also second check for post title already exists in db
-                                        if self.filter_check_status == 1 and self.post_title_exists == False:
-
-                                                if self.download_result_str == "Downloading":
-
-                                                        #send dictionary of id and table name to download function
-                                                        download_details_queue.put(dict(sqlite_table="history", sqlite_id=[self.sqlite_id_history]))
-
-                                                        #run download nzb/torrent thread
-                                                        DownloadThread().run()
-
-                                                if self.config_enable_email_notify == "yes":
-
-                                                        #run function to send email for queued/downloaded
-                                                        self.email_notify()
-
-                                                if self.config_enable_xbmc == "yes":
-
-                                                        #run function to send xbmc gui notification for queued/downloaded
-                                                        XBMC().xbmc_gui_notify(self.imdb_movie_title_strip,self.imdb_movie_year_str,self.download_result_str)
-
-                except Exception:
-
-                        mg_log.exception("")
-
-        def kat_index(self):
-
-                try:
-
-                        mg_log.info(u"KAT Index - KAT search index started")
-
-                        #substitute friendly names for real values for categories
-                        if self.config_cat == "all formats":
-
-                                self.config_cat = "movies"
-
-                        if self.config_cat == "hd/x264":
-
-                                self.config_cat = "highres-movies"
-
-                        #remove slash at end of hostname if present
-                        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
-
-                        #add http:// to hostname if hostname not prefixed with either http or https
-                        if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
-
-                                self.config_hostname = "http://" + self.config_hostname
-
-                        #kat rss feed
-                        rss_feed = "%s:%s/usearch/category%%3A%s%%20language%%3A%s%%20seeds%%3A1/?rss=1" % (self.config_hostname, self.config_portnumber, self.config_cat, self.config_lang)
-                        mg_log.info(u"KAT Index - RSS feed %s" % rss_feed)
+                                #generate spotweb api search url xml format
+                                api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize)
+                                mg_log.info(u"Newznab Index - API search %s" % spotweb_api_search)
 
                         #pass to urllib2 retry function - decorator
                         try:
 
-                                rss_feed = urllib2_retry(rss_feed,user_agent_moviegrabber)
+                                api_search = urllib2_retry(api_search,user_agent_moviegrabber)
 
                         except Exception:
 
-                                mg_log.warning(u"KAT Index - RSS feed download failed")
-
+                                mg_log.warning(u"Newznab Index - Newznab/Spotweb API XML search failed, site down?")
                                 return
 
-                        #use bs to parse rss feed
-                        rss_feed_soup = BeautifulSoup(rss_feed)
+                        #use bs to parse api
+                        api_search_soup = BeautifulSoup(api_search)
 
-                        #create list of items in rss feed
-                        rss_result_xml = rss_feed_soup.findAll("item")
+                        #create list of items in xml
+                        api_result_xml = api_search_soup.findAll("item")
 
-                        #if rss feed is empty capture error message
-                        if not rss_result_xml:
+                        #if xml feed is empty capture error message
+                        if not api_result_xml:
 
-                                rss_error_search = rss_feed_soup.title.string
+                                api_error_xml_search = api_search_soup.find("error")                                        
 
-                                if rss_error_search != None:
+                                if api_error_xml_search != None:
 
-                                        mg_log.warning(u"KAT Index - RSS no items found, error returned \"%s\"" % (rss_error_search))
+                                        api_error_xml_code = api_error_xml_search["code"]
+                                        api_error_xml_description = api_error_xml_search["description"]
+
+                                        mg_log.warning(u"Newznab Index - Newznab API no items found, error code \"%s\", description \"%s\"" % (api_error_xml_code,api_error_xml_description))
                                         return
 
                                 else:
 
-                                        mg_log.warning(u"KAT Index - RSS no items found, no error code returned")
+                                        mg_log.warning(u"Newznab Index - Newznab API no items found, no error code returned")
                                         return
 
-                        #this breaks down the rss feed page into tag sections
-                        for node in rss_result_xml:
+                        #this breaks down the xml feed page into tag sections
+                        for node in api_result_xml:
 
                                 if not search_index_poison_queue.empty():
 
@@ -3532,7 +3133,7 @@ class SearchIndex(object):
                                         #send task done and exit function
                                         search_index_poison_queue.task_done()
 
-                                        mg_log.info(u"KAT Index - Shutting down search index")
+                                        mg_log.info(u"Newznab Index - Shutting down search index")
 
                                         return
 
@@ -3548,24 +3149,24 @@ class SearchIndex(object):
                                         post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
 
                                         self.index_post_title = post_title
-                                        mg_log.info(u"KAT Index - Post title is %s" % (self.index_post_title))
+                                        mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
 
                                         #search end of post title stopping at period, underscore or space as seperator
-                                        index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                        index_post_grosite_nameup_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
                                         if index_post_group_search != None:
 
                                                 self.index_post_group = index_post_group_search.group()
-                                                mg_log.info(u"KAT Index - Post release group %s" % (self.index_post_group))                                                
+                                                mg_log.info(u"Newznab Index - Post release group %s" % (self.index_post_group))                                                
 
                                         else:
                                                 
                                                 self.index_post_group = ""
-                                                mg_log.info(u"KAT Index - Post release group not found")
+                                                mg_log.info(u"Newznab Index - Post release group not found")
                                                         
                                 else:
 
-                                        mg_log.info(u"KAT Index - Post title not found")
+                                        mg_log.info(u"Newznab Index - Post title not found")
                                         continue
 
                                 #generate download link
@@ -3574,12 +3175,12 @@ class SearchIndex(object):
                                 if download_link_search != None:
 
                                         self.index_download_link = download_link_search["url"]
-                                        mg_log.info(u"KAT Index - Post download link %s" % self.index_download_link)
+                                        mg_log.info(u"Newznab Index - Post download link %s" % (self.index_download_link))
 
                                 else:
 
                                         self.index_download_link = ""
-                                        mg_log.info(u"KAT Index - Post download link not found")
+                                        mg_log.info(u"Newznab Index - Post download link not found")
                                         continue
 
                                 #remove seperators from post title, used for compare
@@ -3587,10 +3188,10 @@ class SearchIndex(object):
 
                                 #convert to lowercase
                                 self.index_post_title_strip = self.index_post_title_strip.lower()
-
+                                
                                 #append dltype to allow usenet/torrent with same postname
-                                self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
-
+                                self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
+                                
                                 #check if post title strip is in sqlite db
                                 sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
 
@@ -3598,8 +3199,8 @@ class SearchIndex(object):
                                 sql_session.remove()
 
                                 #if postname already exists then add to download url list and go to next iter
-                                if sqlite_post_name != None:
-
+                                if sqlite_post_name != None:                                                
+                                        
                                         #check if download url is in sqlite db (case insensitive), if == None then append
                                         sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
 
@@ -3620,61 +3221,41 @@ class SearchIndex(object):
                                         #remove scoped session
                                         sql_session.remove()
 
-                                        mg_log.info(u"KAT Index - Post title in db history table")
+                                        mg_log.info(u"Newznab Index - Post title in db history table")
                                         continue
 
                                 #if post title filters are not 0 then continue to next post
                                 if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
-                                        mg_log.info(u"KAT Index - Post title search criteria failed")
+                                        mg_log.info(u"Newznab Index - Post title search criteria failed")
                                         continue
 
-                                #generate imdb url and tt number
-                                try:
-                                        
-                                        post_description = node.find("description").contents[0]
+                                #generate imdb tt number from index site
+                                self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
+                                
+                                if self.imdb_tt_number_search != None:
 
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_description = None
+                                        self.imdb_tt_number = self.imdb_tt_number_search["value"]
 
-                                if post_description != None:
-                                        
-                                        imdb_tt_number_search = re.compile("(?<=title/tt)[0-9]{6,7}").search(post_description)                                        
+                                        if len(self.imdb_tt_number) == 7:
 
-                                        if imdb_tt_number_search != None:
+                                                self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
+                                                
+                                        elif len(self.imdb_tt_number) == 6:
 
-                                                self.imdb_tt_number = imdb_tt_number_search.group(0)
+                                                #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
+                                                self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
 
-                                                self.imdb_tt_number_search = node.find(attrs={"name": "imdb"})
+                                        else:
+                                                
+                                                self.imdb_tt_number = None
+                                                mg_log.info(u"Newznab Index - Malformed IMDb tt number")                                                
 
-                                                if self.imdb_tt_number_search != None:
+                                #if imdb id not found from index site then use omdb or tmdb                                                
+                                if self.imdb_tt_number_search == None or self.imdb_tt_number == None:
 
-                                                        self.imdb_tt_number = self.imdb_tt_number_search["value"]
-                                                        mg_log.info(u"KAT Index - IMDb ID from description is %s" % (self.imdb_tt_number))
+                                        mg_log.info(u"Newznab Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
 
-                                                        #if length is equal to 7 then prefix with tt
-                                                        if len(self.imdb_tt_number) == 7:
-
-                                                                self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
-                                                                
-                                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
-                                                        elif len(self.imdb_tt_number) == 6:
-
-
-                                                                self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
-
-                                                        #if any other length then mark as none
-                                                        else:
-                                                                
-                                                                self.imdb_tt_number = None
-                                                                mg_log.info(u"KAT Index - Malformed IMDb tt number")                                                
-
-                                #if imdb id not found from index site then use omdb or tmdb                                               
-                                if post_description == None or imdb_tt_number_search == None or self.imdb_tt_number_search == None or self.imdb_tt_number == None:
-
-                                        mg_log.info(u"KAT Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID")
-                                        
                                         #remove everything from movie year in post title
                                         index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
@@ -3687,47 +3268,39 @@ class SearchIndex(object):
                                         if index_post_movie_year_search != None:
 
                                                 self.index_post_movie_year = index_post_movie_year_search.group()
-                                                mg_log.info(u"KAT Index - Post title generated movie year is %s" % (self.index_post_movie_year))
+                                                mg_log.info(u"Newznab Index - Post title generated movie year is %s" % (self.index_post_movie_year))
 
                                         else:
 
                                                 self.index_post_movie_year = ""
-                                                mg_log.info(u"KAT Index - Cannot generate movie year from post title")
+                                                mg_log.info(u"Newznab Index - Cannot generate movie year from post title")                                                        
                                                 
                                         #convert to uri for html find_id
                                         self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
 
                                         #attempt to get imdb id from omdb
-                                        self.imdb_tt_number = self.find_imdb_id_omdb()
+                                        self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
 
                                         #if no imdb id then fallback to tmdb (slower)
                                         if self.imdb_tt_number == None:
 
-                                                mg_log.info(u"KAT Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
+                                                mg_log.info(u"Newznab Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
                                                 
                                                 #attempt to get imdb id from tmdb
-                                                self.imdb_tt_number = self.find_imdb_id_tmdb()
+                                                self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
 
                                                 #if no imdb id from omdb or tmdb then skip post
                                                 if self.imdb_tt_number == None:                                                                
 
-                                                        mg_log.warning(u"KAT Index - Failed to get IMDb ID, skipping post")
+                                                        mg_log.warning(u"Newznab Index - Failed to get IMDb ID, skipping post")
                                                         continue
-                                        
-                                #create imdb json feed (used for iphone/android)
-                                imdb_json = "http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
-                                mg_log.info(u"KAT Index - IMDb JSON %s" % (imdb_json))
-
-                                #generate imdb links for history/queued/email
-                                self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
-                                mg_log.info(u"KAT Index - Post IMDb link %s" % (self.imdb_link))
-
+                                                                                                
                                 #generate post size
-                                post_size_search = node.find("torrent:contentlength")
+                                post_size_search = node.find(attrs={"name": "size"})
 
                                 if post_size_search != None:
 
-                                        post_size = post_size_search.contents[0]
+                                        post_size = post_size_search["value"]
 
                                         #generate size for history/queue sort order
                                         self.index_post_size_sort = int(post_size)
@@ -3745,7 +3318,7 @@ class SearchIndex(object):
                                                 post_size_int = decimal.Decimal(int(post_size)) / 1000000000
 
                                                 self.index_post_size = "%s GB" % (str(post_size_int))
-                                                mg_log.info(u"KAT Index - Post size %s" % self.index_post_size)
+                                                mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
 
                                         else:
 
@@ -3753,36 +3326,39 @@ class SearchIndex(object):
                                                 post_size_int = int(post_size) / 1000000
 
                                                 self.index_post_size = "%s MB" % (str(post_size_int))
-                                                mg_log.info(u"KAT Index - Post size %s" % self.index_post_size)
+                                                mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
 
                                 else:
 
                                         self.index_post_size = ""
                                         self.index_post_size_sort = 0
                                         self.index_post_size_check = 0
-                                        mg_log.info(u"KAT Index - Post size not found")
+                                        mg_log.info(u"Newznab Index - Post size not found")
 
-                                #if size is below min/max then continue to next post - kat does not support size filtering so has to be done at client end
+                                #if size is below min/max then continue to next post - not all newznab sites support size filtering via api, so fallback to client
                                 if self.filter_index_good_size() != 1:
 
-                                        mg_log.info(u"KAT Index - Post Size is NOT within thresholds")
+                                        mg_log.info(u"Newznab Index - Post Size is NOT within thresholds")
                                         continue
 
-                                #generate post date
+                                #generate post date (bs converts tags to lowercase, thus pubDate must be ref as pubdate)
                                 post_date_search = node.find("pubdate")
 
                                 if post_date_search != None:
 
                                         post_date = post_date_search.contents[0]
 
-                                        post_date = re.sub(ur"\s?\+.*", "", post_date)
+                                        #remove offset string at end date
+                                        post_date = re.sub(ur"\s?.?\d+$", "", post_date)
+
+                                        #create date tuple
                                         post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
 
                                         #reformat time to correct string format
                                         post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                         post_date_string += " UTC"
                                         self.index_post_date = post_date_string
-                                        mg_log.info(u"KAT Index - Post date %s" % self.index_post_date)
+                                        mg_log.info(u"Newznab Index - Post date %s" % (self.index_post_date))
 
                                         #reformat time to correct string format - used by sort order
                                         post_date_string2 = time.strftime("%Y%m%d%H%M%S", post_date_tuple)
@@ -3792,90 +3368,685 @@ class SearchIndex(object):
 
                                         self.index_post_date = ""
                                         self.index_post_date_sort = 0
-                                        mg_log.info(u"KAT Index - Post date not found")
+                                        mg_log.info(u"Newznab Index - Post date not found")
 
-                                #set post_nfo to empty string - not available
-                                self.index_post_nfo = ""
+                                #generate newznab guid
+                                guid_search = node.find(attrs={"name": "guid"})
 
-                                #generate post details
-                                post_details_search = node.find("guid")
+                                if guid_search != None:
 
-                                if post_details_search != None:
-
-                                        self.index_post_details = post_details_search.contents[0]
-                                        mg_log.info(u"KAT Index - Post details %s" % self.index_post_details)
+                                        self.guid = guid_search["value"]
 
                                 else:
 
-                                        self.index_post_details = ""
-                                        mg_log.info(u"KAT Index - Post details not found")
+                                        self.guid = ""
+                                        mg_log.info(u"Newznab Index - Post guid not found")
 
-                                #generate post id
-                                post_id_search = node.find("torrent:infohash")
+                                if self.guid:
 
-                                if post_id_search != None:
+                                        #generate newznab post nfo
+                                        self.index_post_nfo = self.config_hostname + ":" + self.config_portnumber + "/nfo/" + self.guid
+                                        mg_log.info(u"Newznab Index - Post nfo %s" % (self.index_post_nfo))
 
-                                        self.index_post_id = post_id_search.contents[0]
-                                        mg_log.info(u"KAT Index - Post id %s" % self.index_post_id)
+                                        #generate newznab post details
+                                        self.index_post_details = self.config_hostname + ":" + self.config_portnumber + "/details/" + self.guid
+                                        mg_log.info(u"Newznab Index - Post details %s" % (self.index_post_details))
+
+                                        #generate newznab post id
+                                        self.index_post_id = self.guid
+                                        mg_log.info(u"Newznab Index - Post id %s" % self.index_post_id)
 
                                 else:
 
                                         self.index_post_id = ""
-                                        mg_log.info(u"KAT Index - Post id not found")
+                                        self.index_post_nfo = ""
+                                        self.index_post_details = ""
 
-                                #pass to urllib2 retry function - decorator
-                                try:
+                                #call imdb search json
+                                self.imdb_details_json()
+                                        
+        def kat_index(self):
 
-                                        #download imdb json (used for iphone/android)
-                                        imdb_json_page_request = urllib2_retry(imdb_json,user_agent_iphone)
-                                        self.imdb_json_page = json.loads(imdb_json_page_request)
-                                        mg_log.info(u"KAT Index - IMDb JSON Up %s" % imdb_json)
+                site_name = u"KickAss"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                                except Exception:
+                #substitute friendly names for real values for categories
+                if self.config_cat == "any":
 
-                                        mg_log.warning(u"KAT Index - IMDb JSON down %s" % (imdb_json))
-                                        return
+                        self.config_cat = "any"
+                
+                if self.config_cat == "all movies":
 
-                                #run function to create imdb details
-                                self.imdb()
+                        self.config_cat = "movies"
 
-                                #run fuction to check against filter functions
-                                self.filter_check()
+                if self.config_cat == "hd/x264":
 
-                                #run function to download thumbnail poster from imdb
-                                self.poster_download()
+                        self.config_cat = "highres-movies"
 
-                                #run function to create results string
-                                self.download_result()
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
-                                #run function to insert details into history db passing procresult
-                                self.sqlite_insert()
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                                #check passes filter checks and also second check for post title already exists in db
-                                if self.filter_check_status == 1 and self.post_title_exists == False:
+                        self.config_hostname = "http://" + self.config_hostname
 
-                                        if self.download_result_str == "Downloading":
+                #site rss feed
+                self.rss_feed = "%s:%s/usearch/category%%3A%s%%20language%%3A%s%%20seeds%%3A1/?rss=1" % (self.config_hostname, self.config_portnumber, self.config_cat, self.config_lang)
+                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
 
-                                                #send dictionary of id and table name to download function
-                                                download_details_queue.put(dict(sqlite_table="history", sqlite_id=[self.sqlite_id_history]))
+                #run torrent rss feedparser
+                self.torrent_feed_rss(site_name)
 
-                                                #run download nzb/torrent thread
-                                                DownloadThread().run()
+        def piratebay_index(self):
 
-                                        if self.config_enable_email_notify == "yes":
+                site_name = u"PirateBay"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                                                #run function to send email for queued/downloaded
-                                                self.email_notify()
+                #substitute friendly names for real values for categories
+                if self.config_cat == "any":
 
-                                        if self.config_enable_xbmc == "yes":
+                        self.config_cat = "0"
+                        
+                if self.config_cat == "all movies":
 
-                                                #run function to send xbmc gui notification for queued/downloaded
-                                                XBMC().xbmc_gui_notify(self.imdb_movie_title_strip,self.imdb_movie_year_str,self.download_result_str)
+                        self.config_cat = "201"
+
+                if self.config_cat == "dvd":
+
+                        self.config_cat = "202"
+
+                if self.config_cat == "hd/x264":
+
+                        self.config_cat = "207"
+
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = "http://" + self.config_hostname
+
+                #site rss feed
+                self.rss_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+
+                #run torrent rss feedparser
+                self.torrent_feed_rss(site_name)
+
+        def bitsnoop_index(self):
+
+                site_name = u"Bitsnoop"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
+
+                #substitute friendly names for real values for categories
+                if self.config_cat == "any":
+
+                        self.config_cat = "all"
+                        
+                if self.config_cat == "all movies":
+
+                        self.config_cat = "video-movies"
+
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = "http://" + self.config_hostname
+
+                #bitsnoop requires search term for rss feed, using search AND term               
+                if self.config_search_and != "":
+
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
+
+                        #convert list back to string
+                        config_search_and = ','.join(config_search_and_list)
+
+                        #replace any remaining spaces with url encode
+                        config_search_and = re.sub(ur"\s","%20", config_search_and)
+                        
+                        self.rss_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, config_search_and)
+                        mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+
+                #run torrent rss feedparser
+                self.torrent_feed_rss(site_name)
+
+        def torrent_feed_rss(self,site_name):
+                
+                #pass to urllib2 retry function - decorator
+                try:
+
+                        rss_feed = urllib2_retry(self.rss_feed,user_agent_moviegrabber)
 
                 except Exception:
 
-                        mg_log.exception("")
+                        mg_log.warning(u"%s Index - RSS feed download failed" % (site_name))
 
+                        return
+
+                #use feedparser to parse rss feed
+                rss_feed_parse = feedparser.parse(rss_feed)
+
+                #this breaks down the rss feed page into tag sections
+                for node in rss_feed_parse.entries:
+
+                        if not search_index_poison_queue.empty():
+
+                                #get task from queue
+                                search_index_poison_queue.get()
+
+                                #send task done and exit function
+                                search_index_poison_queue.task_done()
+
+                                mg_log.info(u"%s Index - Shutting down search index" % (site_name))
+
+                                return
+                        
+                        #generate post title
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_title = node.title_detail.value
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        post_title = node.title
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_title = node.title
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if post_title != None:
+
+                                #remove spaces, hyphens, periods, and square brackets from begining and end of post title
+                                post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+
+                                self.index_post_title = post_title
+                                mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
+
+                                #search end of post title stopping at period, underscore or space as seperator
+                                index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+
+                                if index_post_group_search != None:
+
+                                        self.index_post_group = index_post_group_search.group()
+                                        mg_log.info(u"%s Index - Post release group %s" % (site_name,self.index_post_group))                                                
+
+                                else:
+                                        
+                                        self.index_post_group = ""
+                                        mg_log.info(u"%s Index - Post release group not found" % (site_name))
+                                                
+                        else:
+
+                                mg_log.info(u"%s Index - Post title not found" % (site_name))
+                                continue
+
+                        #generate download link
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        self.index_download_link = node.torrent_magneturi
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        self.index_download_link = None
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        self.index_download_link = node.link
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        self.index_download_link = None
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        self.index_download_link = node.magneturi
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        self.index_download_link = None
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+                        
+                        #remove seperators from post title, used for compare
+                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
+
+                        #convert to lowercase
+                        self.index_post_title_strip = self.index_post_title_strip.lower()
+
+                        #append dltype to allow usenet/torrent with same postname
+                        self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
+
+                        #check if post title strip is in sqlite db
+                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
+
+                        #remove scoped session
+                        sql_session.remove()
+
+                        #if postname already exists then add to download url list and go to next iter
+                        if sqlite_post_name != None:
+
+                                #check if download url is in sqlite db (case insensitive), if == None then append
+                                sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
+
+                                if sqlite_postdl == None:
+
+                                        #get download url for post name above
+                                        sqlite_postdl_history = sqlite_post_name.postdl
+
+                                        #append current download url to existing download url in db
+                                        sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
+
+                                        #change record with updated string
+                                        sqlite_post_name.postdl = sqlite_postdl_history_append
+
+                                        #commit download url append to history table
+                                        sql_session.commit()
+
+                                #remove scoped session
+                                sql_session.remove()
+
+                                mg_log.info(u"%s Index - Post title in db history table" % (site_name))
+                                continue
+
+                        #if post title filters are not 0 then continue to next post
+                        if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
+
+                                mg_log.info(u"%s Index - Post title search criteria failed" % (site_name))
+                                continue
+
+                        #generate imdb url and tt number
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_description = node.post.description
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_description = None
+
+                        if site_name == "PirateBay":
+                                
+                                post_description = None
+
+                        if site_name == "Bitsnoop":
+                                
+                                post_description = None
+
+                        if post_description != None:
+                                
+                                imdb_tt_number_search = re.compile("(?<=/title/)tt[0-9]{6,7}").search(post_description)
+
+                                if imdb_tt_number_search != None:
+
+                                        self.imdb_tt_number = imdb_tt_number_search.group(0)
+                                        mg_log.info(u"%s Index - IMDb ID from description is %s" % (site_name,self.imdb_tt_number))
+
+                                        #if length is equal to 7 then prefix with tt
+                                        if len(self.imdb_tt_number) == 7:
+
+                                                self.imdb_tt_number = "%s" % (self.imdb_tt_number)
+                                                
+                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
+                                        elif len(self.imdb_tt_number) == 6:
+
+
+                                                self.imdb_tt_number = "0%s" % (self.imdb_tt_number)
+
+                                        #if any other length then mark as none
+                                        else:
+                                                
+                                                self.imdb_tt_number = None
+                                                mg_log.info(u"%s Index - Malformed IMDb tt number" % (site_name))                                                
+
+                        #if imdb id not found from index site then use omdb or tmdb                                               
+                        if post_description == None or imdb_tt_number_search == None or self.imdb_tt_number == None:
+
+                                mg_log.info(u"%s Index - Cannot find IMDb ID from index site, using OMDb/TMDb to generate IMDb ID" % (site_name))
+                                
+                                #remove everything from movie year in post title
+                                index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
+
+                                #replace dots, hyphens and underscores with html spaces
+                                index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
+
+                                #generate year from post title
+                                index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
+
+                                if index_post_movie_year_search != None:
+
+                                        self.index_post_movie_year = index_post_movie_year_search.group()
+                                        mg_log.info(u"%s Index - Post title generated movie year is %s" % (site_name,self.index_post_movie_year))
+
+                                else:
+
+                                        self.index_post_movie_year = ""
+                                        mg_log.info(u"%s Index - Cannot generate movie year from post title" % (site_name))
+                                        
+                                #convert to uri for html find_id
+                                self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
+
+                                #attempt to get imdb id from omdb
+                                self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
+
+                                #if no imdb id then fallback to tmdb (slower)
+                                if self.imdb_tt_number == None:
+
+                                        mg_log.info(u"%s Index - Failed to get IMDb ID from OMDb, falling back to TMDb" % (site_name))
+                                        
+                                        #attempt to get imdb id from tmdb
+                                        self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
+
+                                        #if no imdb id from omdb or tmdb then skip post
+                                        if self.imdb_tt_number == None:                                                                
+
+                                                mg_log.warning(u"%s Index - Failed to get IMDb ID, skipping post" % (site_name))
+                                                continue
+                                
+                        #generate post size
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_size = node.torrent_contentlength
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        post_size = node.contentlength
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_size = node.size
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
+                                        
+                        if post_size != None:
+
+                                #generate size for history/queue sort order
+                                self.index_post_size_sort = int(post_size)
+
+                                #generate size in mb for GoodSize checks
+                                self.index_post_size_check = int(post_size) / 1000000
+
+                                #if size is greater than 999 mb then convert to gb format
+                                if int(post_size) > 999999999:
+
+                                        #limit decimal precision to x.xx
+                                        decimal.getcontext().prec = 3
+
+                                        #generate size in gb and append string GB for History/Queue
+                                        post_size_int = decimal.Decimal(int(post_size)) / 1000000000
+
+                                        self.index_post_size = "%s GB" % (str(post_size_int))
+                                        mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
+
+                                else:
+
+                                        #generate size in mb and append string mb for History/Queue
+                                        post_size_int = int(post_size) / 1000000
+
+                                        self.index_post_size = "%s MB" % (str(post_size_int))
+                                        mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
+
+                        else:
+
+                                self.index_post_size = ""
+                                self.index_post_size_sort = 0
+                                self.index_post_size_check = 0
+                                mg_log.info(u"%s Index - Post size not found" % (site_name))
+
+                        #if size is below min/max then continue to next post - %s does not support size filtering so has to be done at client end
+                        if self.filter_index_good_size() != 1:
+
+                                mg_log.info(u"%s Index - Post Size is NOT within thresholds" % (site_name))
+                                continue
+
+                        #generate post date
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_date = node.published
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        post_date = node.published
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
+                        if site_name == "Bitsnoop":
+                                
+                                post_date = None                      
+
+                        if post_date != None:
+
+                                post_date = re.sub(ur"\s?\+.*", "", post_date)
+                                post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
+
+                                #reformat time to correct string format
+                                post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
+                                post_date_string += " UTC"
+                                self.index_post_date = post_date_string
+                                mg_log.info(u"%s Index - Post date %s" % (site_name,self.index_post_date))
+
+                                #reformat time to correct string format - used by sort order
+                                post_date_string2 = time.strftime("%Y%m%d%H%M%S", post_date_tuple)
+                                self.index_post_date_sort = int(post_date_string2)
+
+                        else:
+
+                                self.index_post_date = ""
+                                self.index_post_date_sort = 0
+                                mg_log.info(u"%s Index - Post date not found" % (site_name))
+
+                        #set post_nfo to empty string - not available
+                        self.index_post_nfo = ""
+
+                        #generate post details
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_details = node.link
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        post_details = node.comments
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_details = node.id
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
+                        if post_details != None:
+
+                                self.index_post_details = post_details
+                                mg_log.info(u"%s Index - Post details %s" % (site_name,self.index_post_details))
+
+                        else:
+
+                                self.index_post_details = ""
+                                mg_log.info(u"%s Index - Post details not found" % (site_name))
+
+                        #generate post id
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_id = node.torrent_infohash
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_id = None
+
+                        if site_name == "PirateBay":
+                                
+                                try:
+                                        
+                                        post_id = node.infohash
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_id = None
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_id = node.infohash
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_id = None
+
+                        if post_id != None:
+
+                                self.index_post_id = post_id
+                                mg_log.info(u"%s Index - Post id %s" % (site_name,self.index_post_id))
+
+                        else:
+
+                                self.index_post_id = ""
+                                mg_log.info(u"%s Index - Post id not found" % (site_name))
+
+                        #call imdb search json
+                        self.imdb_details_json()
+
+        def imdb_details_json(self):
+                
+                #create imdb json feed (used for iphone/android)
+                imdb_json = "http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
+                mg_log.info(u"IMDb JSON URL is %s" % (imdb_json))
+
+                #generate imdb links for history/queued/email
+                self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
+                mg_log.info(u"Post IMDb link %s" % (self.imdb_link))
+
+                #pass to urllib2 retry function - decorator
+                try:
+
+                        #download imdb json (used for iphone/android)
+                        imdb_json_page_request = urllib2_retry(imdb_json,user_agent_iphone)
+                        self.imdb_json_page = json.loads(imdb_json_page_request)
+                        mg_log.info(u"IMDb JSON Up %s" % imdb_json)
+
+                except Exception:
+
+                        mg_log.warning(u"IMDb JSON down %s" % (imdb_json))
+                        return
+
+                #run function to create imdb details
+                self.imdb()
+
+                #run fuction to check against filter functions
+                self.filter_check()
+
+                #run function to download thumbnail poster from imdb
+                self.poster_download()
+
+                #run function to create results string
+                self.download_result()
+
+                #run function to insert details into history db passing procresult
+                self.sqlite_insert()
+
+                #check passes filter checks and also second check for post title already exists in db
+                if self.filter_check_status == 1 and self.post_title_exists == False:
+
+                        if self.download_result_str == "Downloading":
+
+                                #send dictionary of id and table name to download function
+                                download_details_queue.put(dict(sqlite_table="history", sqlite_id=[self.sqlite_id_history]))
+
+                                #run download nzb/torrent thread
+                                DownloadThread().run()
+
+                        if self.config_enable_email_notify == "yes":
+
+                                #run function to send email for queued/downloaded
+                                self.email_notify()
+
+                        if self.config_enable_xbmc == "yes":
+
+                                #run function to send xbmc gui notification for queued/downloaded
+                                XBMC().xbmc_gui_notify(self.imdb_movie_title_strip,self.imdb_movie_year_str,self.download_result_str)
+                                        
 ###################
 # post processing #
 ###################
@@ -5333,14 +5504,12 @@ class ConfigTorrent(object):
 
                 template.index_site = config_parser.get("torrent", "index_site")
                 template.color_scheme = config_parser.get("general", "color_scheme")
-                template.torrent_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
-                template.torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]
 
                 if template.index_site:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
                         template.index_site_list = template.index_site.split(",")
-
+                                                
                 else:
 
                         template.index_site_list = []
@@ -5396,6 +5565,18 @@ class ConfigTorrent(object):
 
                         config_parser.set("torrent", add_torrent_site_index + "_hostname", "https://kickass.to")
                         config_parser.set("torrent", add_torrent_site_index + "_portnumber", "443")
+
+                #set hostname, path, and port number for known index sites
+                if add_torrent_site == "piratebay":
+
+                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://rss.thepiratebay.se")
+                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
+
+                #set hostname, path, and port number for known index sites
+                if add_torrent_site == "bitsnoop":
+
+                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://bitsnoop.com")
+                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
 
                 #write default values to config.ini
                 config_parser.set("torrent", add_torrent_site_index + "_cat", "")
@@ -6545,11 +6726,30 @@ class SearchIndexThread(object):
 
                                 if config_index_enabled == "yes":
 
-                                        #if index site is torrent site kat, possibly will add additional torrent indexers
                                         if "kat" in torrent_index_site_item:
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "kat_index"
+                                                self.download_type = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+
+                                        if "piratebay" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "piratebay_index"
+                                                self.download_type = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+
+                                        if "bitsnoop" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "bitsnoop_index"
                                                 self.download_type = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
