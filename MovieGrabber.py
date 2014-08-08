@@ -3152,7 +3152,7 @@ class SearchIndex(object):
                                         mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
 
                                         #search end of post title stopping at period, underscore or space as seperator
-                                        index_post_grosite_nameup_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                        index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
                                         if index_post_group_search != None:
 
