@@ -24,14 +24,28 @@ else:
 
         else:
 
-                #create full path to site-packages lib folder
+                #create full path to bundles modules
                 sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
-                #create full path to moviegrabber lib folder
+                #create full path to feedparser module
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/feedparser")
+                sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+                #append full path to sys path
+                sys.path.insert(1, sitepackages_modules_full_path)
+
+                #create full path to argparse module
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/argparse")
+                sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+                #append full path to sys path
+                sys.path.insert(1, sitepackages_modules_full_path)
+
+                #create full path to moviegrabber modules
                 moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/moviegrabber")
                 moviegrabber_modules_full_path = os.path.normpath(moviegrabber_modules_full_path)
 
