@@ -3664,8 +3664,11 @@ class SearchIndex(object):
 
                         if post_title != None:
 
-                                #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                #remove opening square brackets from start and end of post title
+                                post_title = re.sub(ur"^\[|\]$", "", post_title)
+                                
+                                #remove closing square brackets and content including seperator from start and end of post title
+                                post_title = re.sub(ur"^.*\]([\s\-\_\.]+)?|([\s\-\_\.]+)?\[.*$", "", post_title)
 
                                 self.index_post_title = post_title
                                 mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
