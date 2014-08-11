@@ -1134,7 +1134,7 @@ def urllib2_retry(url,user_agent):
 
         except Exception:
 
-                mg_log.warning(u"RSS Feed/API Download failed")
+                mg_log.warning(u"Site Feed/API Download failed")
 
 class DownloadWatched():
 
@@ -3489,18 +3489,18 @@ class SearchIndex(object):
                         search_term = re.sub(ur","," ", search_term)
                         
                 #construct site rss feed
-                rss_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
-                rss_feed_details = "/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (search_term, self.config_cat, self.config_lang)
+                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
+                site_feed_details = "/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (search_term, self.config_cat, self.config_lang)
 
                 #encode rss feed details to uri
-                rss_feed_details = urllib.quote(rss_feed_details.encode('utf-8'))
+                site_feed_details = urllib.quote(site_feed_details.encode('utf-8'))
 
-                self.rss_feed = "%s%s" % (rss_feed_host,rss_feed_details)
+                self.site_feed = "%s%s" % (site_feed_host,site_feed_details)
                 
-                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
-                #run torrent rss feedparser
-                self.torrent_feed_rss(site_name)
+                #generate feed details
+                self.feed_details(site_name)
 
         def piratebay_index(self):
 
@@ -3534,11 +3534,11 @@ class SearchIndex(object):
                         self.config_hostname = "http://" + self.config_hostname
 
                 #site rss feed
-                self.rss_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
-                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+                self.site_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
-                #run torrent rss feedparser
-                self.torrent_feed_rss(site_name)
+                #generate feed details
+                self.feed_details(site_name)
 
         def bitsnoop_index(self):
 
@@ -3595,29 +3595,29 @@ class SearchIndex(object):
                         mg_log.warning(u"%s Index - No required search terms found" % (site_name))
                         return
                         
-                self.rss_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
-                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+                self.site_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
-                #run torrent rss feedparser
-                self.torrent_feed_rss(site_name)
+                #generate feed details
+                self.feed_details(site_name)
 
-        def torrent_feed_rss(self,site_name):
+        def feed_details(self,site_name):
                 
                 #pass to urllib2 retry function - decorator
                 try:
 
-                        rss_feed = urllib2_retry(self.rss_feed,user_agent_moviegrabber)
+                        site_feed = urllib2_retry(self.site_feed,user_agent_moviegrabber)
 
                 except Exception:
 
-                        mg_log.warning(u"%s Index - RSS feed download failed" % (site_name))
+                        mg_log.warning(u"%s Index - Site feed download failed" % (site_name))
                         return
 
                 #use feedparser to parse rss feed
-                rss_feed_parse = feedparser.parse(rss_feed)
+                site_feed_parse = feedparser.parse(site_feed)
 
                 #this breaks down the rss feed page into tag sections
-                for node in rss_feed_parse.entries:
+                for node in site_feed_parse.entries:
 
                         if not search_index_poison_queue.empty():
 
