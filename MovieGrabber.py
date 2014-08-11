@@ -3601,6 +3601,67 @@ class SearchIndex(object):
                 #generate feed details
                 self.feed_details(site_name)
 
+        def torrentz_index(self):
+
+                site_name = u"Torrentz"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
+
+                #substitute friendly names for real values for categories
+                if self.config_cat == "any":
+
+                        self.config_cat = ""
+
+                if self.config_cat == "all movies":
+
+                        self.config_cat = "movies "
+                        
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = "http://" + self.config_hostname
+
+                #use server side search term for rss feed, bitsnoop REQUIRES search term
+                if self.config_search_and != "":
+
+                        search_term = self.config_search_and
+
+                elif self.config_search_or != "":
+
+                        search_term = self.config_search_or
+
+                else:
+
+                        search_term = ""
+
+                if search_term != "":
+
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
+
+                        #convert list back to string
+                        search_term = ','.join(search_term)
+
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+
+                #construct site rss feed
+                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
+                site_feed_details = "/feed?q=%s%s" % (self.config_cat, search_term)
+
+                #encode rss feed details to uri
+                site_feed_details = urllib.quote(site_feed_details.encode('utf-8'))
+
+                #combine host and search criteria
+                self.site_feed = "%s%s" % (site_feed_host,site_feed_details)                
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
+
+                #generate feed details
+                self.feed_details(site_name)
+
         def feed_details(self,site_name):
                 
                 #pass to urllib2 retry function - decorator
@@ -3653,6 +3714,16 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_title = node.title
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if site_name == "Torrentz":
                                 
                                 try:
                                         
@@ -3794,6 +3865,10 @@ class SearchIndex(object):
                                 post_description = None
 
                         if site_name == "Bitsnoop":
+                                
+                                post_description = None
+
+                        if site_name == "Torrentz":
                                 
                                 post_description = None
 
@@ -3964,6 +4039,16 @@ class SearchIndex(object):
                                 
                                 post_date = None                      
 
+                        if site_name == "Torrentz":
+                                
+                                try:
+                                        
+                                        post_date = node.published
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
                         if post_date != None:
 
                                 post_date = re.sub(ur"\s?\+.*", "", post_date)
@@ -4010,6 +4095,16 @@ class SearchIndex(object):
                                         post_details = None                                                
 
                         if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_details = node.id
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
+                        if site_name == "Torrentz":
                                 
                                 try:
                                         
