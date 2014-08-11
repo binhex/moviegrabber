@@ -3464,8 +3464,39 @@ class SearchIndex(object):
 
                         self.config_hostname = "http://" + self.config_hostname
 
-                #site rss feed
-                self.rss_feed = "%s:%s/usearch/category%%3A%s%%20language%%3A%s%%20seeds%%3A1/?rss=1" % (self.config_hostname, self.config_portnumber, self.config_cat, self.config_lang)
+                #use server side search term for rss feed
+                if self.config_search_and != "":
+
+                        search_term = self.config_search_and
+
+                elif self.config_search_or != "":
+
+                        search_term = self.config_search_or
+
+                else:
+
+                        search_term = ""
+
+                if search_term != "":
+                        
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
+
+                        #convert list back to string
+                        search_term = ','.join(search_term)
+
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+                        
+                #construct site rss feed
+                rss_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
+                rss_feed_details = "/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (search_term, self.config_cat, self.config_lang)
+
+                #encode rss feed details to uri
+                rss_feed_details = urllib.quote(rss_feed_details.encode('utf-8'))
+
+                self.rss_feed = "%s%s" % (rss_feed_host,rss_feed_details)
+                
                 mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
 
                 #run torrent rss feedparser
@@ -3532,20 +3563,40 @@ class SearchIndex(object):
 
                         self.config_hostname = "http://" + self.config_hostname
 
-                #bitsnoop requires search term for rss feed, using search AND term               
+                #use server side search term for rss feed, bitsnoop REQUIRES search term
                 if self.config_search_and != "":
 
+                        search_term = self.config_search_and
+
+                elif self.config_search_or != "":
+
+                        search_term = self.config_search_or
+
+                else:
+
+                        search_term = ""
+
+                if search_term != "":
+
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
+                        search_term = [x.strip() for x in search_term.split(',')]
 
                         #convert list back to string
-                        config_search_and = ','.join(config_search_and_list)
+                        search_term = ','.join(search_term)
 
-                        #replace any remaining spaces with url encode
-                        config_search_and = re.sub(ur"\s","%20", config_search_and)
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+
+                        #convert to uri for feed
+                        search_term = urllib.quote(search_term.encode('utf-8'))
+
+                else:
+
+                        mg_log.warning(u"%s Index - No required search terms found" % (site_name))
+                        return
                         
-                        self.rss_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, config_search_and)
-                        mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
+                self.rss_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
+                mg_log.info(u"%s Index - RSS feed %s" % (site_name,self.rss_feed))
 
                 #run torrent rss feedparser
                 self.torrent_feed_rss(site_name)
@@ -3560,7 +3611,6 @@ class SearchIndex(object):
                 except Exception:
 
                         mg_log.warning(u"%s Index - RSS feed download failed" % (site_name))
-
                         return
 
                 #use feedparser to parse rss feed
