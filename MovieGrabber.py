@@ -1009,6 +1009,24 @@ def string_type(text):
 
                 print "not string"
 
+#used to decode string to utf-8 or windows 1252 - used with os.walk
+def string_decode(name):
+
+        #if not string then unicode, does not need to be modified
+        if type(name) == str:
+                
+                try:
+
+                        #used for linux files
+                        name = name.decode('utf8')
+                        
+                except:
+
+                        #used for windows files
+                        name = name.decode('windows-1252')
+                        
+        return name
+
 #create decorator for exception retries
 def _retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
 
@@ -1488,7 +1506,7 @@ class SearchIndex(object):
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
                         #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_downloaded_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_downloaded_dir_list))
+                        self.movies_downloaded_cache = list(itertools.chain.from_iterable(string_decode(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
 
                 if self.config_movies_replace_dir:
 
@@ -1496,7 +1514,7 @@ class SearchIndex(object):
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
 
                         #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_replace_cache = list(itertools.chain.from_iterable(os.walk(root_path) for root_path in movies_replace_dir_list))
+                        self.movies_replace_cache = list(itertools.chain.from_iterable(string_decode(os.walk(root_path)) for root_path in movies_replace_dir_list))
 
                 if self.config_enable_email_notify == "yes":
 
