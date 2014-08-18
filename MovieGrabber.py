@@ -1009,21 +1009,39 @@ def string_type(text):
 
                 print "not string"
 
-#used to decode string to utf-8 or windows 1252 - used with os.walk
-def string_decode(name):
+#used to decode byte strings to unicode, either utf-8 (normally used on linux) or cp1252 (windows)
+def bytestring_to_unicode(name):
 
-        #if not string then unicode, does not need to be modified
-        if type(name) == str:
+        #if type is byte string then decode to unicode, otherwise assume already unicode
+        if isinstance(name, str):
                 
                 try:
 
-                        #used for linux files
+                        #linux default encode
                         name = name.decode('utf8')
                         
-                except:
+                except UnicodeDecodeError:
 
-                        #used for windows files
+                        #windows default encode 
                         name = name.decode('windows-1252')
+                        
+        return name
+
+#used to encode unicode to byte strings, either utf-8 (normally used on linux) or cp1252 (windows)
+def unicode_to_bytestring(name):
+
+        #if type is unicode then encode to byte string, otherwise assume already byte string
+        if isinstance(name, unicode):
+                
+                try:
+
+                        #linux default encode
+                        name = name.encode('utf8')
+                        
+                except UnicodeEncodeError:
+
+                        #windows default encode 
+                        name = name.encode('windows-1252')
                         
         return name
 
@@ -1463,6 +1481,7 @@ class SearchIndex(object):
                 self.config_enable_preferred = (config_parser.get("switches", "enable_preferred")).decode("utf-8")
                 self.config_enable_favorites = (config_parser.get("switches", "enable_favorites")).decode("utf-8")
                 self.config_enable_queuing = (config_parser.get("switches", "enable_queuing")).decode("utf-8")
+                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")                
 
                 #read search criteria from config.ini
                 self.config_search_and = (config_parser.get(download_type, index_site_item + "_search_and")).decode("utf-8")
@@ -1475,11 +1494,10 @@ class SearchIndex(object):
                 self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber")).decode("utf-8")
 
                 #get movies downloaded and movies to replace root directory lists
-                self.config_movies_replace_dir = (config_parser.get("folders", "movies_replace_dir")).decode("utf-8")
+                self.config_movies_replace_dir = (config_parser.get("folders", "movies_replace_dir"))
                 self.config_movies_replace_dir = os.path.normpath(self.config_movies_replace_dir)
-                self.config_movies_downloaded_dir = (config_parser.get("folders", "movies_downloaded_dir")).decode("utf-8")
+                self.config_movies_downloaded_dir = (config_parser.get("folders", "movies_downloaded_dir"))
                 self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
-                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")
 
                 #read general settings from config.ini
                 self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
@@ -1506,7 +1524,7 @@ class SearchIndex(object):
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
                         #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_downloaded_cache = list(itertools.chain.from_iterable(string_decode(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
+                        self.movies_downloaded_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
 
                 if self.config_movies_replace_dir:
 
@@ -1514,7 +1532,7 @@ class SearchIndex(object):
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
 
                         #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                        self.movies_replace_cache = list(itertools.chain.from_iterable(string_decode(os.walk(root_path)) for root_path in movies_replace_dir_list))
+                        self.movies_replace_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_replace_dir_list))
 
                 if self.config_enable_email_notify == "yes":
 
