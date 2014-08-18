@@ -27,8 +27,9 @@ CREATE INDEX
 	<select name="add_torrent_site2" form="add_config_torrent_form">
 	
 		<option value="kat" selected>KickAssTorrents</option>
-		<option value="piratebay" selected>thePiratebay</option>
-		<option value="bitsnoop" selected>Bitsnoop</option>
+		<option value="piratebay">thePiratebay</option>
+		<option value="bitsnoop">Bitsnoop</option>
+		<option value="extratorrent">ExtraTorrent</option>
 		
 	</select>
 	
@@ -114,6 +115,10 @@ EDIT/DELETE INDEX
 			<!--#if "bitsnoop" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
 			<!--#end if#-->				
+
+			<!--#if "extratorrent" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["all movies"]#-->
+			<!--#end if#-->				
 			
 			<!--#for $torrent_cat_item in $torrent_cat_list#-->
 				<!--#if $torrent_cat_item.lower() == $torrent_cat.lower()#-->
@@ -147,6 +152,10 @@ EDIT/DELETE INDEX
 			<!--#if "bitsnoop" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->				
+
+			<!--#if "extratorrent" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->				
 			
 			<!--#for $torrent_lang_item in $torrent_lang_list#-->
 				<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
@@ -162,7 +171,7 @@ EDIT/DELETE INDEX
 		<br>
 				
 		<strong>Search Criteria:</strong><br>
-		<a title="Allows you to specify what you want to search for within the choosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
+		<a title="Allows you to specify what you want to search for within the chosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
 
 		<!--#set $torrent_search_and = $config_parser.get("torrent", $index_site_item + "_search_and")#-->
 		
@@ -170,7 +179,7 @@ EDIT/DELETE INDEX
 		<br>
 		<br>
 
-		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
+		<a title="Allows you to specify what you want to search for within the chosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
 
 		<!--#set $torrent_search_or = $config_parser.get("torrent", $index_site_item + "_search_or")#-->
 		
@@ -178,7 +187,7 @@ EDIT/DELETE INDEX
 		<br>
 		<br>
 
-		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
+		<a title="Allows you to specify what you want to search for within the chosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
 		
 		<!--#set $torrent_search_not = $config_parser.get("torrent", $index_site_item + "_search_not")#-->
 		
@@ -203,7 +212,7 @@ EDIT/DELETE INDEX
 		<input type="text" class="form_textbox_padding" name="torrent_maxsize2" value="$torrent_maxsize" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 25000"/>
 		<br>
 		<br>
-						
+		
 		<input type="hidden" name="edit_torrent_site2" value="$index_site_item" form="$edit_config_torrent">
 		<input type="submit" value="Save Changes" form="$edit_config_torrent">
 		

@@ -230,6 +230,8 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         config_write_option("general","index_bad_group","")
         config_write_option("general","index_bad_report","")
         config_write_option("general","index_posts_to_process","50")
+        config_write_option("general","min_seeds","0")
+        config_write_option("general","min_peers","0")        
         config_write_option("general","color_scheme","darkblue")
         config_write_option("general","theme","classic")
         config_write_option("general","index_schedule_hour","1")
@@ -1532,7 +1534,9 @@ class SearchIndex(object):
                 else:
                         #read torrent specific settings from config.ini
                         self.config_lang = (config_parser.get(download_type, index_site_item + "_lang")).decode("utf-8")
-                                
+                        self.config_min_seeds = (config_parser.get("general", "min_seeds"))
+                        self.config_min_peers = (config_parser.get("general", "min_peers"))
+                        
                 if self.config_movies_downloaded_dir:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
@@ -1754,6 +1758,46 @@ class SearchIndex(object):
         #################
         # index filters #
         #################
+
+        def filter_index_min_seeds(self):
+
+                #if download type not torrent or index min seeds not found or config min seeds not defined then return 1
+                if self.download_type == "usenet" or self.index_min_seeds == "" or self.config_min_seeds == 0:
+
+                        mg_log.info(u"Filter Index - Seed count not defined, proceed")
+                        return 1
+                
+                #this is set to download movies with minimum defined seed count
+                elif self.index_min_seeds >= self.config_min_seeds:
+
+                        mg_log.info(u"Filter Index - Seed count %s above threshold, proceed" % (self.index_min_seeds))
+                        return 1
+
+                else:
+
+                        self.download_details_dict["filter_index_min_seeds_result"] = [0,"Min Seeds", "Index - Seed count below threshold"]
+                        mg_log.info(u"Filter Index - Seed count %s below threshold, skip" % (self.index_min_seeds))
+                        return 0
+
+        def filter_index_min_peers(self):
+
+                #if download type not torrent or index min peers not found or config min peers not defined then return 1
+                if self.download_type == "usenet" or self.index_min_peers == "" or self.config_min_peers == 0:
+
+                        mg_log.info(u"Filter Index - Peer count not defined, proceed")
+                        return 1
+                
+                #this is set to download movies with minimum defined seed count
+                elif self.index_min_peers >= self.config_min_peers:
+
+                        mg_log.info(u"Filter Index - Peer count %s above threshold, proceed" % (self.index_min_peers))
+                        return 1
+
+                else:
+
+                        self.download_details_dict["filter_index_min_peers_result"] = [0,"Min Peers", "Index - Peer count below threshold"]
+                        mg_log.info(u"Filter Index - Peer count %s below threshold, skip" % (self.index_min_peers))
+                        return 0
 
         def filter_index_bad_report(self):
                 
@@ -2932,6 +2976,8 @@ class SearchIndex(object):
                 self.filter_imdb_bad_title_result = self.filter_imdb_bad_title()
                 self.filter_index_special_cut_result = self.filter_index_special_cut()                
                 self.filter_index_preferred_group_result = self.filter_index_preferred_group()
+                self.filter_index_min_seeds_result = self.filter_index_min_seeds()
+                self.filter_index_min_peers_result = self.filter_index_min_peers()                
                 self.filter_index_bad_group_result = self.filter_index_bad_group()
                 self.filter_imdb_good_ratings_result = self.filter_imdb_good_ratings()
                 self.filter_imdb_good_votes_result = self.filter_imdb_good_votes()
@@ -2955,7 +3001,7 @@ class SearchIndex(object):
 
                         self.filter_check_status = 1                        
 
-                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
+                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_min_seeds_result == 1 and self.filter_index_min_peers_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
 
                         self.filter_check_status = 1
 
@@ -3195,8 +3241,11 @@ class SearchIndex(object):
                                         post_title = post_title_search.contents[0]
                                         post_title = self.decode_html_entities(post_title)
 
-                                        #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                        post_title = re.sub(ur"^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                        #remove square brackets and content from start and end of post title
+                                        post_title = re.sub(ur"^\[.*\](?!$)|(?!^)\[.*\]$|^\[|\]$", "", post_title)
+
+                                        #remove seperator from start and end of post title
+                                        post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
 
                                         self.index_post_title = post_title
                                         mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
@@ -3619,20 +3668,11 @@ class SearchIndex(object):
                 #generate feed details
                 self.feed_details(site_name)
 
-        def torrentz_index(self):
+        def extratorrent_index(self):
 
-                site_name = u"Torrentz"
+                site_name = u"ExtraTorrent"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-
-                #substitute friendly names for real values for categories
-                if self.config_cat == "any":
-
-                        self.config_cat = ""
-
-                if self.config_cat == "all movies":
-
-                        self.config_cat = "movies "
                         
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3642,33 +3682,9 @@ class SearchIndex(object):
 
                         self.config_hostname = "http://" + self.config_hostname
 
-                #use server side search term for rss feed, bitsnoop REQUIRES search term
-                if self.config_search_and != "":
-
-                        search_term = self.config_search_and
-
-                elif self.config_search_or != "":
-
-                        search_term = self.config_search_or
-
-                else:
-
-                        search_term = ""
-
-                if search_term != "":
-
-                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        search_term = [x.strip() for x in search_term.split(',')]
-
-                        #convert list back to string
-                        search_term = ','.join(search_term)
-
-                        #replace comma with spaces to seperate search terms
-                        search_term = re.sub(ur","," ", search_term)
-
                 #construct site rss feed
-                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
-                site_feed_details = "/feed?q=%s%s" % (self.config_cat, search_term)
+                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)                
+                site_feed_details = "/rss.xml?cid=4&type=last"
 
                 #encode rss feed details to uri
                 site_feed_details = urllib.quote(site_feed_details.encode('utf-8'))
@@ -3741,7 +3757,7 @@ class SearchIndex(object):
 
                                         post_title = None
 
-                        if site_name == "Torrentz":
+                        if site_name == "ExtraTorrent":
                                 
                                 try:
                                         
@@ -3753,12 +3769,12 @@ class SearchIndex(object):
 
                         if post_title != None:
 
-                                #remove opening square brackets from start and end of post title
-                                post_title = re.sub(ur"^\[|\]$", "", post_title)
-                                
-                                #remove closing square brackets and content including seperator from start and end of post title
-                                post_title = re.sub(ur"^.*\]([\s\-\_\.]+)?|([\s\-\_\.]+)?\[.*$", "", post_title)
+                                #remove square brackets and content from start and end of post title
+                                post_title = re.sub(ur"^\[.*\](?!$)|(?!^)\[.*\]$|^\[|\]$", "", post_title)
 
+                                #remove seperator from start and end of post title
+                                post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
+                                
                                 self.index_post_title = post_title
                                 mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
 
@@ -3812,6 +3828,19 @@ class SearchIndex(object):
                                 try:
                                         
                                         self.index_download_link = node.magneturi
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        self.index_download_link = None
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+
+                        if site_name == "ExtraTorrent":
+                                
+                                try:
+                                        
+                                        self.index_download_link = node.links[1].href
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
 
                                 except (IndexError, AttributeError) as e:
@@ -3886,7 +3915,7 @@ class SearchIndex(object):
                                 
                                 post_description = None
 
-                        if site_name == "Torrentz":
+                        if site_name == "ExtraTorrent":
                                 
                                 post_description = None
 
@@ -3990,6 +4019,16 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
                                         
                                         post_size = None
+
+                        if site_name == "ExtraTorrent":
+                                
+                                try:
+                                        
+                                        post_size = node.links[1].length
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
                                         
                         if post_size != None:
 
@@ -4057,7 +4096,7 @@ class SearchIndex(object):
                                 
                                 post_date = None                      
 
-                        if site_name == "Torrentz":
+                        if site_name == "ExtraTorrent":
                                 
                                 try:
                                         
@@ -4122,11 +4161,11 @@ class SearchIndex(object):
                                         
                                         post_details = None                                                
 
-                        if site_name == "Torrentz":
+                        if site_name == "ExtraTorrent":
                                 
                                 try:
                                         
-                                        post_details = node.id
+                                        post_details = node.links[0].href
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -4173,6 +4212,16 @@ class SearchIndex(object):
                                         
                                         post_id = None
 
+                        if site_name == "ExtraTorrent":
+                                
+                                try:
+                                        
+                                        post_id = node.info_hash
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_id = None
+
                         if post_id != None:
 
                                 self.index_post_id = post_id
@@ -4182,6 +4231,86 @@ class SearchIndex(object):
 
                                 self.index_post_id = ""
                                 mg_log.info(u"%s Index - Post id not found" % (site_name))
+
+                        #generate post seeders/peers
+                        if site_name == "KickAss":
+                                
+                                try:
+                                        
+                                        post_seeders = node.torrent_seeds
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node.torrent_peers
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+
+                        if site_name == "PirateBay":
+                                
+                                post_seeders = None
+                                post_peers = None
+
+                        if site_name == "Bitsnoop":
+                                
+                                try:
+                                        
+                                        post_seeders = node.numseeders
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node.numleechers
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+
+                        if site_name == "ExtraTorrent":
+                                
+                                try:
+                                        
+                                        post_seeders = node.seeders
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node.leechers
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+
+                        if post_seeders != None:
+
+                                self.index_min_seeds = post_seeders
+                                mg_log.info(u"%s Index - Post seed count %s" % (site_name,self.index_min_seeds))
+
+                        else:
+
+                                self.index_min_seeds = ""
+                                mg_log.info(u"%s Index - Post seed count not found" % (site_name))
+
+                        if post_peers != None:
+
+                                self.index_min_peers = post_peers
+                                mg_log.info(u"%s Index - Post peer count %s" % (site_name,self.index_min_peers))
+
+                        else:
+
+                                self.index_min_seeds = ""
+                                mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #call imdb search json
                         self.imdb_details_json()
@@ -5019,6 +5148,8 @@ class ConfigGeneral(object):
                 template.index_bad_group = config_parser.get("general", "index_bad_group")
                 template.index_bad_report = config_parser.get("general", "index_bad_report")                
                 template.index_posts_to_process = config_parser.get("general", "index_posts_to_process")
+                template.min_seeds = config_parser.get("general", "min_seeds")
+                template.min_peers = config_parser.get("general", "min_peers")  
                 
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
@@ -5062,7 +5193,6 @@ class ConfigGeneral(object):
                 config_parser.set("general", "index_bad_report", kwargs["index_bad_report2"])
                 config_parser.set("general", "log_level", kwargs["log_level2"])
                 config_parser.set("general", "check_version", kwargs["check_version2"])
-
 		
                 #contruct logger instance and new logging level
                 logging_level = getattr(logging, kwargs["log_level2"])
@@ -5112,6 +5242,28 @@ class ConfigGeneral(object):
                 else:
 
                         config_parser.set("general", "index_posts_to_process", "50")
+
+                if kwargs["min_seeds2"]:
+
+                        #check value is an integer, if not do not save
+                        try:
+                                int(kwargs["min_seeds2"])
+                                config_parser.set("general", "min_seeds", kwargs["min_seeds2"])
+
+                        except ValueError:
+
+                                pass
+
+                if kwargs["min_peers2"]:
+
+                        #check value is an integer, if not do not save
+                        try:
+                                int(kwargs["min_peers2"])
+                                config_parser.set("general", "min_peers", kwargs["min_peers2"])
+
+                        except ValueError:
+
+                                pass
 
                 with open(config_ini, 'w') as configini:
 
@@ -5776,6 +5928,12 @@ class ConfigTorrent(object):
                         config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://bitsnoop.com")
                         config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
 
+                #set hostname, path, and port number for known index sites
+                if add_torrent_site == "extratorrent":
+
+                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://extratorrent.cc")
+                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
+
                 #write default values to config.ini
                 config_parser.set("torrent", add_torrent_site_index + "_cat", "")
                 config_parser.set("torrent", add_torrent_site_index + "_lang", "")
@@ -5785,7 +5943,7 @@ class ConfigTorrent(object):
                 config_parser.set("torrent", add_torrent_site_index + "_minsize", "0")
                 config_parser.set("torrent", add_torrent_site_index + "_maxsize", "0")
                 config_parser.set("torrent", add_torrent_site_index + "_enabled", "yes")
-
+                
                 with open(config_ini, 'w') as configini:
 
                         config_parser.write
@@ -6948,6 +7106,16 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "bitsnoop_index"
+                                                self.download_type = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+
+                                        if "extratorrent" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "extratorrent_index"
                                                 self.download_type = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
