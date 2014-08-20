@@ -2015,7 +2015,7 @@ class SearchIndex(object):
 
                                 else:
 
-                                        mg_log.info(u"Filter Index - Search criteria MUST exist %s NOT found , skip" % (config_search_and_item))
+                                        mg_log.info(u"Filter Index - Search criteria MUST exist %s NOT found, skip" % (config_search_and_item))
                                         return 0
 
                         mg_log.info(u"Filter Index - Search criteria MUST exist found, proceed")
@@ -3358,11 +3358,11 @@ class SearchIndex(object):
                                         #remove everything from movie year in post title
                                         index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
-                                        #replace dots, hyphens and underscores with html spaces
+                                        #replace dots, hyphens and underscores with spaces
                                         index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
-                                        #generate year from post title
-                                        index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
+                                        #generate year excluding numbers from start of post title
+                                        index_post_movie_year_search = re.compile(r"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                         if index_post_movie_year_search != None:
 
@@ -3377,7 +3377,7 @@ class SearchIndex(object):
                                         #convert to uri for html find_id
                                         self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
 
-                                        #attempt to get imdb id from omdb
+                                        #attempt to get imdb id using omdb
                                         self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
 
                                         #if no imdb id then fallback to tmdb (slower)
@@ -3385,7 +3385,7 @@ class SearchIndex(object):
 
                                                 mg_log.info(u"Newznab Index - Failed to get IMDb ID from OMDb, falling back to TMDb")
                                                 
-                                                #attempt to get imdb id from tmdb
+                                                #attempt to get imdb id using tmdb
                                                 self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
 
                                                 #if no imdb id from omdb or tmdb then skip post
@@ -3953,11 +3953,11 @@ class SearchIndex(object):
                                 #remove everything from movie year in post title
                                 index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
-                                #replace dots, hyphens and underscores with html spaces
+                                #replace dots, hyphens and underscores with spaces
                                 index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
-                                #generate year from post title
-                                index_post_movie_year_search = re.compile(r"(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
+                                #generate year excluding numbers from start of post title
+                                index_post_movie_year_search = re.compile(r"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                 if index_post_movie_year_search != None:
 
@@ -3972,7 +3972,7 @@ class SearchIndex(object):
                                 #convert to uri for html find_id
                                 self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
 
-                                #attempt to get imdb id from omdb
+                                #attempt to get imdb id using omdb
                                 self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
 
                                 #if no imdb id then fallback to tmdb (slower)
@@ -3980,7 +3980,7 @@ class SearchIndex(object):
 
                                         mg_log.info(u"%s Index - Failed to get IMDb ID from OMDb, falling back to TMDb" % (site_name))
                                         
-                                        #attempt to get imdb id from tmdb
+                                        #attempt to get imdb id using tmdb
                                         self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
 
                                         #if no imdb id from omdb or tmdb then skip post
