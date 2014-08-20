@@ -1,2 +1,3 @@
 # Ignore comments file
 todo.txt
+*.pyd
