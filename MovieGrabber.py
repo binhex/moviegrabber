@@ -3014,10 +3014,12 @@ class SearchIndex(object):
         ##########
 
         def sqlite_insert(self):
-
+                
                 #set last run time/date
-                self.last_run = time.strftime("%d" + "/" + "%m" + "/" + "%Y" + " %s" % "%H" + ":" + "%M" + ":" + "%S", time.localtime())
-                self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))
+                last_run = time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())                
+                self.last_run = "%s %s" % (str(last_run), time.tzname[1])
+                
+                self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))                
 
                 #insert details into history table (note sqlite requires decimal values as text)
                 sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_type, self.download_details_dict, self.last_run, self.last_run_sort)
@@ -3896,7 +3898,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Post title search criteria failed" % (site_name))
                                 continue
 
-                        #generate imdb url and tt number
+                        #generate imdb id from description if possible
                         if site_name == "KickAss":
                                 
                                 try:
@@ -4113,7 +4115,8 @@ class SearchIndex(object):
 
                                 #reformat time to correct string format
                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
-                                post_date_string += " UTC"
+                                post_date_string = "%s UTC" % (post_date_string)
+                                
                                 self.index_post_date = post_date_string
                                 mg_log.info(u"%s Index - Post date %s" % (site_name,self.index_post_date))
 
@@ -4123,7 +4126,7 @@ class SearchIndex(object):
 
                         else:
 
-                                self.index_post_date = ""
+                                self.index_post_date = "-"
                                 self.index_post_date_sort = 0
                                 mg_log.info(u"%s Index - Post date not found" % (site_name))
 
