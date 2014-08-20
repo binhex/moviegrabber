@@ -2430,16 +2430,16 @@ class SearchIndex(object):
 
                 except Exception:
 
-                        mg_log.warning(u"%s Index - Failed to download OMDb json page %s" % (site_name,omdb_find_tt_json))
+                        mg_log.warning(u"%s Index - Failed to download OMDb json page %s" % (site_name,omdb_find_tt_json_url))
                         return None
 
-                #if resulting omdb json page is blank then continue
+                #if resulting omdb json page is blank then return
                 if omdb_find_tt_json == {}:
                         
                         mg_log.info(u"%s Index - No match for movie title %s on OMDb json" % (site_name,index_post_movie_title))
                         return None
 
-                #if json key error then continue
+                #find imdb id
                 try:
                         
                         imdb_tt_number = omdb_find_tt_json["imdbID"]
@@ -2476,7 +2476,7 @@ class SearchIndex(object):
                         mg_log.info(u"%s Index - No match for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
                 
-                #if json key error then continue
+                #find tmdb id
                 try:
                         
                         tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
@@ -2509,7 +2509,7 @@ class SearchIndex(object):
                         mg_log.info(u"%s Index - No IMDb ID for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
                 
-                #if json key error then continue
+                #find imdb id
                 try:
                         
                         imdb_tt_number = tmdb_find_tt_json["imdb_id"]
