@@ -12,7 +12,7 @@
 		<legend>Good Definitions</legend>
 
 		<a title="Allows you to specify the imdb genre(s) you want to match on - note if a movie matches a genre that is not ticked the movie will be skipped."><strong>(?)</strong></a><strong>Good Genre(s):</strong><br>
-		Specify imdb good genre(s)
+		Specify the imdb good genre(s)
 	
 		<br>
 
@@ -31,7 +31,7 @@
 		<br>
 		
 		<a title="Allows you to specify the imdb minimum rating to match on."><strong>(?)</strong></a><strong>Good Rating:</strong><br>
-		Specify imdb min rating.<br/>
+		Specify the imdb min rating.<br/>
 
 		<select name="good_rating2">
 		
@@ -52,7 +52,7 @@
 		<br>
 
 		<a title="Allows you to specify the imdb minimum date you want to match on."><strong>(?)</strong></a><strong>Good Date:</strong><br>
-		Specify imdb min date.<br/>
+		Specify the imdb min date.<br/>
 
 		<select name="good_date2">
 			<!--#for $i in range(1890, 2100)#-->
@@ -68,7 +68,7 @@
 		<br>
 
 		<a title="Allows you to specify the imdb minimum vote count to match on."><strong>(?)</strong></a><strong>Good Votes:</strong><br>
-		Specify imdb min votes.<br/>
+		Specify the imdb min votes.<br/>
 
 		<input type="text" name="good_votes2" value="$good_votes" size="10" maxlength="300"/>
 	
@@ -81,7 +81,7 @@
 		<legend>Preferred Definitions</legend>
 
 		<a title="Allows you to relax your minimum imdb rating for your preferred genre(s) - note if any of the selected genres below matches then the imdb prefered imdb rating will be used."><strong>(?)</strong></a><strong> Preferred Genre(s):</strong><br>
-		Specify imdb preferred genre(s)
+		Specify the imdb preferred genre(s)
 		<br>
 
 		<div class="imdb_genre_scroll_checkbox">
@@ -99,7 +99,7 @@
 		<br>
 
 		<a title="Allows you to specify a lower minimum imdb rating for your preferred genre(s)."><strong>(?)</strong></a><strong> Preferred Rating:</strong><br>
-		Specify imdb preferred min rating.<br>
+		Specify the imdb preferred min rating.<br>
 		
 		<select name="preferred_rating2">
 		
@@ -125,7 +125,7 @@
 		<legend>Queued Definitions</legend>
 
 		<a title="Allows you to specify imdb genre(s) you want to mark as queue on match, if queue genre match then the movie will be held in the queue (can be viewed in queue/view queue) for review by the user before release to the watched folder."><strong>(?)</strong></a><strong>Queue Genre(s):</strong><br>
-		Specify imdb queue genre(s)
+		Specify the imdb queue genre(s)
 		<br>
 
 		<div class="imdb_genre_scroll_checkbox">
@@ -143,7 +143,7 @@
 		<br>
 		
 		<a title="Allows you to specify min imdb date you want to mark as queued, if movie date is less than the date specified then the movie will be held in the queue (can be viewed in queue/view queue) for review by the user before release to the watched folder."><strong>(?)</strong></a><strong>Queue Date:</strong><br>
-		Specify imdb min queue date.<br/>
+		Specify the imdb min queue date.<br/>
 
 		<select name="queue_date2">
 			<!--#for $i in range($good_date, 2100)#-->
@@ -209,7 +209,7 @@
 		<legend>Bad Definitions</legend>
 
 		<a title="Allows you to specify title(s) you want to force skip whatever the good definition checks are, please note you will need to include the year for the movie title - use commas to seperate names."><strong>(?)</strong></a><strong> Bad Titles:</strong><br>		
-		Specify bad imdb movie title(s)<br>
+		Specify the bad imdb movie title(s)<br>
 		
 		<input type="text" class="form_textbox_padding" name="bad_title2" value="$bad_title" maxlength="1000" placeholder="e.g. machete (2010),avatar (2009)"/>
 

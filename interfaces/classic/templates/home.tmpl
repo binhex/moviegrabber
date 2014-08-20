@@ -22,86 +22,82 @@
 
 <h1>Welcome to MovieGrabber</h1>
 
-<div class="home_status_div">
+<!--#if $usenet_index_site != ""#-->
 
-	<!--#if $usenet_index_site != ""#-->
-
-		<!--#set global $usenet_config_defined="yes"#-->
-		
-		<b>Usenet</b><br>
-		
-		<!--#if $usenet_watch_dir != "" and $usenet_archive_dir != "" and $usenet_completed_dir != ""#-->
-			<!--#set global $usenet_config_complete="yes"#-->			
-		<!--#end if#-->	
-		
-		<!--#if $usenet_watch_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Watched Folder</a></span><br>
-		<!--#end if#-->		
-
-		<!--#if $usenet_archive_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Archive Folder</a></span><br>
-		<!--#end if#-->		
-		
-		<!--#if $usenet_completed_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Completed Folder</a></span><br>
-		<!--#end if#-->		
-		
-	<!--#end if#-->				
-
-	<!--#if ($usenet_config_defined == "yes" and $usenet_config_complete == "yes")#-->
-		<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
-	<!--#end if#-->				
-
-	<!--#if $torrent_index_site != ""#-->
-
-		#set global $torrent_config_defined="yes"	
-		
-		<b>Torrent</b><br>
-		
-		<!--#if $torrent_watch_dir != "" and $torrent_archive_dir != "" and $torrent_completed_dir != ""#-->		
-			<!--#set global $torrent_config_complete="yes"#-->
-		<!--#end if#-->	
-		
-		<!--#if $torrent_watch_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Watched Folder</a></span><br>
-		<!--#end if#-->	
-
-		<!--#if $torrent_archive_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Archive Folder</a></span><br>
-		<!--#end if#-->	
-
-		<!--#if $torrent_completed_dir == ""#-->
-			<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Completed Folder</a></span><br>
-		<!--#end if#-->	
-		
-	<!--#end if#-->				
-
-	<!--#if ($torrent_config_defined == "yes" and $torrent_config_complete == "yes")#-->
-		<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
-	<!--#end if#-->				
-
-	<!--#if $usenet_config_defined == "no" and $torrent_config_defined == "no"#-->
-		<h5 class="home_status_box_red" style="color:white">Create Index</h5><span class="home_status_text">Please add a <a href="$statpath/config/usenet">Usenet Index</a> or <a href="$statpath/config/torrent">Torrent Index</a></span><br>
-	<!--#end if#-->
-
-	<b>IMDb</b><br>
-
-	<!--#if $good_rating != "0.0" and $good_votes != "0"#-->
-		<!--#set global $imdb_config_defined="yes"#-->
-	<!--#end if#-->
-		
-	<!--#if $good_rating == "0.0"#-->
-		<h5 class="home_status_box_orange" style="color:white">Warning</h5><span class="home_status_text">IMDb rating is currently set to defaults, this will result in large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Rating</a></span><br>
-	<!--#end if#-->	
-
-	<!--#if $good_votes == "0"#-->
-		<h5 class="home_status_box_orange" style="color:white">Warning</h5><span class="home_status_text">IMDb votes is currently set to defaults, this will result in a large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Votes</a></span><br>
-	<!--#end if#-->	
-
-	<!--#if ($imdb_config_defined == "yes")#-->
-		<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">IMDb criteria defined.</span><br>
-	<!--#end if#-->
+	<!--#set global $usenet_config_defined="yes"#-->
 	
-</div>		
+	<b>Usenet</b><br>
+	
+	<!--#if $usenet_watch_dir != "" and $usenet_archive_dir != "" and $usenet_completed_dir != ""#-->
+		<!--#set global $usenet_config_complete="yes"#-->			
+	<!--#end if#-->	
+	
+	<!--#if $usenet_watch_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Watched Folder</a></span><br>
+	<!--#end if#-->		
 
+	<!--#if $usenet_archive_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Archive Folder</a></span><br>
+	<!--#end if#-->		
+	
+	<!--#if $usenet_completed_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Completed Folder</a></span><br>
+	<!--#end if#-->		
+	
+<!--#end if#-->				
+
+<!--#if ($usenet_config_defined == "yes" and $usenet_config_complete == "yes")#-->
+	<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
+<!--#end if#-->				
+
+<!--#if $torrent_index_site != ""#-->
+
+	#set global $torrent_config_defined="yes"	
+	
+	<b>Torrent</b><br>
+	
+	<!--#if $torrent_watch_dir != "" and $torrent_archive_dir != "" and $torrent_completed_dir != ""#-->		
+		<!--#set global $torrent_config_complete="yes"#-->
+	<!--#end if#-->	
+	
+	<!--#if $torrent_watch_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Watched Folder</a></span><br>
+	<!--#end if#-->	
+
+	<!--#if $torrent_archive_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Archive Folder</a></span><br>
+	<!--#end if#-->	
+
+	<!--#if $torrent_completed_dir == ""#-->
+		<h5 class="home_status_box_red" style="color:white">Incomplete</h5><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Completed Folder</a></span><br>
+	<!--#end if#-->	
+	
+<!--#end if#-->				
+
+<!--#if ($torrent_config_defined == "yes" and $torrent_config_complete == "yes")#-->
+	<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
+<!--#end if#-->				
+
+<!--#if $usenet_config_defined == "no" and $torrent_config_defined == "no"#-->
+	<h5 class="home_status_box_red" style="color:white">Create Index</h5><span class="home_status_text">Please add a <a href="$statpath/config/usenet">Usenet Index</a> or <a href="$statpath/config/torrent">Torrent Index</a></span><br>
+<!--#end if#-->
+
+<b>IMDb</b><br>
+
+<!--#if $good_rating != "0.0" and $good_votes != "0"#-->
+	<!--#set global $imdb_config_defined="yes"#-->
+<!--#end if#-->
+	
+<!--#if $good_rating == "0.0"#-->
+	<h5 class="home_status_box_orange" style="color:white">Warning</h5><span class="home_status_text">IMDb rating is currently set to defaults, this will result in large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Rating</a></span><br>
+<!--#end if#-->	
+
+<!--#if $good_votes == "0"#-->
+	<h5 class="home_status_box_orange" style="color:white">Warning</h5><span class="home_status_text">IMDb votes is currently set to defaults, this will result in a large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Votes</a></span><br>
+<!--#end if#-->	
+
+<!--#if ($imdb_config_defined == "yes")#-->
+	<h5 class="home_status_box_green" style="color:white">Ready</h5><span class="home_status_text">IMDb criteria defined.</span><br>
+<!--#end if#-->
+		
 #include $templates_dir + "/inc_bottom.tmpl"

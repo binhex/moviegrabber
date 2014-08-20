@@ -128,6 +128,25 @@
 		<br>
 		<br>
 
+		<a title="Allows you to specify whether xbmc notification is enabled, once enabled please configure in configuration/notification/xbmc."><strong>(?)</strong></a><strong>Enable XBMC Notification:</strong><br>
+		Switch xbmc notification on/off.<br/>
+
+		<select name="enable_xbmc2">
+		<!--#if $xbmc_host == "" or $xbmc_port == "" or $xbmc_username == ""#-->
+			<option disabled value="yes">yes</option>						
+			<option value="no" selected>no</option>			
+		<!--#elif $enable_xbmc == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>					
+			<option value="no" selected>no</option>			
+		<!--#end if#-->
+		</select>
+
+		<br>
+		<br>
+
 		<a title="Allows you to specify whether post processing is enabled, once enabled please configure in configuration/post processing."><strong>(?)</strong></a><strong>Enable Post Processing:</strong><br>
 		Switch post processing on/off.<br/>
 

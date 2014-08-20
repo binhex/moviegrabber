@@ -63,19 +63,6 @@ fieldset.EntryFieldSet {
     display: inline-block;
 }
 
-.home_status_div{
-	/* set max-height to prevent chrome font boosting */ 
-	max-height: 999999px;
-}
-
-/* force home status text to be in line with status box*/
-.home_status_text {
-	display: inline; 
-	vertical-align:middle;
-	white-space: nowrap;
-	line-height:250%;	
-}
-
 .home_status_box_red {
 	border:1px solid #000000;
 	padding:2px 4px; 
@@ -119,6 +106,14 @@ fieldset.EntryFieldSet {
 	text-align: center;
 	margin-right: 7px;	
 	-moz-border-radius:5px; /* Firefox 3.6 and earlier */
+}
+
+/* force home status text to be in line with status box*/
+.home_status_text {
+	display: inline; 
+	vertical-align:middle;
+	white-space: nowrap;
+	line-height:250%;	
 }
 
 .history_queue_result_box_red {

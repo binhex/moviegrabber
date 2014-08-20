@@ -132,7 +132,39 @@
 				
 		<br>
 		<br>
+		
+		<a title="Allows you to specify whether to rename the movie file to match the imdb title for post processing."><strong>(?)</strong></a><strong>Rename Movie File:</strong><br>
+		Define whether to rename movie file.<br/>
+		
+		<select name="post_rename_files2">
+			<!--#if $post_rename_files == "yes"#-->
+				<option value="yes" selected>yes</option>
+				<option value="no">no</option>		
+			<!--#else#-->		
+				<option value="yes">yes</option>					
+				<option value="no" selected>no</option>				
+			<!--#end if#-->
+		</select>
 				
+		<br>
+		<br>
+		
+		<a title="Allows you to specify the certification rating system used for post processing."><strong>(?)</strong></a><strong>Certification System:</strong><br>
+		Select the certification system.<br>
+
+		<select name="post_cert_system2">
+			<!--#if $post_cert_system == "uk"#-->
+				<option value="uk" selected>uk</option>
+				<option value="us">us</option>		
+			<!--#else#-->		
+				<option value="uk">uk</option>					
+				<option value="us" selected>us</option>					
+			<!--#end if#-->
+		</select>
+		
+		<br>
+		<br>
+		
 		<a title="Allows you to specify when to check for new moviegrabber releases."><strong>(?)</strong></a><strong>Check Version:</strong><br>
 		Check for new releases.<br/>
 		
@@ -169,15 +201,8 @@
 
 	<fieldset class="EntryFieldSet">
 		<legend>Index Settings</legend>
-		
-		<a title="Allows you to specify whether you would like to force downloading/queuing of an existing movie if an extended/directors cut/unrated or uncut version of the movie is released."><strong>(?)</strong></a><strong>Special Cut:</strong><br>
-		Switch special cut checking on/off.<br/>
-						
-		<input type="text" class="form_textbox_padding" name="index_special_cut2" value="$index_special_cut" maxlength="1000" placeholder="e.g. extended,uncut,unrated"/>
-		<br>
-		<br>
 
-		<a title="Allows you to specify whether you want to force downloading/queueing of an existing movie if the release group matches one of your preferred release groups defined below."><strong>(?)</strong></a><strong>Preferred Release Groups:</strong><br>
+		<a title="Allows you to specify the names of the preferred release groups, if an already downloaded movie filename does NOT contain a release group that matches any of the preferred release groups AND the post release group DOES match any of the names in preferred release group then a forced download will occur."><strong>(?)</strong></a><strong>Preferred Release Groups:</strong><br>
 		Define preferred release group(s).<br/>	
 				
 		<input type="text" class="form_textbox_padding" name="index_preferred_group2" value="$index_preferred_group" maxlength="1000" placeholder="e.g. ctrlhd,sinners"/>
@@ -190,13 +215,6 @@
 		<input type="text" class="form_textbox_padding" name="index_bad_group2" value="$index_bad_group" maxlength="1000" placeholder="e.g. ctrlhd,sinners"/>
 		<br>
 		<br>
-
-		<a title="Allows you to specify the id's of any bad post reports, any post report matching any of the below id's will be skipped."><strong>(?)</strong></a><strong>Bad Post Report:</strong><br>
-		Define bad post report.<br/>
-				
-		<input type="text" class="form_textbox_padding" name="index_bad_report2" value="$index_bad_report" maxlength="1000" placeholder="e.g. 1234567,89123456"/>
-		<br>
-		<br>
 		
 		<a title="Allows you to specify the number of posts to process, the default value is 50. The maximum number of posts will depend on the index site, a recommended value would be up to 4000."><strong>(?)</strong></a><strong>Posts to Process:</strong><br>
 		Define the number of posts to process.<br/>
@@ -206,7 +224,7 @@
 		<br>
 		
 	</fieldset>			
-		
+	
 </div>
 
 <br>

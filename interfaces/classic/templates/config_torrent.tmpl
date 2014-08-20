@@ -171,6 +171,15 @@ EDIT/DELETE INDEX
 		<br>
 		<br>
 						
+		<a title="Allows you to specify the post id of a known bad post. This can be useful to ignore known posts that arent complete."><strong>(?)</strong></a><strong>Bad Post ID:</strong><br>
+		Define known bad release id(s)<br/>
+
+		<!--#set $torrent_bad_report = $config_parser.get("torrent", $index_site_item + "_bad_report")#-->
+		
+		<input type="text" class="form_textbox_padding" name="torrent_bad_report2" value="$torrent_bad_report" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 123456"/>
+		<br>
+		<br>
+
 		<input type="hidden" name="edit_torrent_site2" value="$index_site_item" form="$edit_config_torrent">
 		<input type="submit" value="Save Changes" form="$edit_config_torrent">
 		

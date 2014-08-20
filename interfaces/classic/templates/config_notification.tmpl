@@ -41,13 +41,28 @@
 		<br>
 		<br>
 
-		<a title="Allows you to specify whether to send gui notification of queued/downloaded movies to xbmc."><strong>(?)</strong></a><strong>Notification:</strong><br>
+		<a title="Allows you to specify whether to send gui notification of queued/downloaded movies to xbmc."><strong>(?)</strong></a><strong>GUI Notification:</strong><br>
 		Define whether to enable XBMC notifications.<br/>
 		
 		<select name="xbmc_notification2">
 		<!--#if $xbmc_notification == "yes"#-->
 			<option value="yes" selected>yes</option>
 			<option value="no">no</option>		
+		<!--#else#-->		
+			<option value="yes">yes</option>
+			<option value="no" selected>no</option>	
+		<!--#end if#-->
+		</select>
+		<br>
+		<br>
+
+		<a title="Allows you to specify whether to force a library update on xbmc once post processing is complete."><strong>(?)</strong></a><strong>Library Update:</strong><br>
+		Define whether to enable XBMC library updates.<br/>
+		
+		<select name="xbmc_library_update2">
+		<!--#if $xbmc_library_update == "yes"#-->
+			<option value="yes" selected>yes</option>
+			<option value="no">no</option>
 		<!--#else#-->		
 			<option value="yes">yes</option>
 			<option value="no" selected>no</option>	

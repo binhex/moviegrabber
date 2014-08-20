@@ -113,13 +113,7 @@ EDIT/DELETE INDEX
 
 		<!--#set $newznab_portnumber = $config_parser.get("usenet", $index_site_item + "_portnumber")#-->
 		
-		<!--#if "custom" in $index_site_item#-->
-			<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" required/>
-		<!--#else#-->		
-			<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" disabled/>		
-			<input type="hidden" name="newznab_portnumber2" value="$newznab_portnumber" form="$edit_config_usenet">
-		<!--#end if#-->
-		
+		<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" required/>
 		<br>
 		<br>
 
@@ -211,6 +205,15 @@ EDIT/DELETE INDEX
 		<br>
 		<br>
 						
+		<a title="Allows you to specify the post id of a known bad post. This can be useful to ignore known posts that arent complete."><strong>(?)</strong></a><strong>Bad Post ID:</strong><br>
+		Define known bad release id(s).<br/>
+
+		<!--#set $newznab_bad_report = $config_parser.get("usenet", $index_site_item + "_bad_report")#-->
+		
+		<input type="text" class="form_textbox_padding" name="newznab_bad_report2" value="$newznab_bad_report" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 123456"/>
+		<br>
+		<br>
+
 		<input type="hidden" name="edit_newznab_site2" value="$index_site_item" form="$edit_config_usenet">
 		<input type="submit" value="Save Changes" form="$edit_config_usenet">
 		

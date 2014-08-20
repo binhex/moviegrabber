@@ -4,88 +4,7 @@
 #include $templates_dir + "/inc_top.tmpl"
 #include $templates_dir + "/inc_cmenu.tmpl"
 
-<form action="save_config_post" method="post">
-
 <h2>Post Processing</h2>
-
-<div class="EntryBlock">
-
-	<fieldset class="EntryFieldSet">
-		<legend>General Settings</legend>
-
-		<a title="Allows you to specify whether to rename the movie file to match imdb title or post title for post processing."><strong>(?)</strong></a><strong>Rename Movie File:</strong><br>
-		Choose format to rename movie files.<br/>
-		
-		<select name="post_rename_files2">
-			<!--#for $post_rename_files_item in $post_rename_files_list#-->
-				<!--#if $post_rename_files_item.lower() == $post_rename_files.lower()#-->
-					<option value="$post_rename_files_item" selected>$post_rename_files_item.lower()</option>
-				<!--#else#-->
-					<option value="$post_rename_files_item">$post_rename_files_item.lower()</option>
-				<!--#end if#-->
-			<!--#end for#-->
-		</select>
-						
-		<br>
-		<br>
-		
-		<a title="Allows you to specify whether to force the replacement of an existing movie in your downloaded folder for post processing."><strong>(?)</strong></a><strong>Replace Existing Movie:</strong><br>
-		Choose whether to replace existing movie.<br/>
-		
-		<select name="post_replace_existing2">
-		<!--#if $post_replace_existing == "yes"#-->
-			<option value="yes" selected>yes</option>
-			<option value="no">no</option>
-		<!--#else#-->		
-			<option value="yes">yes</option>
-			<option value="no" selected>no</option>	
-		<!--#end if#-->
-		</select>
-		<br>
-		<br>
-		
-		<a title="Allows you to specify the certification rating system used for post processing."><strong>(?)</strong></a><strong>Certification System:</strong><br>
-		Select the certification system.<br>
-
-		<select name="post_cert_system2">
-			<!--#if $post_cert_system == "uk"#-->
-				<option value="uk" selected>uk</option>
-				<option value="us">us</option>		
-			<!--#else#-->		
-				<option value="uk">uk</option>					
-				<option value="us" selected>us</option>					
-			<!--#end if#-->
-		</select>
-		
-		<br>
-		<br>
-	
-		<a title="Allows you to specify whether to force a library update on xbmc once post processing is complete."><strong>(?)</strong></a><strong>XBMC Library Update:</strong><br>
-		Choose whether to enable XBMC library updates.<br/>
-		
-		<select name="xbmc_library_update2">
-		<!--#if $xbmc_library_update == "yes"#-->
-			<option value="yes" selected>yes</option>
-			<option value="no">no</option>
-		<!--#else#-->		
-			<option value="yes">yes</option>
-			<option value="no" selected>no</option>	
-		<!--#end if#-->
-		</select>
-		<br>
-		<br>
-	
-		<input type="submit" value="Save Changes">	
-		
-		<br>
-		
-	</fieldset>			
-
-</div>
-
-</form>
-
-<br>
 
 <!--
 ###########
@@ -97,7 +16,7 @@ CREATE RULE
 </form>
 
 <fieldset class="EntryFieldSet">				
-	<legend>Create Rule</legend>
+	<legend>Rule Settings</legend>
 	
 	<a title="Allows you to add post processing rules."><strong>(?)</strong></a><strong>Add Rule:</strong><br>	
 	Add post processing rule.
@@ -107,7 +26,7 @@ CREATE RULE
 	
 	<input type="submit" value="Add Rule" form="add_config_rule_form">
 	
-	<br>	
+	<br>
 	
 </fieldset>
 

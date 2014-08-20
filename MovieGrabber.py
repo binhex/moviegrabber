@@ -1,5 +1,70 @@
-#set moviegrabber and db schema version numbers
-latest_mg_version = "2.2.1.0"
+"""
+completed
+---------
+
+current issues
+--------------
+
+future
+------
+check string concatonate change
+look at splitting must exist terms for usenet, need to check spacing etc
+still having issues with downloader not downloading correctly, hanging on "downloading"
+fix bad title
+move bad id to general section
+caputure error and reset logs IOError: [Errno 2] No such file or directory: 'D:\\mnt\\cache\\cache-only\\Apps\\MovieGrabberDev\\logs\\moviegrabber.log'
+tidy up error message in urlretry
+add in piratebay api support
+consolidate index sections and re-work into methods
+fix up spotweb section
+rotating log file for moviegrabber and sqlite
+option to clear/show moviegrabber log in webui
+fav movie title not matching for title with non ascii chars
+relax folder requirements - not all torrent/usenet clients have a archive folder - check templates and python pre-checks
+bug deleting files in post processing
+removed .lower for textbox1 and 2, need to make sure this doesnt cause issues with compares if user enters e.g "Comedy" needs to match "comedy" genre
+add in blacklisted genres, i.e match ANY blacklisted genre with ANY genre listed for movie
+add in ignore title feature, add ignore selected/ignore all buttons, add icon for ignore button, click to add to ignore list in config.ini - rework bad title?
+add in unc support - win_unc?
+add in additional footer info for webui - completed folder space/items queued/items downloaded/sysload https://code.google.com/p/psutil/
+add in ability to change usenet search index custom names
+add in ability to save ALL changes on usenet/torrent search index pages
+group release names underneath in queue/history
+more intelligent limit for queue/history - have links at the bottom for next page of results
+add in queue/history "select all" option to mark all to allow bulk delete/release with certain exceptions if user wants
+look at sabnzbd api support - could use for movie download status, if failed then mark in mg as "incomplete" or "bad"
+add in ability to do automatic upgrades, see notes in keep
+grab xml if limit reached, sample text This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<error code="500" description="Request limit reached. Retry in 401 minutes."/>
+change regex from r"" to ur"" to make sure its raw and unicode
+do dynamic lists depending on dropdowns for post processing, grey out value box when delete selected
+do sort order section for post processing
+releasing movie with same name will overwrite nzb, need to append _1 if nzb file exists
+look at unc paths and check moviegrabber is working for collection exists and post processing
+on home screen show number of movies processed in history and queued since last visit/24 hours
+add in poster download, option to enable, also choice of imdb or themoviedb,rename poster download to thumbnail download?
+add in plex notification
+make sure all string literals are unicode e.g. u"blah" and config parser get and set, set encoding/decoding in cherrypy section
+add check for must/may/must not exist fields, one must be filled in before allowed to save
+add in forced entry for textbox2 if post processing move dropdown selected
+put in help system for post processing rules - use variable when creating rule?
+add in show/hide details for usenet/torrents config pages
+torrent post processing completed folder - need to find way to force creation of imdb subfolder
+add in ability to run search index scheduler either always or between times
+add in ability to run post processing scheduler either always or between times
+add in checking of post name for strings "good" "proper" "repack" and delete old nzb in queued/nzb and/or completed movie - bypass file checks
+add in presets for gmail for email settings
+split code into modules
+simple api to allow shutdown/restart/queue release also will require unique api key
+add in options to specify min seeds/peers/verified count for kat <torrent:seeds>1</torrent:seeds><torrent:peers>1</torrent:peers><torrent:verified>1</torrent:verified>
+post proc webui - show message regards invalid entries no entry for textbox1 and invalid path for textbox2
+mobile phone web skin
+modern skin - black/grey
+create icon for android/iphone web browsers
+"""
+
+#set current moviegrabber and db schema version number
+latest_mg_version = "2.2.0.b9"
 latest_db_version = "2"
 
 import os
@@ -19,7 +84,7 @@ else:
         #check version of python is 2.6.x or 2.7.x
         if sys.version_info<(2,6,0) or sys.version_info>=(3,0,0):
 
-                sys.stderr.write("You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
+                sys.stderr.write("You need Python 2.6.x/2.7.x installed to run MovieGrabber\n")
                 os._exit(1)
 
         else:
@@ -75,7 +140,6 @@ import shutil
 import webbrowser
 import threading
 import Queue
-
 #------------------------ search ----------------------------
 
 import socket
@@ -88,7 +152,6 @@ import email.mime.text
 import base64
 
 #-------------------- 3rd party -----------------------------
-
 import cherrypy
 from Cheetah.Template import Template
 from bs4 import BeautifulSoup
@@ -118,7 +181,19 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
 
-def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
+#define path to config file
+config_ini = os.path.join(moviegrabber_root_dir, "configs/config.ini")
+config_ini = os.path.normpath(config_ini)
+
+#define path to logs dir
+logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+logs_dir = os.path.normpath(logs_dir)
+
+#define path to sqlite db
+results_db = os.path.join(moviegrabber_root_dir, "db/results.db")
+results_db = os.path.normpath(results_db)
+
+def config_write():
 
         #create config.ini file with default sections
         def config_write_section(section_name):
@@ -147,7 +222,7 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         config_write_section("torrent")
         config_write_section("post_processing")
         config_write_section("webconfig")
-        config_write_section("general")
+        config_write_section("misc")
 
         #create config options
         config_write_option("folders","movies_downloaded_dir","")
@@ -158,6 +233,8 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         config_write_option("folders","torrent_watch_dir","")
         config_write_option("folders","torrent_archive_dir","")
         config_write_option("folders","torrent_completed_dir","")
+        config_write_option("folders","cherrypylog_dir",logs_dir)
+        config_write_option("folders","moviegrabberlog_dir",logs_dir)
 
         config_write_option("switches","enable_downloaded","no")
         config_write_option("switches","enable_replace","no")
@@ -201,46 +278,41 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         config_write_option("xbmc","xbmc_notification","no")
         config_write_option("xbmc","xbmc_library_update","no")
 
+        config_write_option("webconfig","address","0.0.0.0")
+        config_write_option("webconfig","port","9191")
         config_write_option("webconfig","username","")
         config_write_option("webconfig","password","")
         config_write_option("webconfig","enable_ssl","no")
 
-        config_write_option("general","post_schedule_hour","1")
-        config_write_option("general","post_schedule_minute","0")
-        config_write_option("general","post_rename_files","no")
-        config_write_option("general","post_replace_existing","no")        
-        config_write_option("general","post_cert_system","us")
-        config_write_option("general","index_preferred_group","")
-        config_write_option("general","index_special_cut","")        
-        config_write_option("general","index_bad_group","")
-        config_write_option("general","index_bad_report","")
-        config_write_option("general","index_posts_to_process","50")
-        config_write_option("general","color_scheme","darkblue")
-        config_write_option("general","theme","classic")
-        config_write_option("general","index_schedule_hour","1")
-        config_write_option("general","index_schedule_minute","0")
-        config_write_option("general","max_items_shown","all")
-        config_write_option("general","history_sort_order","desc,postdatesort")
-        config_write_option("general","queued_sort_order","desc,postdatesort")
-        config_write_option("general","movie_title_separator","<>")
-        config_write_option("general","launch_browser","yes")
-        config_write_option("general","log_level","WARNING")
-        config_write_option("general","last_run","")
-        config_write_option("general","check_version","daily")
-        config_write_option("general","last_version_check","")
-        config_write_option("general","remote_version","")
-        config_write_option("general","remote_download","")
+        config_write_option("misc","post_schedule_hour","1")
+        config_write_option("misc","post_schedule_minute","0")
+        config_write_option("misc","post_rename_files","no")
+        config_write_option("misc","post_cert_system","us")
+        config_write_option("misc","index_preferred_group","")
+        config_write_option("misc","index_bad_group","")
+        config_write_option("misc","index_posts_to_process","50")
+        config_write_option("misc","color_scheme","darkblue")
+        config_write_option("misc","theme","classic")
+        config_write_option("misc","index_schedule_hour","1")
+        config_write_option("misc","index_schedule_minute","0")
+        config_write_option("misc","max_items_shown","all")
+        config_write_option("misc","history_sort_order","desc,postdatesort")
+        config_write_option("misc","queued_sort_order","desc,postdatesort")
+        config_write_option("misc","movie_title_separator","<>")
+        config_write_option("misc","launch_browser","yes")
+        config_write_option("misc","log_level","WARNING")
+        config_write_option("misc","last_run","")
+        config_write_option("misc","check_version","daily")
+        config_write_option("misc","last_version_check","")
+        config_write_option("misc","remote_version","")
+        config_write_option("misc","remote_download","")
 
         config_write_option("usenet","index_site","")
         config_write_option("torrent","index_site","")
         config_write_option("post_processing","post_rule","")
 
         #force write of version to config.ini
-        config_parser.set("general","local_version",latest_mg_version)
-        config_parser.set("webconfig","address",webconfig_address)        
-        config_parser.set("webconfig","port",webconfig_port)
-        config_parser.set("folders","logs_dir",logs_dir)                        
-        config_parser.set("folders","results_dir",results_dir)
+        config_parser.set("misc","local_version",latest_mg_version)
 
         #write settings to config.ini
         with open(config_ini, 'w') as configini:
@@ -251,257 +323,8 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         #read config.ini
         config_parser.read(config_ini)
 
-def cli_arguments():
-
-        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
-
-                #custom argparse to redirect user to help if unknown argument specified
-                class argparse_custom(argparse.ArgumentParser):
-
-                        def error(self, message):
-
-                                sys.stderr.write('error: %s\n' % message)
-                                self.print_help()
-                                sys.exit(2)
-
-                #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
-
-                #add argparse command line flags
-                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
-                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
-                commandline_parser.add_argument("--config", metavar="<path>", help="specify path for config file e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path for log files e.g. --logs /opt/moviegrabber/logs/")
-                commandline_parser.add_argument("--db", metavar="<path>", help="specify path for database e.g. --db /opt/moviegrabber/db/")
-                commandline_parser.add_argument("--pidfile", metavar="<path>", help="specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
-                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--reset-config", action="store_true", help="reset settings to default")
-                commandline_parser.add_argument("--reset-db", action="store_true", help="reset database to default")
-                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
-
-                #save arguments in dictionary
-                args = vars(commandline_parser.parse_args())
-
-                #if argument specified then use
-                if args["config"] != None:
-
-                        if not os.path.exists(args["config"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["config"])
-                                        config_dir = os.path.normpath(args["config"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
-                                        config_dir = os.path.normpath(config_dir)
-                                        
-                        else:
-
-                                config_dir = os.path.normpath(args["config"])
-                                
-                #if not specified then use default - note config.ini path not specified in config.ini!
-                else:
-
-                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
-                        config_dir = os.path.normpath(config_dir)
-                        
-                config_ini = os.path.join(config_dir, "config.ini")
-
-                #read config.ini - used for logs and db path checks in config.ini
-                config_parser.read(config_ini)
-
-                try:
-                        
-                        #read values from config.ini
-                        logs_dir = config_parser.get("folders", "logs_dir")
-                        results_dir = config_parser.get("folders", "results_dir")
-                        webconfig_address = config_parser.get("webconfig", "address")
-                        webconfig_port = config_parser.get("webconfig", "port")                
-
-                except ConfigParser.NoSectionError:
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-                        
-                #if argument specified then use
-                if args["logs"] != None:
-
-                        if not os.path.exists(args["logs"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["logs"])
-                                        logs_dir = os.path.normpath(args["logs"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
-                                        logs_dir = os.path.normpath(logs_dir)
-                                        
-                        else:
-
-                                logs_dir = os.path.normpath(args["logs"])
-                
-                #if not specified in config.ini then set to defaults
-                elif logs_dir == None:
-                        
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
-                        logs_dir = os.path.normpath(logs_dir)
-
-                #if argument specified then use
-                if args["db"] != None:
-
-                        if not os.path.exists(args["db"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["db"])
-                                        results_dir = os.path.normpath(args["db"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
-                                        results_dir = os.path.normpath(results_dir)
-                                        
-                        else:
-
-                                results_dir = os.path.normpath(args["db"])
-
-                #if not specified in config.ini then set to defaults
-                elif results_dir == None:
-                
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
-                        results_dir = os.path.normpath(results_dir)
-
-                results_db = os.path.join(results_dir, "results.db")
-                
-                #if argument specified then use
-                if args["ip"] != None:
-
-                        webconfig_address = args["ip"]
-
-                #if not specified in config.ini then set to defaults
-                elif webconfig_address == None:
-                        
-                        webconfig_address = "0.0.0.0"
-
-                #if argument specified then use                        
-                if args["port"] != None:
-
-                        webconfig_port = args["port"]
-
-                #if not specified in config.ini then set to defaults
-                elif webconfig_port == None:
-
-                        webconfig_port = "9191"
-
-                #check os is not windows and then create pidfile for cherrypy forked process
-                if args["pidfile"] != None and os.name != "nt":
-
-                        #create pidfile for daemonized process, used to end process in unraid
-                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
-                        pidfile.subscribe()
-
-                #check os is not windows and then run cherrypy as daemonized process
-                if args["daemon"] == True and os.name != "nt":
-
-                        #run cherrypy as daemonized process
-                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
-                        daemon.subscribe()
-
-                #if reset flagged then delete existing config.ini
-                if args["reset_config"] == True and os.path.exists(config_ini):
-
-                        os.remove(config_ini)
-
-                #if reset flagged then delete existing results.db
-                if args["reset_db"] == True and os.path.exists(results_db):
-
-                        os.remove(results_db)
-                        
-                #send values to config write function
-                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
-
-        #windows compiled binary cannot define config, logs, or db using argparse
-        else:
-
-                #default path to config.ini
-                config_dir = os.path.join(moviegrabber_root_dir, "configs")
-                config_dir = os.path.normpath(config_dir)                
-                config_ini = os.path.join(config_dir, "config.ini")
-
-                #read config.ini - used for logs and db path checks in config.ini
-                config_parser.read(config_ini)
-
-                try:
-                        
-                        #read values from config.ini
-                        logs_dir = config_parser.get("folders", "logs_dir")
-                        results_dir = config_parser.get("folders", "results_dir")
-                        webconfig_address = config_parser.get("webconfig", "address")
-                        webconfig_port = config_parser.get("webconfig", "port")                
-
-                except ConfigParser.NoSectionError:
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-
-                #if not specified in config.ini then set to defaults
-                if logs_dir == None:
-
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
-                        logs_dir = os.path.normpath(logs_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if results_dir == None:
-
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")
-                        results_dir = os.path.normpath(results_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if webconfig_address == None:
-
-                        webconfig_address = "0.0.0.0"
-                        
-                #if not specified in config.ini then set to defaults
-                if webconfig_port == None:
-
-                        webconfig_port = "9191"                
-
-                #send values to config write function
-                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
-                                        
-        #return config.ini path - used to read logs and results values from ini file
-        return config_ini
-
-#save returned value
-config_ini = cli_arguments()
-
-#read config.ini
-config_parser.read(config_ini)
-
-#read values for logs and results db
-logs_dir = config_parser.get("folders", "logs_dir")
-results_dir = config_parser.get("folders", "results_dir")
-
-#construct full path to files
-cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
-moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
-sqlite_log = os.path.join(logs_dir, "sqlite.log")
-results_db = os.path.join(results_dir, "results.db")
+#write config.ini settings if missing
+config_write()
 
 #create connection to sqlite db using sqlalchemy
 engine = create_engine("sqlite:///" + results_db, echo=False)
@@ -652,7 +475,7 @@ class ResultsDBQueued(Base):
 #---------------------- paths ----------------------------------
 
 #read theme name and pass to paths
-theme = config_parser.get("general", "theme")
+theme = config_parser.get("misc", "theme")
 
 #define path to cheetah templates
 templates_dir = os.path.join(moviegrabber_root_dir, "interfaces/" + theme + "/templates")
@@ -678,11 +501,10 @@ certs_dir = os.path.normpath(certs_dir)
 # logging #
 ###########
 
-def cherrypy_logging():
+def cherrypy_logging(log_path):
 
-        #specify log filename
         log = cherrypy.log
-        
+
         #remove the default FileHandlers if present
         log.access_file = ""
         log.error_file = ""
@@ -694,7 +516,7 @@ def cherrypy_logging():
         backupCount = getattr(log, "rot_backupCount", 3)
 
         #create a new rotating log for error logging
-        fname = getattr(log, "rot_error_file", cherrypy_log)
+        fname = getattr(log, "rot_error_file", log_path)
         h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
         h.setLevel(logging.DEBUG)
         h.setFormatter(cherrypy._cplogging.logfmt)
@@ -702,8 +524,9 @@ def cherrypy_logging():
 
 def moviegrabber_logging():
 
-        #read log levels
-        log_level = config_parser.get("general", "log_level")
+        #read moviegrabber log directory and log levels
+        moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
+        log_level = config_parser.get("misc", "log_level")
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -712,29 +535,29 @@ def moviegrabber_logging():
         moviegrabber_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
 
         #setup logger for moviegrabber
-        moviegrabber_logger = logging.getLogger("moviegrabber")
+        moviegrabber_log = logging.getLogger("moviegrabber")
 
         #setup logging to file for moviegrabber
-        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a")
+        moviegrabber_filehandler = logging.FileHandler(os.path.join(moviegrabberlog_dir, "moviegrabber.log"), "a")
 
         #set formatter for moviegrabber
         moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
 
         #add handler for formatter to the file logger
-        moviegrabber_logger.addHandler(moviegrabber_filehandler)
+        moviegrabber_log.addHandler(moviegrabber_filehandler)
 
         #set level of logging from config
         if log_level == "INFO":
 
-                moviegrabber_logger.setLevel(logging.INFO)
+                moviegrabber_log.setLevel(logging.INFO)
 
         elif log_level == "WARNING":
 
-                moviegrabber_logger.setLevel(logging.WARNING)
+                moviegrabber_log.setLevel(logging.WARNING)
 
         elif log_level == "exception":
 
-                moviegrabber_logger.setLevel(logging.ERROR)
+                moviegrabber_log.setLevel(logging.ERROR)
 
         #setup logging to console
         console_streamhandler = logging.StreamHandler()
@@ -743,7 +566,7 @@ def moviegrabber_logging():
         console_streamhandler.setFormatter(moviegrabber_formatter)
 
         #add handler for formatter to the console
-        moviegrabber_logger.addHandler(console_streamhandler)
+        moviegrabber_log.addHandler(console_streamhandler)
 
         #set level of logging from config
         if log_level == "INFO":
@@ -758,12 +581,13 @@ def moviegrabber_logging():
 
                 console_streamhandler.setLevel(logging.ERROR)
 
-        return moviegrabber_logger
+        return moviegrabber_log
 
 def sqlite_logging():
 
-        #read log levels
-        log_level = config_parser.get("general", "log_level")
+        #read moviegrabber log directory and log levels
+        moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
+        log_level = config_parser.get("misc", "log_level")
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -772,36 +596,35 @@ def sqlite_logging():
         sqlite_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
 
         #setup logger for sqlite using sqlalchemy
-        sqlite_logger = logging.getLogger("sqlalchemy.engine")
+        sqlite_log = logging.getLogger("sqlalchemy.engine")
 
         #setup logging to file for sqlite
-        sqlite_filehandler = logging.FileHandler(sqlite_log, "a")
+        sqlite_filehandler = logging.FileHandler(os.path.join(moviegrabberlog_dir, "sqlite.log"), "a")
 
         #set formatter for sqlite
         sqlite_filehandler.setFormatter(sqlite_formatter)
 
         #add handler for formatter to the file logger
-        sqlite_logger.addHandler(sqlite_filehandler)
+        sqlite_log.addHandler(sqlite_filehandler)
 
         #set level of logging from config
         if log_level == "INFO":
 
-                sqlite_logger.setLevel(logging.INFO)
+                sqlite_log.setLevel(logging.INFO)
 
         elif log_level == "WARNING":
 
-                sqlite_logger.setLevel(logging.WARNING)
+                sqlite_log.setLevel(logging.WARNING)
 
         elif log_level == "exception":
 
-                sqlite_logger.setLevel(logging.ERROR)
+                sqlite_log.setLevel(logging.ERROR)
 
-        return sqlite_logger
+        return sqlite_log
 
 #store the logger instances
 mg_log = moviegrabber_logging()
-sql_log = sqlite_logging()        
-cherry_log = cherrypy_logging()
+sql_log = sqlite_logging()
 
 ################
 # sqlite check #
@@ -876,10 +699,7 @@ def sqlite_check():
                         #capture any sqlalchemy errors and log failure
                         except exc.SQLAlchemyError,e:
 
-                                #catch any sqlalchemy error and rollback transaction
-                                sql_session.rollback()
-
-                                mg_log.warning(u"database upgrade from ver %s to ver %s failed with error %s" % (current_db_version,latest_db_version,e))
+                                mg_log.info(u"database upgraded from ver %s to ver %s failed with error %s" % (current_db_version,latest_db_version,e))
 
         #remove scoped session
         sql_session.remove()
@@ -1112,6 +932,8 @@ class DownloadWatched():
 
         def download_read(self):
 
+                mg_log.info(u"Download nzb/torrent to watched folder started")
+
                 #get queue content for automated and queue items (sqlite id), this is in a dictionary
                 download_details_queue_contents = download_details_queue.get()
                 download_details_queue.task_done()
@@ -1222,7 +1044,7 @@ class DownloadWatched():
                         return
 
         def download_write(self):
-                
+
                 #check if index site is torrent or nzb
                 if self.sqlite_row.dltype == "usenet":
 
@@ -1298,7 +1120,7 @@ class DownloadWatched():
                 return 1
 
         def download_status(self, dlstatus_msg):
-                
+
                 #select row from history table for selected queued postname
                 sqlite_history_row = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.postname==self.sqlite_row.postname).first()
 
@@ -1341,7 +1163,7 @@ class XBMC(object):
                 self.config_enable_xbmc = config_parser.get("switches", "enable_xbmc")
 
         def xbmc_gui_notify(self,imdb_movie_title_strip,imdb_movie_year_str,download_result_str):
-                
+
                 if self.config_enable_xbmc == "yes":
 
                         #split xbmc comma seperated hosts list and loop to send to all xbmc hosts
@@ -1360,7 +1182,7 @@ class XBMC(object):
                                         self.xbmc_send_request()
 
         def xbmc_library_update(self):
-                
+
                 if self.config_enable_xbmc == "yes":
 
                         #split xbmc comma seperated hosts list and loop to send to all xbmc hosts
@@ -1379,7 +1201,7 @@ class XBMC(object):
                                         self.xbmc_send_request()
 
         def xbmc_send_request(self):
-                
+
                 #create request and set content type to json - required
                 xbmc_request = urllib2.Request(self.xbmc_url, self.xbmc_jsonrpc, {'Content-Type': 'application/json'})
 
@@ -1453,6 +1275,7 @@ class SearchIndex(object):
                 self.config_cat = (config_parser.get(download_type, index_site_item + "_cat")).decode("utf-8")
                 self.config_minsize = config_parser.getint(download_type, index_site_item + "_minsize")
                 self.config_maxsize = config_parser.getint(download_type, index_site_item + "_maxsize")
+                self.config_bad_report = (config_parser.get(download_type, index_site_item + "_bad_report")).decode("utf-8")
                 self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname")).decode("utf-8")
                 self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber")).decode("utf-8")
 
@@ -1463,13 +1286,11 @@ class SearchIndex(object):
                 self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
                 self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")
 
-                #read general settings from config.ini
-                self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
-                self.config_special_cut = (config_parser.get("general", "index_special_cut")).decode("utf-8")
-                self.config_preferred_group = (config_parser.get("general", "index_preferred_group")).decode("utf-8")                
-                self.config_bad_group = (config_parser.get("general", "index_bad_group")).decode("utf-8")
-                self.config_bad_report = (config_parser.get("general", "index_bad_report")).decode("utf-8")                
-                self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
+                #read misc settings from config.ini
+                self.config_movie_title_separator = (config_parser.get("misc", "movie_title_separator")).decode("utf-8")
+                self.config_preferred_group = (config_parser.get("misc", "index_preferred_group")).decode("utf-8")
+                self.config_bad_group = (config_parser.get("misc", "index_bad_group")).decode("utf-8")
+                self.config_posts_to_process = config_parser.getint("misc", "index_posts_to_process")
 
                 if self.download_type == "usenet":
 
@@ -1552,66 +1373,66 @@ class SearchIndex(object):
         ##############
 
         def filter_os_queued(self):
-                
-                #check if post title is in queued table (case insensitive), if not then proceed
+
+                #check if post title is in sqlite db (case insensitive), if not then proceed
                 sqlite_post_name = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.postname==self.index_post_title).first()
 
                 #if movie post name found in database then return 0
                 if sqlite_post_name != None:
 
                         self.download_details_dict["filter_os_queued_result"] = [0,"Queued", "System - NZB/Torrent is in Queued table"]
-                        mg_log.info(ur"Filter System - Post title is in Queued table, skip")
+                        mg_log.info(ur"System - NZB/Torrent is in Queued table")
                         return 0
 
                 else:
 
-                        mg_log.info(ur"Filter System - Post title is NOT in Queued table, proceed")
+                        mg_log.info(ur"System - NZB/Torrent is NOT in Queued table")
                         return 1
 
         def filter_os_watched(self):
-                
+
                 #this is set to download only if the nzb/torrent file doesn't exist in the watch folder
                 if os.path.exists(os.path.join(self.config_watch_dir, self.imdb_movie_title + ur".nzb").encode('utf-8')) or os.path.exists(os.path.join(self.config_watch_dir, self.imdb_movie_title + ur".torrent").encode('utf-8')):
 
                         self.download_details_dict["filter_os_watched_result"] = [0,"Watched", "System - NZB/Torrent is in Watched folder"]
-                        mg_log.info(ur"Filter System - NZB/Torrent is in Watched folder, skip")
+                        mg_log.info(ur"System - NZB/Torrent is in Watched folder")
                         return 0
 
                 else:
 
-                        mg_log.info(ur"Filter System - NZB/Torrent is NOT in Watched folder, proceed")
+                        mg_log.info(ur"System - NZB/Torrent is NOT in Watched folder")
                         return 1
 
         def filter_os_archive(self):
-                
+
                 #this is set to download only if the nzb/torrent file doesn't exist in the nzb folder
                 if os.path.exists(os.path.join(self.config_usenet_archive_dir, self.imdb_movie_title + ur".nzb.gz").encode('utf-8')) or os.path.exists(os.path.join(self.config_torrent_archive_dir, self.imdb_movie_title + ur".torrent").encode('utf-8')):
 
                         self.download_details_dict["filter_os_archive_result"] = [0,"Archive", "System - NZB/Torrent is in Archive folder"]
-                        mg_log.info(u"Filter System - NZB/Torrent is in Archive folder, skip")
+                        mg_log.info(u"System - NZB/Torrent is in Archive folder")
                         return 0
 
                 else:
 
-                        mg_log.info(u"Filter System - NZB/Torrent is NOT in Archive folder, proceed")
+                        mg_log.info(u"System - NZB/Torrent is NOT in Archive folder")
                         return 1
 
         def filter_os_completed(self):
-                
+
                 #this is set to download only if the movie doesn't exist in the completed folder
                 if os.path.exists(os.path.join(self.config_completed_dir, self.imdb_movie_title).encode('utf-8')):
 
                         self.download_details_dict["filter_os_completed_result"] = [0,"Completed", "System - NZB/Torrent is in Completed folder"]
-                        mg_log.info(u"Filter System - IMDb title in Completed Folder, skip")
+                        mg_log.info(u"Movie in Completed Folder")
                         return 0
 
                 else:
 
-                        mg_log.info(u"Filter System - IMDb title is NOT in Completed folder, proceed")
+                        mg_log.info(u"System - NZB/Torrent is NOT in Completed folder")
                         return 1
 
         def filter_os_movies_downloaded(self):
-                
+
                 if self.config_enable_downloaded == "yes" and self.movies_downloaded_cache:
 
                         #escape any regex characters such as brackets for year in title
@@ -1628,7 +1449,7 @@ class SearchIndex(object):
                                                 self.movies_downloaded_filename_list = os.listdir(os.path.join(folder, subdirs))
 
                                                 self.download_details_dict["filter_os_movies_downloaded_result"] = [0,"Downloaded", "System - Movie is in Movies Downloaded folder"]
-                                                mg_log.info(ur"Filter System - IMDb title is in Movies Downloaded folder, skip")
+                                                mg_log.info(ur"System - Movie is in Movies Downloaded folder")
                                                 return 0
 
                                 for filenames in files:
@@ -1640,10 +1461,10 @@ class SearchIndex(object):
                                                 self.movies_downloaded_filename_list = [filenames]
 
                                                 self.download_details_dict["filter_os_movies_downloaded_result"] = [0,"Downloaded", "System - Movie is in Movies Downloaded folder"]
-                                                mg_log.info(ur"Filter System - IMDb title is in Movies Downloaded folder, skip")
+                                                mg_log.info(ur"System - Movie is in Movies Downloaded folder")
                                                 return 0
 
-                        mg_log.info(ur"Filter System - IMDb title is NOT in Movies Downloaded folder, proceed")
+                        mg_log.info(ur"System - Movie is NOT in Movies Downloaded folder")
                         return 1
 
                 else:
@@ -1651,7 +1472,7 @@ class SearchIndex(object):
                        return 1
 
         def filter_os_movies_replace(self):
-                
+
                 if self.config_enable_replace == "yes" and self.movies_replace_cache:
 
                         #escape any regex characters such as brackets for year in title
@@ -1665,7 +1486,7 @@ class SearchIndex(object):
                                         if self.imdb_movie_title.lower() == subdirs.lower() or self.imdb_movie_title_year.lower() == subdirs.lower() or self.imdb_movie_title_strip.lower() == subdirs.lower():
 
                                                 self.download_details_dict["filter_os_movies_replace_result"] = [1,"Replace", "System - Movie is in Movies To Replace folder"]
-                                                mg_log.info(ur"Filter System - IMDb title is in Movies To Replace folder, proceed")
+                                                mg_log.info(ur"System - Movie is in Movies To Replace folder")
                                                 return 1
 
                                 for filenames in files:
@@ -1674,10 +1495,10 @@ class SearchIndex(object):
                                         if re.compile(imdb_movie_title_year_esc, re.IGNORECASE).search(filenames):
 
                                                 self.download_details_dict["filter_os_movies_replace_result"] = [1,"Replace", "System - Movie is in Movies To Replace folder"]
-                                                mg_log.info(ur"Filter System - IMDb title is in Movies To Replace folder, proceed")
+                                                mg_log.info(ur"System - Movie is in Movies To Replace folder")
                                                 return 1
 
-                        mg_log.info(ur"Filter System - IMDb title is NOT in Movies To Replace folder, skip")
+                        mg_log.info(ur"System - Movie is NOT in Movies To Replace folder")
                         return 0
 
                 else:
@@ -1689,22 +1510,24 @@ class SearchIndex(object):
         #################
 
         def filter_index_bad_report(self):
-                
+
                 if self.config_bad_report and self.index_post_id:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_bad_report_list = [item.strip().lower() for item in self.config_bad_report.split(',')]
+                        config_bad_report_list = [item.strip() for item in self.config_bad_report.split(',')]
 
-                        #look for matching item in list
-                        if self.index_post_id.lower() in config_bad_report_list:
+                        #look for case insensitive string in list using list comprehension
+                        matching_items = [item.lower() for item in config_bad_report_list if self.index_post_id.lower() in item]
+
+                        if matching_items:
 
                                 self.download_details_dict["filter_index_bad_report_result"] = [0,"Bad Report", "Index - Report ID is in Bad list"]
-                                mg_log.info(u"Filter Index - Report ID %s is in Bad list, skip" % (self.index_post_id))
+                                mg_log.info(u"Index - Report ID is in Bad list")
                                 return 0
 
                         else:
 
-                                mg_log.info(u"Filter Index - Report ID %s is NOT in Bad list, proceed" % (self.index_post_id))
+                                mg_log.info(u"Index - Report ID is NOT in Bad list")
                                 return 1
 
                 else:
@@ -1712,11 +1535,11 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_good_size(self):
-                
+
                 #if min and maxsize not defined then return 1config_enable_group_filter
                 if self.config_minsize == 0 and self.config_maxsize == 0:
 
-                        mg_log.info(u"Filter Index - Post Size not defined, proceed")
+                        mg_log.info(u"Index - Post Size not defined")
                         return 1
 
                 #if min and maxsize defined then check min and max against post
@@ -1724,12 +1547,12 @@ class SearchIndex(object):
 
                         if self.index_post_size_check >= self.config_minsize and self.index_post_size_check <= self.config_maxsize:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is within thresholds")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is NOT within thresholds")
                                 return 0
 
                 #if maxsize only defined then check max against post
@@ -1737,12 +1560,12 @@ class SearchIndex(object):
 
                         if self.index_post_size_check <= self.config_maxsize:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is within thresholds")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is NOT within thresholds")
                                 return 0
 
                 #if minsize only defined then check min against post
@@ -1750,61 +1573,16 @@ class SearchIndex(object):
 
                         if self.index_post_size_check >= self.config_minsize:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is within thresholds")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Index - Post Size is NOT within thresholds")
                                 return 0
-                        
-        def filter_index_special_cut(self):
-                
-                #check special cut is enabled in switches and movies downloaded return value is zero (movie already downloaded)
-                if self.config_special_cut != "" and self.filter_os_movies_downloaded_result == 0:
 
-                        #replace comma's with regex OR symbol
-                        self.config_special_cut = re.sub("[,\s?]+","|",self.config_special_cut)
-                                                
-                        #search for special cut in post title
-                        index_post_title_special_cut_search = re.compile("(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(self.index_post_title)
-                        
-                        if index_post_title_special_cut_search != None:
-
-                                index_post_title_special_cut = index_post_title_special_cut_search.group()                                
-                                
-                                movies_valid_extensions = [".mkv", ".avi", ".mp4", ".dvx", ".wmv", ".mov"]
-
-                                #loop over list of files in downloaded folder and check for valid file extensions
-                                for movies_downloaded_filename_item in self.movies_downloaded_filename_list:                                
-
-                                        #generate filename and file extension
-                                        movies_downloaded_filename, movies_downloaded_extension = os.path.splitext(movies_downloaded_filename_item.lower())
-
-                                        #check movie downloaded filename extension is in valid extensions list
-                                        if movies_downloaded_extension in movies_valid_extensions:
-
-                                                #search for special cut in downloaded filename
-                                                movies_downloaded_special_cut_search = re.compile("(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(movies_downloaded_filename)
-
-                                                #if search matches then assume we already have downloaded special cut
-                                                if movies_downloaded_special_cut_search != None:
-
-                                                        movies_downloaded_special_cut = movies_downloaded_special_cut_search.group()
-                                                        
-                                                        mg_log.info(u"Filter Index - Filename post title already contains special cut %s, skip" % (movies_downloaded_special_cut))
-                                                        return 0
-
-                                                else:
-
-                                                        self.download_details_dict["filter_index_special_cut_result"] = [1,"Special Cut", "Index - Special cut of movie does not exist in downloaded movies folder"]
-                                                        mg_log.info(u"Filter Index - Index post title special cut %s does not exist in filename, force" % (index_post_title_special_cut))
-                                                        return 1
-
-                return 0
-        
         def filter_index_preferred_group(self):
-                
+
                 #check preferred group is enabled in switches and movies downloaded return value is zero (movie already downloaded) and config preferred group and index post group are not empty
                 if self.config_enable_group_filter == "yes" and self.filter_os_movies_downloaded_result == 0 and self.config_preferred_group and self.index_post_group:
 
@@ -1813,73 +1591,69 @@ class SearchIndex(object):
                         #loop over list of files in downloaded folder and check for valid file extensions
                         for movies_downloaded_filename_item in self.movies_downloaded_filename_list:
 
-                                #generate filename and file extension
+                                #generate file extension and file without extension
                                 movies_downloaded_filename, movies_downloaded_extension = os.path.splitext(movies_downloaded_filename_item.lower())
 
                                 #check movie downloaded filename extension is in valid extensions list
                                 if movies_downloaded_extension in movies_valid_extensions:
 
-                                        #generate group name from end (first) or start (second) of filename using hyphen as marker
-                                        movies_downloaded_group_search = re.compile("(?<=-)[^\s\-\.]+$|^[^\s\-\.]+(?=-)").search(movies_downloaded_filename)
+                                        #generate group name from start or end of filename using hyphen as marker
+                                        movies_downloaded_group_search = re.compile("^[^\s\-\.]+(?=-)|(?<=-)[^\s\-\.]+$").search(movies_downloaded_filename)
 
                                         if movies_downloaded_group_search != None:
 
-                                                movies_downloaded_group = movies_downloaded_group_search.group()                                        
+                                                movies_downloaded_group = movies_downloaded_group_search.group()
 
                                                 #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
                                                 config_preferred_group_list = [x.strip() for x in self.config_preferred_group.split(',')]
 
-                                                #use regex to escape characters
-                                                regex = re.escape(movies_downloaded_group)
+                                                #look for case insensitive downloaded movie group name against config preferred group list
+                                                matching_items = [item.lower() for item in config_preferred_group_list if movies_downloaded_group.lower() in item]
 
-                                                #look for case insensitive string in list using list comprehension
-                                                matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
-                                                
-                                                #if group name for downloaded movie filename is already in preferrred list then return
+                                                #if group name for downloaded movie is already in preferrred list then return
                                                 if matching_items:
-                                                        
-                                                        mg_log.info(u"Filter Index - Filename post group %s is in config preferred group list, skip" % (movies_downloaded_group))
+
+                                                        mg_log.info(u"Index - Post group for downloaded movie is in Preferred Group list")
                                                         return 0
 
                                                 else:
 
-                                                        #use regex to escape characters
-                                                        regex = re.escape(self.index_post_group)
-
-                                                        #look for case insensitive string in list using list comprehension
-                                                        matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
+                                                        #look for case insensitive posted movie group name against config preferred group list
+                                                        matching_items = [item.lower() for item in config_preferred_group_list if self.index_post_group.lower() in item]
 
                                                         if matching_items:
 
                                                                 self.download_details_dict["filter_index_preferred_group_result"] = [1,"Preferred Group", "Index - Post group is in Preferred Group list"]
-                                                                mg_log.info(u"Filter Index - Index post group %s is in config preferred group list, force" % (self.index_post_group))
+                                                                mg_log.info(u"Index - Post group is in Preferred Group list")
                                                                 return 1
 
                                                         else:
 
-                                                                mg_log.info(u"Filter Index - Index post group %s is NOT in config preferred group list, skip" % (self.index_post_group))
+                                                                mg_log.info(u"Index - Post group is NOT in Preferred Group list")
                                                                 return 0
 
                 return 0
 
         def filter_index_bad_group(self):
-                
+
                 #check bad group is enabled in switches and config bad group and index post group are not empty
                 if self.config_enable_group_filter == "yes" and (self.config_bad_group and self.index_post_group):
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_bad_group_list = [x.strip().lower() for x in self.config_bad_group.split(',')]
+                        config_bad_group_list = [x.strip() for x in self.config_bad_group.split(',')]
 
-                        #look for matching item in list
-                        if self.index_post_group.lower() in config_bad_group_list:
+                        #look for case insensitive string in list using list comprehension
+                        matching_items = [item.lower() for item in config_bad_group_list if self.index_post_group.lower() in item]
+
+                        if matching_items:
 
                                 self.download_details_dict["filter_index_bad_group_result"] = [0,"Bad Group", "Index - Post group is in Bad list"]
-                                mg_log.info(u"Filter Index - Index post group %s is in Bad list, skip" % (self.index_post_group))
+                                mg_log.info(u"Index - Post group is in Bad list")
                                 return 0
 
                         else:
 
-                                mg_log.info(u"Filter Index - Index post group %s is NOT in Bad list, proceed" % (self.index_post_group))
+                                mg_log.info(u"Index - Post group is NOT in Bad list")
                                 return 1
 
                 else:
@@ -1887,7 +1661,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_and(self):
-                
+
                 if self.config_search_and:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -1904,10 +1678,10 @@ class SearchIndex(object):
 
                                 else:
 
-                                        mg_log.info(u"Filter Index - Search criteria MUST exist %s NOT found , skip" % (config_search_and_item))
+                                        mg_log.info(u"Index - Search criteria MUST exist failed")
                                         return 0
 
-                        mg_log.info(u"Filter Index - Search criteria MUST exist found, proceed")
+                        mg_log.info(u"Index - Search criteria MUST exist passed")
                         return 1
 
                 else:
@@ -1915,7 +1689,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_or(self):
-            
+
                 if self.config_search_or:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -1928,14 +1702,14 @@ class SearchIndex(object):
 
                                 if config_search_or_item_re:
 
-                                        mg_log.info(u"Filter Index - Search criteria MAY exist %s found, proceed" % (config_search_or_item))
+                                        mg_log.info(u"Index - Search criteria MAY exist passed")
                                         return 1
 
                                 else:
 
                                         continue
 
-                        mg_log.info(u"Filter Index - Search criteria MAY exist NOT found, skip")
+                        mg_log.info(u"Index - Search criteria MAY exist failed")
                         return 0
 
                 else:
@@ -1943,7 +1717,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_not(self):
-                
+
                 if self.config_search_not:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -1956,14 +1730,14 @@ class SearchIndex(object):
 
                                 if config_search_not_item_re:
 
-                                        mg_log.info(u"Filter Index - Search criteria MUST NOT exist %s found, skip" % (config_search_not_item))
+                                        mg_log.info(u"Index - Search criteria MUST NOT exist failed")
                                         return 0
 
                                 else:
 
                                         continue
 
-                        mg_log.info(u"Filter Index - Search criteria MUST NOT exist not found, proceed")
+                        mg_log.info(u"Index - Search criteria MUST NOT exist passed")
                         return 1
 
                 else:
@@ -1975,7 +1749,7 @@ class SearchIndex(object):
         ################
 
         def filter_imdb_good_ratings(self):
-                
+
                 #this is set to download movies if preferred genre matches and movie rating is greater than preferred rating
                 if self.config_enable_preferred == "yes" and self.filter_imdb_preferred_genre() == 1:
 
@@ -1983,13 +1757,13 @@ class SearchIndex(object):
 
                         if self.imdb_movie_rating >= config_preferred_rating_dec:
 
-                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating))
+                                mg_log.info(u"IMDb - Rating above threshold")
                                 return 1
 
                         else:
 
                                 self.download_details_dict["filter_imdb_good_ratings_result"] = [0,"Rating", "IMDb - Rating below threshold"]
-                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating))
+                                mg_log.info(u"IMDb - Rating below threshold")
                                 return 0
 
                 else:
@@ -1999,51 +1773,52 @@ class SearchIndex(object):
 
                         if self.imdb_movie_rating >= config_good_rating_dec:
 
-                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating))
+                                mg_log.info(u"IMDb - Rating above threshold")
                                 return 1
 
                         else:
 
                                 self.download_details_dict["filter_imdb_good_ratings_result"] = [0,"Rating", "IMDb - Rating below threshold"]
-                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating))
+                                mg_log.info(u"IMDb - Rating below threshold")
                                 return 0
 
         def filter_imdb_good_votes(self):
-                
+
                 #this is set to download movies with minimum defined vote count
                 if self.imdb_movie_votes >= self.config_good_votes:
 
-                        mg_log.info(u"Filter IMDb - Votes %s above threshold, proceed" % (self.imdb_movie_votes))
+                        mg_log.info(u"IMDb - Votes above threshold")
                         return 1
 
                 else:
 
                         self.download_details_dict["filter_imdb_good_votes_result"] = [0,"Votes", "IMDb - Votes below threshold"]
-                        mg_log.info(u"Filter IMDb - Votes %s below threshold, skip" % (self.imdb_movie_votes))
+                        mg_log.info(u"IMDb - Votes below threshold")
                         return 0
 
         def filter_imdb_good_date(self):
-                
+
                 #this is set to download movies with a minimum defined year
                 if self.imdb_movie_year >= self.config_good_date:
 
-                        mg_log.info(u"Filter IMDb - Date %s is above threshold, proceed" % (self.imdb_movie_year))
+                        mg_log.info(u"IMDb - Date is above threshold")
                         return 1
 
                 else:
 
                         self.download_details_dict["filter_imdb_good_date_result"] = [0,"Date", "IMDb - Date is below threshold"]
-                        mg_log.info(u"Filter IMDb - Date %s is below threshold, skip" % (self.imdb_movie_year))
+                        mg_log.info(u"IMDb - Date is below threshold")
                         return 0
 
         def filter_imdb_good_genre(self):
-                
+
                 if self.config_good_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_good_genre_list = [item.strip().lower() for item in self.config_good_genre.split(',')]
+                        config_good_genre_list = [item.strip() for item in self.config_good_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        config_good_genre_list = [item.lower() for item in config_good_genre_list]
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
 
                         #use set.intersection to compare items in lists
@@ -2052,29 +1827,30 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                mg_log.info(u"Filter IMDb - Genre %s is in Good list, proceed" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is in Good list")
                                 return 1
 
                         else:
 
                                 self.download_details_dict["filter_imdb_good_genre_result"] = [0,"Genre", "IMDb - Genre is NOT in Good list"]
-                                mg_log.info(u"Filter IMDb - Genre %s is NOT in Good list, skip" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is NOT in Good list")
                                 return 0
 
                 else:
 
                         self.download_details_dict["filter_imdb_good_genre_result"] = [0,"Genre", "IMDb - Genre is NOT in Good list"]
-                        mg_log.info(u"Filter IMDb - Genre %s is NOT in Good list, skip" % (self.imdb_movie_genres_str))
+                        mg_log.info(u"IMDb - Genre is NOT in Good list")
                         return 0
 
         def filter_imdb_fav_dir(self):
-             
+
                 if self.config_enable_favorites == "yes" and self.config_fav_dir:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        fav_dir_list = [x.strip().lower() for x in self.config_fav_dir.split(',')]
+                        fav_dir_list = [x.strip() for x in self.config_fav_dir.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        fav_dir_list = [item.lower() for item in fav_dir_list]
                         imdb_movie_directors = [item.lower() for item in self.imdb_movie_directors]
 
                         #use set.intersection to compare items in lists
@@ -2083,13 +1859,13 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                self.download_details_dict["filter_imdb_fav_dir_result"] = [1,"Director", "Exception - IMDb Director is in Favorite list"]
-                                mg_log.info(u"Filter IMDb - Director %s is in Favorite list, proceed" % (self.imdb_movie_directors_str))
+                                self.download_details_dict["filter_imdb_fav_dir_result"] = [1,"Director", "Exception - Movie Director is in Favorite list"]
+                                mg_log.info(u"Exception - Movie Director is in Favorite list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Director %s is NOT in Favorite list, skip" % (self.imdb_movie_directors_str))
+                                mg_log.info(u"Exception - Movie Director is NOT in Favorite list")
                                 return 0
 
                 else:
@@ -2097,13 +1873,14 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_writer(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_writer:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        fav_writer_list = [x.strip().lower() for x in self.config_fav_writer.split(',')]
+                        fav_writer_list = [x.strip() for x in self.config_fav_writer.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        fav_writer_list = [item.lower() for item in fav_writer_list]
                         imdb_movie_writers = [item.lower() for item in self.imdb_movie_writers]
 
                         #use set.intersection to compare items in lists
@@ -2112,13 +1889,13 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                self.download_details_dict["filter_imdb_fav_writer_result"] = [1,"Writer", "Exception - IMDb Writer is in Favorite list"]
-                                mg_log.info(u"Filter IMDb - Writer %s is in Favorite list, proceed" % (self.imdb_movie_writers_str))
+                                self.download_details_dict["filter_imdb_fav_writer_result"] = [1,"Writer", "Exception - Movie Writer is in Favorite list"]
+                                mg_log.info(u"Exception - Movie Writer is in Favorite list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Writer %s is NOT in Favorite list, skip" % (self.imdb_movie_writers_str))
+                                mg_log.info(u"Exception - Movie Writer is NOT in Favorite list")
                                 return 0
 
                 else:
@@ -2126,13 +1903,14 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_actor(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_actor:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        fav_actor_list = [x.strip().lower for x in self.config_fav_actor.split(',')]
+                        fav_actor_list = [x.strip() for x in self.config_fav_actor.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        fav_actor_list = [item.lower() for item in fav_actor_list]
                         imdb_movie_actors = [item.lower() for item in self.imdb_movie_actors]
 
                         #use set.intersection to compare items in lists
@@ -2141,13 +1919,13 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                self.download_details_dict["filter_imdb_fav_actor_result"] = [1,"Actor", "Exception - IMDb Actor is in Favorite list"]
-                                mg_log.info(u"Filter IMDb - Actor %s is in Favorite list, proceed" % (self.imdb_movie_actors_str))
+                                self.download_details_dict["filter_imdb_fav_actor_result"] = [1,"Actor", "Exception - Movie Actor is in Favorite list"]
+                                mg_log.info(u"Exception - Movie Actor is in Favorite list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Actor %s is NOT in Favorite list, skip" % (self.imdb_movie_actors_str))
+                                mg_log.info(u"Exception - Movie Actor is NOT in Favorite list")
                                 return 0
 
                 else:
@@ -2155,13 +1933,14 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_char(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_char:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        fav_char_list = [x.strip().lower() for x in self.config_fav_char.split(',')]
+                        fav_char_list = [x.strip() for x in self.config_fav_char.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        fav_char_list = [item.lower() for item in fav_char_list]
                         imdb_movie_chars = [item.lower() for item in self.imdb_movie_chars]
 
                         #use set.intersection to compare items in lists
@@ -2170,13 +1949,13 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                self.download_details_dict["filter_imdb_fav_char_result"] = [1,"Character", "Exception - IMDb Chracter is in Favorite list"]
-                                mg_log.info(u"Filter IMDb - Character %s is in Favorite list, proceed" % (self.imdb_movie_chars_str))
+                                self.download_details_dict["filter_imdb_fav_char_result"] = [1,"Character", "Exception - Movie Chracter is in Favorite list"]
+                                mg_log.info(u"Exception - Movie Character is in Favorite list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Character %s is NOT in Favorite list, skip" % (self.imdb_movie_chars_str))
+                                mg_log.info(u"Exception - Movie Character is NOT in Favorite list")
                                 return 0
 
                 else:
@@ -2184,22 +1963,24 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_title(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_title:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        fav_title_list = [x.strip().lower() for x in self.config_fav_title.split(',')]
+                        fav_title_list = [x.strip() for x in self.config_fav_title.split(',')]
 
                         #look for case insensitive string in list using list comprehension
-                        if self.imdb_movie_title_year.lower() in fav_title_list:
+                        matching_items = [item.lower() for item in fav_title_list if self.imdb_movie_title_year.lower() in item]
 
-                                self.download_details_dict["filter_imdb_fav_title_result"] = [1,"Title", "Exception - IMDb Title is in Favorite list"]
-                                mg_log.info(u"Filter IMDb - Title %s is in Favorite list, proceed" % (self.imdb_movie_title_year))
+                        if matching_items:
+
+                                self.download_details_dict["filter_imdb_fav_title_result"] = [1,"Title", "Exception - Movie Title is in Favorite list"]
+                                mg_log.info(u"Exception - Movie Title is in Favorite list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Title %s is NOT in Favorite list, skip" % (self.imdb_movie_title_year))
+                                mg_log.info(u"Exception - Movie Title is NOT in Favorite list")
                                 return 0
 
                 else:
@@ -2207,22 +1988,24 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_bad_title(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_bad_title:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_bad_title_list = [x.strip().lower() for x in self.config_bad_title.split(',')]
+                        bad_title_list = [x.strip() for x in self.config_bad_title.split(',')]
 
                         #look for case insensitive string in list using list comprehension
-                        if self.imdb_movie_title_year.lower() in config_bad_title_list:
+                        matching_items = [item.lower() for item in bad_title_list if self.imdb_movie_title_year.lower() in item]
 
-                                self.download_details_dict["filter_imdb_bad_title_result"] = [0,"Title", "IMDb - IMDb Title is in Bad list"]
-                                mg_log.info(u"Filter IMDb - Title %s is in Bad list, skip" % (self.imdb_movie_title_year))
+                        if matching_items:
+
+                                self.download_details_dict["filter_imdb_bad_title_result"] = [0,"Title", "IMDb - Movie Title is in Bad list"]
+                                mg_log.info(u"IMDb - Movie Title is in Bad list")
                                 return 0
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Title %s is NOT in Bad list, proceed" % (self.imdb_movie_title_year))
+                                mg_log.info(u"IMDb - Movie Title is NOT in Bad list")
                                 return 1
 
                 else:
@@ -2230,13 +2013,14 @@ class SearchIndex(object):
                         return 1
 
         def filter_imdb_preferred_genre(self):
-                
+
                 if self.config_enable_preferred == "yes" and self.config_preferred_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        preferred_genre_list = [x.strip().lower() for x in self.config_preferred_genre.split(',')]
+                        preferred_genre_list = [x.strip() for x in self.config_preferred_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        preferred_genre_list = [item.lower() for item in preferred_genre_list]
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
 
                         #use set.intersection to compare items in lists
@@ -2245,12 +2029,12 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                mg_log.info(u"Filter IMDb - Genre %s is in Preferred Genres list, proceed" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is in Preferred Genres list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Genre %s is NOT in Preferred Genres list, skip" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is NOT in Preferred Genres list")
                                 return 0
 
                 else:
@@ -2258,28 +2042,29 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_queue_date(self):
-                
+
                 #this is set to queue movies with a maximum defined year (min is GoodDate)
                 if self.config_enable_queuing == "yes":
 
                         if self.imdb_movie_year <= self.config_queue_date:
 
-                                mg_log.info(u"Filter IMDb - Queue Date %s is above threshold, proceed" % (self.imdb_movie_year))
+                                mg_log.info(u"IMDb - Queue Date is above threshold")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Queue Date %s is below threshold, skip" % (self.imdb_movie_year))
+                                mg_log.info(u"IMDb - Queue Date is below threshold")
                                 return 0
 
         def filter_imdb_queue_genre(self):
-                
+
                 if self.config_enable_queuing == "yes" and self.config_queue_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        queue_genre_list = [x.strip().lower() for x in self.config_queue_genre.split(',')]
+                        queue_genre_list = [x.strip() for x in self.config_queue_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
+                        queue_genre_list = [item.lower() for item in queue_genre_list]
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
 
                         #use set.intersection to compare items in lists
@@ -2288,12 +2073,12 @@ class SearchIndex(object):
 
                         if set(matching_items):
 
-                                mg_log.info(u"Filter IMDb - Genre %s is in Queue Genres list, proceed" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is in Queue Genres list")
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Genre %s is NOT in Queue Genres list, skip" % (self.imdb_movie_genres_str))
+                                mg_log.info(u"IMDb - Genre is NOT in Queue Genres list")
                                 return 0
 
                 else:
@@ -2333,6 +2118,8 @@ class SearchIndex(object):
 
                         self.imdb_movie_poster = ""
 
+                mg_log.info(u"IMDb movie poster %s" % self.imdb_movie_poster)
+
                 #imdb movie release date
                 try:
 
@@ -2351,22 +2138,26 @@ class SearchIndex(object):
                         self.imdb_movie_year = 1900
                         self.imdb_movie_year_str = "-"
 
+                mg_log.info(u"IMDb movie year %s" % self.imdb_movie_year_str)
+
                 #create imdb name used for webui history and queue (no year or custom separators)
                 self.imdb_movie_title_strip = self.imdb_movie_title
 
                 #if append year is enabled then append to imdb movie title
                 if self.config_enable_append_year == "yes":
 
-                        self.imdb_movie_title = u"%s (%s)" % (self.imdb_movie_title, self.imdb_movie_year_str)
-                        
+                        self.imdb_movie_title = (self.imdb_movie_title + u" (" + self.imdb_movie_year_str + u")")
+
                 #create imdb name used for favorite title (append year, space for separator)
-                self.imdb_movie_title_year = u"%s (%s)" % (self.imdb_movie_title_strip, self.imdb_movie_year_str)
+                self.imdb_movie_title_year = (self.imdb_movie_title_strip + u" (" + self.imdb_movie_year_str + u")")
 
                 #if separator is not space, then replace otherwise ignore
                 if self.config_movie_title_separator != "<>":
 
                         #use defined movie title separators (can be spaces, dots, hyphens or underscores)
                         self.imdb_movie_title = re.sub(ur"\s", self.config_movie_title_separator ,self.imdb_movie_title)
+
+                mg_log.info(u"IMDb movie title %s" % self.imdb_movie_title)
 
                 #imdb movie runtime
                 try:
@@ -2380,6 +2171,8 @@ class SearchIndex(object):
                         self.imdb_movie_runtime = 0
                         self.imdb_movie_runtime_str = "-"
 
+                mg_log.info(u"IMDb movie runtime %s" % self.imdb_movie_runtime_str)
+
                 #imdb movie rating
                 try:
 
@@ -2392,6 +2185,8 @@ class SearchIndex(object):
                         self.imdb_movie_rating = decimal.Decimal("0.0").quantize(decimal.Decimal('.1'))
                         self.imdb_movie_rating_str = "-"
 
+                mg_log.info(u"IMDb movie rating %s" % self.imdb_movie_rating_str)
+
                 #imdb movie votes
                 try:
 
@@ -2403,6 +2198,8 @@ class SearchIndex(object):
 
                         self.imdb_movie_votes = 0
                         self.imdb_movie_votes_str = "-"
+
+                mg_log.info(u"IMDb movie votes %s" % self.imdb_movie_votes_str)
 
                 #imdb movie director
                 try:
@@ -2423,6 +2220,8 @@ class SearchIndex(object):
                         self.imdb_movie_directors = []
                         self.imdb_movie_directors_str = "-"
 
+                mg_log.info(u"IMDb movie directors %s" % ", ".join(self.imdb_movie_directors))
+
                 #imdb movie writers
                 try:
 
@@ -2441,6 +2240,8 @@ class SearchIndex(object):
 
                         self.imdb_movie_writers = []
                         self.imdb_movie_writers_str = "-"
+
+                mg_log.info(u"IMDb movie writers %s" % ", ".join(self.imdb_movie_writers))
 
                 #imdb movie actor
                 try:
@@ -2461,6 +2262,8 @@ class SearchIndex(object):
                         self.imdb_movie_actors = []
                         self.imdb_movie_actors_str = "-"
 
+                mg_log.info(u"IMDb movie actors %s" % ", ".join(self.imdb_movie_actors))
+
                 #imdb movie characters
                 try:
 
@@ -2480,6 +2283,8 @@ class SearchIndex(object):
                         self.imdb_movie_chars = []
                         self.imdb_movie_chars_str = "-"
 
+                mg_log.info(u"IMDb movie characters %s" % ", ".join(self.imdb_movie_chars))
+
                 #imdb movie description
                 try:
 
@@ -2488,6 +2293,8 @@ class SearchIndex(object):
                 except (KeyError, TypeError):
 
                         self.imdb_movie_description = "-"
+
+                mg_log.info(u"IMDb movie description %s" % self.imdb_movie_description)
 
                 #imdb movie genres
                 try:
@@ -2500,6 +2307,8 @@ class SearchIndex(object):
                         self.imdb_movie_genres = "-"
                         self.imdb_movie_genres_str = "-"
 
+                mg_log.info(u"IMDb movie genres %s" % self.imdb_movie_genres_str)
+
                 #imdb movie certificate
                 try:
 
@@ -2510,13 +2319,15 @@ class SearchIndex(object):
 
                         self.imdb_movie_cert = "-"
 
+                mg_log.info(u"IMDb movie certificate %s" % self.imdb_movie_cert)
+
         ######################
         # certificate system #
         ######################
 
         def cert_system(self):
 
-                post_cert_system = config_parser.get("general", "post_cert_system")
+                post_cert_system = config_parser.get("misc", "post_cert_system")
 
                 if self.imdb_movie_cert == "GP" or self.imdb_movie_cert == "PG" or self.imdb_movie_cert == "IIA" or self.imdb_movie_cert == "K-8":
 
@@ -2566,8 +2377,6 @@ class SearchIndex(object):
 
                         self.imdb_movie_cert = "-"
 
-                mg_log.info(u"Cert System - IMDb certificate %s" % (self.imdb_movie_cert))
-                
         ###################
         # poster download #
         ###################
@@ -2579,22 +2388,17 @@ class SearchIndex(object):
                         #removes non ascii characters from poster image filename
                         imdb_movie_title_ascii = self.imdb_movie_title.encode('ascii', 'ignore')
 
-                        #if poster image doesnt exist then proceed
                         if not os.path.exists(os.path.join(history_thumbnails_dir, imdb_movie_title_ascii + ur".jpg")):
 
                                 try:
 
-                                        #download poster image from imdb
+                                        #save poster image in static images folder
                                         poster_image = urllib2_retry(self.imdb_movie_poster,user_agent_iphone)
                                         self.poster_image_file = ""
-                                        
-                                        mg_log.info(u"Poster Download - Downloaded succeeded, url %s" % (self.imdb_movie_poster))
 
                                 except Exception:
 
                                         self.poster_image_file = u"default.jpg"
-                                        
-                                        mg_log.info(u"Poster Download - Downloaded failed, url %s" % (self.imdb_movie_poster))                                  
                                         return
 
                                 self.poster_image_file = (imdb_movie_title_ascii + ur".jpg")
@@ -2752,7 +2556,6 @@ class SearchIndex(object):
                 self.filter_os_archive_result = self.filter_os_archive()
                 self.filter_os_completed_result = self.filter_os_completed()
                 self.filter_imdb_bad_title_result = self.filter_imdb_bad_title()
-                self.filter_index_special_cut_result = self.filter_index_special_cut()                
                 self.filter_index_preferred_group_result = self.filter_index_preferred_group()
                 self.filter_index_bad_group_result = self.filter_index_bad_group()
                 self.filter_imdb_good_ratings_result = self.filter_imdb_good_ratings()
@@ -2772,10 +2575,6 @@ class SearchIndex(object):
                 elif self.filter_index_preferred_group_result == 1:
 
                         self.filter_check_status = 1
-
-                elif self.filter_index_special_cut_result == 1:
-
-                        self.filter_check_status = 1                        
 
                 elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
 
@@ -2812,7 +2611,7 @@ class SearchIndex(object):
 
                 except exc.IntegrityError:
 
-                        #catch error caused my duplicate postname/postnamestrip (unique flag set on column) and rollback transaction
+                        #catch error caused my duplicate postname (unique flag set on column) and rollback transaction
                         sql_session.rollback()
                         self.post_title_exists = True
 
@@ -2836,25 +2635,11 @@ class SearchIndex(object):
                         #add the record to the session object
                         sql_session.add(sqlite_insert)
 
-                        try:
+                        #commit the record the database
+                        sql_session.commit()
 
-                                #commit of record to queued table
-                                sql_session.commit()
-                                self.post_title_exists = False
-
-                                #remove scoped session
-                                sql_session.remove()
-
-                        except exc.IntegrityError:
-
-                                #catch error caused my duplicate postname/postnamestrip (unique flag set on column) and rollback transaction
-                                sql_session.rollback()
-                                self.post_title_exists = True
-
-                                #remove scoped session
-                                sql_session.remove()
-
-                                return
+                        #remove scoped session
+                        sql_session.remove()
 
                         #get id for current history item (sqlite id passed to automated download function)
                         sqlite_postname = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.postname==self.index_post_title).first()
@@ -2890,7 +2675,7 @@ class SearchIndex(object):
 
                 try:
 
-                        mg_log.info(u"Newznab Index - Newznab search index started")
+                        mg_log.info(u"Newznab search index started")
 
                         #substitute friendly names for real values for categories
                         if self.config_cat == "all formats":
@@ -2940,25 +2725,18 @@ class SearchIndex(object):
 
                                 else:
 
-                                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
-
-                                        #convert list back to string
-                                        config_search_and = ','.join(config_search_and_list)
-
-                                        #replace any remaining spaces with url encode
-                                        config_search_and = re.sub("\s","%20", config_search_and)
+                                        config_search_and_url = re.sub(",","%20" ,self.config_search_and)
 
                                         #generate newznab api search url xml format
-                                        api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                                        api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and_url, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
 
-                                mg_log.info(u"Newznab Index - API search %s" % api_search)
+                                mg_log.info(u"API search %s" % api_search)
 
                                 if self.config_spotweb_support == "yes":
 
                                         #generate spotweb api search url xml format
                                         api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize)
-                                        mg_log.info(u"Newznab Index - API search %s" % spotweb_api_search)
+                                        mg_log.info(u"API search %s" % spotweb_api_search)
 
                                 #pass to urllib2 retry function - decorator
                                 try:
@@ -2967,7 +2745,8 @@ class SearchIndex(object):
 
                                 except Exception:
 
-                                        mg_log.warning(u"Newznab Index - Newznab/Spotweb API XML search failed, site down?")
+                                        mg_log.warning(u"Newznab/Spotweb API XML search failed, site down?")
+
                                         return
 
                                 #use bs to parse api
@@ -2986,12 +2765,12 @@ class SearchIndex(object):
                                                 api_error_xml_code = api_error_xml_search["code"]
                                                 api_error_xml_description = api_error_xml_search["description"]
 
-                                                mg_log.warning(u"Newznab Index - Newznab API no items found, error code \"%s\", description \"%s\"" % (api_error_xml_code,api_error_xml_description))
+                                                mg_log.warning(u"Newznab API no items found, error code \"%s\", description \"%s\"" % (api_error_xml_code,api_error_xml_description))
                                                 return
 
                                         else:
 
-                                                mg_log.warning(u"Newznab Index - Newznab API no items found, no error code returned")
+                                                mg_log.warning(u"Newznab API no items found, content returned \"%s\"" % (api_search_soup))
                                                 return
 
                                 #this breaks down the xml feed page into tag sections
@@ -3005,7 +2784,7 @@ class SearchIndex(object):
                                                 #send task done and exit function
                                                 search_index_poison_queue.task_done()
 
-                                                mg_log.info(u"Newznab Index - Shutting down search index")
+                                                mg_log.info(u"Shutting down search index")
 
                                                 return
 
@@ -3017,34 +2796,48 @@ class SearchIndex(object):
                                                 post_title = post_title_search.contents[0]
                                                 post_title = self.decode_html_entities(post_title)
 
-                                                #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                                post_title = re.sub("^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                                #remove square brackets and spaces from start of post title
+                                                post_title = re.sub("^(\s?)+.*\]", "", post_title)
 
-                                                self.index_post_title = post_title
-                                                mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
+                                                #remove spaces, hyphens and periods from begining and end of post title
+                                                post_title = re.sub("^[\s?\-?\.?]+|[\s?\-?\.?]+$", "", post_title)
 
                                                 #search end of post title stopping at period, underscore or space as seperator
-                                                index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                                post_title_end_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
-                                                if index_post_group_search != None:
+                                                if post_title_end_search != None:
 
-                                                        self.index_post_group = index_post_group_search.group()
-                                                        mg_log.info(u"Newznab Index - Post release group %s" % (self.index_post_group))                                                
+                                                        post_title_end = post_title_end_search.group()
+
+                                                        #split end of post title at first hyphen to ger group name
+                                                        post_title_end_strip = post_title_end.split("-")
+                                                        post_title_end_strip = post_title_end_strip[0]
+                                                                
+                                                        #replace old post title end with stripped version
+                                                        self.index_post_title = post_title.replace(post_title_end,post_title_end_strip)
+                                                        mg_log.info(u"Post title is %s" % (self.index_post_title))                                                
+
+                                                        #generate post group from end strip string
+                                                        self.index_post_group = post_title_end_strip
+                                                        mg_log.info(u"Post release group %s" % (self.index_post_group))                                                
 
                                                 else:
+
+                                                        self.index_post_title = post_title
+                                                        mg_log.info(u"Post title is %s" % (self.index_post_title))
                                                         
                                                         self.index_post_group = ""
-                                                        mg_log.info(u"Newznab Index - Post release group not found")
+                                                        mg_log.info(u"Post release group not found")
                                                                 
                                         else:
 
-                                                mg_log.info(u"Newznab Index - Post title not found")
+                                                mg_log.info(u"Post title not found")
                                                 continue
 
                                         #if post title filters are not 0 then continue to next post
                                         if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
-                                                mg_log.info(u"Newznab Index - Post title search criteria failed")
+                                                mg_log.info(u"Post title search criteria failed")
                                                 continue
 
                                         #generate imdb tt number
@@ -3058,7 +2851,7 @@ class SearchIndex(object):
                                                 if self.imdb_tt_number == "0000000":
 
                                                         self.imdb_tt_number = ""
-                                                        mg_log.info(u"Newznab Index - Post IMDb link not found")
+                                                        mg_log.info(u"Post IMDb link not found")
                                                         continue
 
                                                 elif len(self.imdb_tt_number) == 6:
@@ -3068,34 +2861,34 @@ class SearchIndex(object):
 
                                                         #create imdb json feed (used for iphone/android)
                                                         imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
+                                                        mg_log.info(u"IMDb JSON %s" % (imdb_json))
 
                                                         #generate imdb links for history/queued/email
                                                         self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
+                                                        mg_log.info(u"Post IMDb link %s" % (self.imdb_link))
 
                                                 elif len(self.imdb_tt_number) == 7:
 
                                                         #create imdb json feed (used for iphone/android)
                                                         imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - IMDb JSON %s" % (imdb_json))
+                                                        mg_log.info(u"IMDb JSON %s" % (imdb_json))
 
                                                         #generate imdb links for history/queued/email
                                                         self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"Newznab Index - Post IMDb link %s" % (self.imdb_link))
+                                                        mg_log.info(u"Post IMDb link %s" % (self.imdb_link))
 
                                                 else:
 
                                                         self.imdb_tt_number = ""
                                                         self.imdb_link = ""
-                                                        mg_log.info(u"Newznab Index - Post IMDb link malformed")
+                                                        mg_log.info(u"Post IMDb link malformed")
                                                         continue
 
                                         else:
 
                                                 self.imdb_tt_number = ""
                                                 self.imdb_link = ""
-                                                mg_log.info(u"Newznab Index - Post IMDb link not found")
+                                                mg_log.info(u"Post IMDb link not found")
                                                 continue
 
                                         #generate download link
@@ -3104,12 +2897,12 @@ class SearchIndex(object):
                                         if download_link_search != None:
 
                                                 self.index_download_link = download_link_search["url"]
-                                                mg_log.info(u"Newznab Index - Post download link %s" % (self.index_download_link))
+                                                mg_log.info(u"Post download link %s" % (self.index_download_link))
 
                                         else:
 
                                                 self.index_download_link = ""
-                                                mg_log.info(u"Newznab Index - Post download link not found")
+                                                mg_log.info(u"Post download link not found")
                                                 continue
 
                                         #generate post size
@@ -3135,7 +2928,7 @@ class SearchIndex(object):
                                                         post_size_int = decimal.Decimal(int(post_size)) / 1000000000
 
                                                         self.index_post_size = "%s GB" % (str(post_size_int))
-                                                        mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
+                                                        mg_log.info(u"Post size %s" % self.index_post_size)
 
                                                 else:
 
@@ -3143,19 +2936,19 @@ class SearchIndex(object):
                                                         post_size_int = int(post_size) / 1000000
 
                                                         self.index_post_size = "%s MB" % (str(post_size_int))
-                                                        mg_log.info(u"Newznab Index - Post size %s" % self.index_post_size)
+                                                        mg_log.info(u"Post size %s" % self.index_post_size)
 
                                         else:
 
                                                 self.index_post_size = ""
                                                 self.index_post_size_sort = 0
                                                 self.index_post_size_check = 0
-                                                mg_log.info(u"Newznab Index - Post size not found")
+                                                mg_log.info(u"Post size not found")
 
                                         #if size is below min/max then continue to next post - not all newznab sites support size filtering via api, so fallback to client
                                         if self.filter_index_good_size() != 1:
 
-                                                mg_log.info(u"Newznab Index - Post Size is NOT within thresholds")
+                                                mg_log.info(u"Post Size is NOT within thresholds")
                                                 continue
 
                                         #remove seperators from post title, used for compare
@@ -3164,18 +2957,15 @@ class SearchIndex(object):
                                         #convert to lowercase
                                         self.index_post_title_strip = self.index_post_title_strip.lower()
                                         
-                                        #append dltype to allow usenet/torrent with same postname
-                                        self.index_post_title_strip = u"%s-usenet" % (self.index_post_title_strip)
-                                        
                                         #check if post title strip is in sqlite db
-                                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
+                                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()                                        
 
                                         #remove scoped session
                                         sql_session.remove()
 
-                                        #if postname already exists then add to download url list and go to next iter
-                                        if sqlite_post_name != None:                                                
-                                                
+                                        #if != None then append to download list and go to next iteration
+                                        if sqlite_post_name != None:
+
                                                 #check if download url is in sqlite db (case insensitive), if == None then append
                                                 sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
 
@@ -3196,7 +2986,7 @@ class SearchIndex(object):
                                                 #remove scoped session
                                                 sql_session.remove()
 
-                                                mg_log.info(u"Newznab Index - Post title in db history table")
+                                                mg_log.info(u"Post title in db history table")
                                                 continue
 
                                         #generate post date (bs converts tags to lowercase, thus pubDate must be ref as pubdate)
@@ -3216,7 +3006,7 @@ class SearchIndex(object):
                                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                                 post_date_string += " UTC"
                                                 self.index_post_date = post_date_string
-                                                mg_log.info(u"Newznab Index - Post date %s" % (self.index_post_date))
+                                                mg_log.info(u"Post date %s" % (self.index_post_date))
 
                                                 #reformat time to correct string format - used by sort order
                                                 post_date_string2 = time.strftime("%Y%m%d%H%M%S", post_date_tuple)
@@ -3226,7 +3016,7 @@ class SearchIndex(object):
 
                                                 self.index_post_date = ""
                                                 self.index_post_date_sort = 0
-                                                mg_log.info(u"Newznab Index - Post date not found")
+                                                mg_log.info(u"Post date not found")
 
                                         #generate newznab guid
                                         guid_search = node.find(attrs={"name": "guid"})
@@ -3238,21 +3028,21 @@ class SearchIndex(object):
                                         else:
 
                                                 self.guid = ""
-                                                mg_log.info(u"Newznab Index - Post guid not found")
+                                                mg_log.info(u"Post guid not found")
 
                                         if self.guid:
 
                                                 #generate newznab post nfo
                                                 self.index_post_nfo = self.config_hostname + ":" + self.config_portnumber + "/nfo/" + self.guid
-                                                mg_log.info(u"Newznab Index - Post nfo %s" % (self.index_post_nfo))
+                                                mg_log.info(u"Post nfo %s" % (self.index_post_nfo))
 
                                                 #generate newznab post details
                                                 self.index_post_details = self.config_hostname + ":" + self.config_portnumber + "/details/" + self.guid
-                                                mg_log.info(u"Newznab Index - Post details %s" % (self.index_post_details))
+                                                mg_log.info(u"Post details %s" % (self.index_post_details))
 
                                                 #generate newznab post id
                                                 self.index_post_id = self.guid
-                                                mg_log.info(u"Newznab Index - Post id %s" % self.index_post_id)
+                                                mg_log.info(u"Post id %s" % self.index_post_id)
 
                                         else:
 
@@ -3266,11 +3056,11 @@ class SearchIndex(object):
                                                 #download imdb json (used for iphone/android)
                                                 imdb_json_page_request = urllib2_retry(imdb_json,user_agent_iphone)
                                                 self.imdb_json_page = json.loads(imdb_json_page_request)
-                                                mg_log.info(u"Newznab Index - IMDb JSON Up %s" % imdb_json)
+                                                mg_log.info(u"IMDb JSON Up %s" % imdb_json)
 
                                         except Exception:
 
-                                                mg_log.warning(u"Newznab Index - IMDb JSON down %s" % (imdb_json))
+                                                mg_log.warning(u"IMDb JSON down %s" % (imdb_json))
                                                 return
 
                                         #run function to create imdb details
@@ -3317,7 +3107,7 @@ class SearchIndex(object):
 
                 try:
 
-                        mg_log.info(u"KAT Index - KAT search index started")
+                        mg_log.info(u"KAT search index started")
 
                         #substitute friendly names for real values for categories
                         if self.config_cat == "all formats":
@@ -3339,7 +3129,7 @@ class SearchIndex(object):
                         #kat rss feed
                         rss_feed = "%s:%s/usearch/category%%3A%s%%20language%%3A%s%%20seeds%%3A1/?rss=1" % (self.config_hostname, self.config_portnumber, self.config_cat, self.config_lang)
 
-                        mg_log.info(u"KAT Index - RSS feed %s" % rss_feed)
+                        mg_log.info(u"RSS feed %s" % rss_feed)
 
                         #pass to urllib2 retry function - decorator
                         try:
@@ -3348,7 +3138,7 @@ class SearchIndex(object):
 
                         except Exception:
 
-                                mg_log.warning(u"KAT Index - RSS feed download failed")
+                                mg_log.warning(u"KAT RSS feed download failed")
 
                                 return
 
@@ -3365,12 +3155,12 @@ class SearchIndex(object):
 
                                 if rss_error_search != None:
 
-                                        mg_log.warning(u"KAT Index - RSS no items found, error returned \"%s\"" % (rss_error_search))
+                                        mg_log.warning(u"KAT RSS no items found, error returned \"%s\"" % (rss_error_search))
                                         return
 
                                 else:
 
-                                        mg_log.warning(u"KAT Index - RSS no items found, no error code returned")
+                                        mg_log.warning(u"KAT RSS no items found, page returned \"%s\"" % (rss_feed_soup))
                                         return
 
                         #this breaks down the rss feed page into tag sections
@@ -3384,7 +3174,7 @@ class SearchIndex(object):
                                         #send task done and exit function
                                         search_index_poison_queue.task_done()
 
-                                        mg_log.info(u"KAT Index - Shutting down search index")
+                                        mg_log.info(u"Shutting down search index")
 
                                         return
 
@@ -3396,34 +3186,51 @@ class SearchIndex(object):
                                         post_title = post_title_search.contents[0]
                                         post_title = self.decode_html_entities(post_title)
 
-                                        #remove spaces, hyphens, periods, and square brackets from begining and end of post title
-                                        post_title = re.sub("^[\[\s?\-?\.?]+|[\]\s?\-?\.?]+$", "", post_title)
+                                        #remove square brackets and spaces from end of post title
+                                        post_title = re.sub("(\s?)+\[.*$", "", post_title)
 
-                                        self.index_post_title = post_title
-                                        mg_log.info(u"KAT Index - Post title is %s" % (self.index_post_title))
+                                        #remove square brackets and spaces from start of post title
+                                        post_title = re.sub("^(\s?)+.*\]", "", post_title)
+
+                                        #remove spaces, hyphens and periods from begining and end of post title
+                                        post_title = re.sub("^[\s?\-?\.?]+|[\s?\-?\.?]+$", "", post_title)
 
                                         #search end of post title stopping at period, underscore or space as seperator
-                                        index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                        post_title_end_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
-                                        if index_post_group_search != None:
+                                        if post_title_end_search != None:
 
-                                                self.index_post_group = index_post_group_search.group()
-                                                mg_log.info(u"KAT Index - Post release group %s" % (self.index_post_group))                                                
+                                                post_title_end = post_title_end_search.group()
+
+                                                #split end of post title at first hyphen to ger group name
+                                                post_title_end_strip = post_title_end.split("-")
+                                                post_title_end_strip = post_title_end_strip[0]
+                                                        
+                                                #replace old post title end with stripped version
+                                                self.index_post_title = post_title.replace(post_title_end,post_title_end_strip)                                                
+                                                mg_log.info(u"Post title is %s" % (self.index_post_title))                                                
+
+                                                #generate post group from end strip string
+                                                self.index_post_group = post_title_end_strip
+                                                mg_log.info(u"Post release group %s" % (self.index_post_group))                                                
 
                                         else:
+
+                                                self.index_post_title = post_title
+                                                mg_log.info(u"Post title is %s" % (self.index_post_title))
                                                 
                                                 self.index_post_group = ""
-                                                mg_log.info(u"KAT Index - Post release group not found")
-                                                        
+                                                mg_log.info(u"Post release group not found")
+                                                                                                        
                                 else:
 
-                                        mg_log.info(u"KAT Index - Post title not found")
+                                        mg_log.info(u"Post title not found")
                                         continue
 
                                 #if post title filters are not 0 then continue to next post
                                 if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
-                                        mg_log.info(u"KAT Index - Post title search criteria failed")
+                                        mg_log.info(u"Post title search criteria failed")
                                         continue
 
                                 #generate imdb url and tt number
@@ -3446,41 +3253,41 @@ class SearchIndex(object):
 
                                                         #create imdb json feed (used for iphone/android)
                                                         imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - IMDb JSON %s" % imdb_json)
+                                                        mg_log.info(u"IMDb JSON %s" % imdb_json)
 
                                                         #generate imdb links for history/queued/email
                                                         self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - Post IMDb link %s" % self.imdb_link)
+                                                        mg_log.info(u"Post IMDb link %s" % self.imdb_link)
 
                                                 elif len(self.imdb_tt_number) == 7:
 
                                                         #create imdb json feed (used for iphone/android)
                                                         imdb_json="http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=tt%s&sig=app1" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - IMDb JSON %s" % imdb_json)
+                                                        mg_log.info(u"IMDb JSON %s" % imdb_json)
 
                                                         #generate imdb links for history/queued/email
                                                         self.imdb_link = "http://www.imdb.com/title/tt%s" % (self.imdb_tt_number)
-                                                        mg_log.info(u"KAT Index - Post IMDb link %s" % self.imdb_link)
+                                                        mg_log.info(u"Post IMDb link %s" % self.imdb_link)
 
                                                 else:
 
                                                         self.imdb_tt_number = ""
                                                         self.imdb_link = ""
-                                                        mg_log.info(u"KAT Index - Post IMDb link malformed")
+                                                        mg_log.info(u"Post IMDb link malformed")
                                                         continue
 
                                         else:
 
                                                 self.imdb_tt_number = ""
                                                 self.imdb_link = ""
-                                                mg_log.info(u"KAT Index - Post IMDb link not found")
+                                                mg_log.info(u"Post IMDb link not found")
                                                 continue
 
                                 else:
 
                                         self.imdb_tt_number = ""
                                         self.imdb_link = ""
-                                        mg_log.info(u"KAT Index - Post IMDb link not found")
+                                        mg_log.info(u"Post IMDb link not found")
                                         continue
 
                                 #generate download link
@@ -3489,12 +3296,12 @@ class SearchIndex(object):
                                 if download_link_search != None:
 
                                         self.index_download_link = download_link_search["url"]
-                                        mg_log.info(u"KAT Index - Post download link %s" % self.index_download_link)
+                                        mg_log.info(u"Post download link %s" % self.index_download_link)
 
                                 else:
 
                                         self.index_download_link = ""
-                                        mg_log.info(u"KAT Index - Post download link not found")
+                                        mg_log.info(u"Post download link not found")
                                         continue
 
                                 #generate post size
@@ -3520,7 +3327,7 @@ class SearchIndex(object):
                                                 post_size_int = decimal.Decimal(int(post_size)) / 1000000000
 
                                                 self.index_post_size = "%s GB" % (str(post_size_int))
-                                                mg_log.info(u"KAT Index - Post size %s" % self.index_post_size)
+                                                mg_log.info(u"Post size %s" % self.index_post_size)
 
                                         else:
 
@@ -3528,19 +3335,19 @@ class SearchIndex(object):
                                                 post_size_int = int(post_size) / 1000000
 
                                                 self.index_post_size = "%s MB" % (str(post_size_int))
-                                                mg_log.info(u"KAT Index - Post size %s" % self.index_post_size)
+                                                mg_log.info(u"Post size %s" % self.index_post_size)
 
                                 else:
 
                                         self.index_post_size = ""
                                         self.index_post_size_sort = 0
                                         self.index_post_size_check = 0
-                                        mg_log.info(u"KAT Index - Post size not found")
+                                        mg_log.info(u"Post size not found")
 
                                 #if size is below min/max then continue to next post - kat does not support size filtering so has to be done at client end
                                 if self.filter_index_good_size() != 1:
 
-                                        mg_log.info(u"KAT Index - Post Size is NOT within thresholds")
+                                        mg_log.info(u"Post Size is NOT within thresholds")
                                         continue
 
                                 #remove seperators from post title, used for compare
@@ -3549,16 +3356,13 @@ class SearchIndex(object):
                                 #convert to lowercase
                                 self.index_post_title_strip = self.index_post_title_strip.lower()
 
-                                #append dltype to allow usenet/torrent with same postname
-                                self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
-
                                 #check if post title strip is in sqlite db
                                 sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
 
                                 #remove scoped session
                                 sql_session.remove()
 
-                                #if postname already exists then add to download url list and go to next iter
+                                #if != None then append to download list and go to next iteration
                                 if sqlite_post_name != None:
 
                                         #check if download url is in sqlite db (case insensitive), if == None then append
@@ -3581,7 +3385,7 @@ class SearchIndex(object):
                                         #remove scoped session
                                         sql_session.remove()
 
-                                        mg_log.info(u"KAT Index - Post title in db history table")
+                                        mg_log.info(u"Post title in db history table")
                                         continue
 
                                 #generate post date
@@ -3598,7 +3402,7 @@ class SearchIndex(object):
                                         post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                         post_date_string += " UTC"
                                         self.index_post_date = post_date_string
-                                        mg_log.info(u"KAT Index - Post date %s" % self.index_post_date)
+                                        mg_log.info(u"Post date %s" % self.index_post_date)
 
                                         #reformat time to correct string format - used by sort order
                                         post_date_string2 = time.strftime("%Y%m%d%H%M%S", post_date_tuple)
@@ -3608,7 +3412,7 @@ class SearchIndex(object):
 
                                         self.index_post_date = ""
                                         self.index_post_date_sort = 0
-                                        mg_log.info(u"KAT Index - Post date not found")
+                                        mg_log.info(u"Post date not found")
 
                                 #set post_nfo to empty string - not available
                                 self.index_post_nfo = ""
@@ -3619,12 +3423,12 @@ class SearchIndex(object):
                                 if post_details_search != None:
 
                                         self.index_post_details = post_details_search.contents[0]
-                                        mg_log.info(u"KAT Index - Post details %s" % self.index_post_details)
+                                        mg_log.info(u"Post details %s" % self.index_post_details)
 
                                 else:
 
                                         self.index_post_details = ""
-                                        mg_log.info(u"KAT Index - Post details not found")
+                                        mg_log.info(u"Post details not found")
 
                                 #generate post id
                                 post_id_search = node.find("torrent:infohash")
@@ -3632,12 +3436,12 @@ class SearchIndex(object):
                                 if post_id_search != None:
 
                                         self.index_post_id = post_id_search.contents[0]
-                                        mg_log.info(u"KAT Index - Post id %s" % self.index_post_id)
+                                        mg_log.info(u"Post id %s" % self.index_post_id)
 
                                 else:
 
                                         self.index_post_id = ""
-                                        mg_log.info(u"KAT Index - Post id not found")
+                                        mg_log.info(u"Post id not found")
 
                                 #pass to urllib2 retry function - decorator
                                 try:
@@ -3645,11 +3449,11 @@ class SearchIndex(object):
                                         #download imdb json (used for iphone/android)
                                         imdb_json_page_request = urllib2_retry(imdb_json,user_agent_iphone)
                                         self.imdb_json_page = json.loads(imdb_json_page_request)
-                                        mg_log.info(u"KAT Index - IMDb JSON Up %s" % imdb_json)
+                                        mg_log.info(u"IMDb JSON Up %s" % imdb_json)
 
                                 except Exception:
 
-                                        mg_log.warning(u"KAT Index - IMDb JSON down %s" % (imdb_json))
+                                        mg_log.warning(u"IMDb JSON down %s" % (imdb_json))
                                         return
 
                                 #run function to create imdb details
@@ -3703,10 +3507,8 @@ class PostProcessing(object):
                 def __init__(self):
 
                         #read config.ini entries
-                        self.config_post_rename_files = (config_parser.get("general", "post_rename_files")).decode("utf-8")
-                        self.config_post_rule = config_parser.get("post_processing", "post_rule")
-                        self.config_post_replace_existing = (config_parser.get("general", "post_replace_existing")).decode("utf-8")                        
-                        self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
+                        self.config_post_rename_files = (config_parser.get("misc", "post_rename_files")).decode("utf-8")
+                        self.config_movie_title_separator = (config_parser.get("misc", "movie_title_separator")).decode("utf-8")
                         self.config_completed_dir = (config_parser.get("folders", "usenet_completed_dir")).decode("utf-8")
                         self.config_completed_dir = os.path.normpath(self.config_completed_dir)
 
@@ -3714,251 +3516,268 @@ class PostProcessing(object):
 
                         mg_log.info(u"Post processing started")
 
-                        #run function to check for post processing enabled, folder is in completed and valid movie file types exist
-                        self.checks()
+                        #run switches function
+                        self.switches()
+
+                        #run rules function
+                        self.rules()
 
                         mg_log.info(u"Post processing stopped")
 
-                def checks(self):
+                def switches(self):
 
                         #substitute config parser item for "space"
                         if self.config_movie_title_separator == "<>":
 
                                 self.config_movie_title_separator = u" "
 
-                        if self.config_completed_dir:
+                        if self.config_completed_dir and self.config_post_rename_files == "yes":
 
                                 #select download name from history table where download status is downloaded
-                                self.sqlite_history_downloaded = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.dlstatus=="Downloaded").all()
+                                sqlite_history_downloaded = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.dlstatus=="Downloaded").all()
 
                                 #remove scoped session
                                 sql_session.remove()
 
-                                #if no movies set to downloaded in db then return
-                                if self.sqlite_history_downloaded == None:
+                                for sqlite_history_downloaded_item in sqlite_history_downloaded:
 
-                                        return
+                                        if not post_processing_poison_queue.empty():
 
-                                else:
+                                                #send task done and exit function
+                                                post_processing_poison_queue.task_done()
+                                                mg_log.info(u"Shutting down post processing")
 
-                                        #loop over list of history items and match against existing folders in completed
-                                        for sqlite_history_downloaded_item in self.sqlite_history_downloaded:
+                                                return
 
-                                                if not post_processing_poison_queue.empty():
+                                        #get download filename for movies with status of downloaded
+                                        self.sqlite_history_downloaded_dlname = sqlite_history_downloaded_item.dlname
 
-                                                        #send task done and exit function
-                                                        post_processing_poison_queue.task_done()
-                                                        mg_log.info(u"Shutting down post processing")
+                                        #create variable for completed folder + movie title folder
+                                        self.os_movie_path_folder = os.path.join(self.config_completed_dir, self.sqlite_history_downloaded_dlname)
+                                        self.os_movie_path_folder = os.path.normpath(self.os_movie_path_folder)
 
-                                                        return
+                                        #this is set to check the completed folder for movie downloaded exists
+                                        if os.path.exists(self.os_movie_path_folder):
 
-                                                #get downloaded imdb name for movies with status of downloaded
-                                                self.sqlite_history_downloaded_dlname = sqlite_history_downloaded_item.dlname
+                                                #count number of valid movie files in folder - used to work out whether to append CDx to first file
+                                                if self.config_post_rename_files == "yes":
 
-                                                #get post name for movies with status of downloaded
-                                                self.sqlite_history_downloaded_postname = sqlite_history_downloaded_item.postname
+                                                        movie_file_extensions = ["*.mkv", "*.avi", "*.mp4", "*.dvx", "*.wmv", "*.mov"]
 
-                                                #read movie certificate and title
-                                                self.sqlite_history_downloaded_imdbcert = sqlite_history_downloaded_item.imdbcert.lower()
+                                                        for movie_file_extension in movie_file_extensions:
 
-                                                #select imdb genre from history table for current movie download title
-                                                self.sqlite_history_downloaded_imdbgenre = sqlite_history_downloaded_item.imdbgenre.lower()
+                                                                movie_completed_path_movie_files = glob.glob(os.path.join(self.os_movie_path_folder, movie_file_extension))
 
-                                                #use string (from webui dropdown2) to mathematical self.post_processing_operators module
-                                                self.post_processing_operators = {
-                                                        'equal to' : operator.eq,
-                                                        'not equal to' : operator.ne,
-                                                        'greater than'  : operator.gt,
-                                                        'less than'  : operator.lt}
+                                                                #count number of movie files
+                                                                number_of_movie_files = len(movie_completed_path_movie_files)
 
-                                                #create variable for completed folder + movie title folder
-                                                self.os_movie_path_folder = os.path.join(self.config_completed_dir, self.sqlite_history_downloaded_dlname)
-                                                self.os_movie_path_folder = os.path.normpath(self.os_movie_path_folder)
+                                                                if number_of_movie_files > 1:
 
-                                                #this is set to check the completed folder for movie downloaded exists
-                                                if os.path.exists(self.os_movie_path_folder):
+                                                                        self.index_post_spanned = True
+                                                                        break
 
-                                                        #run method to move all files to root movie folder
-                                                        mg_log.info(u"Running file rename")
-                                                        self.move()
-                                                        
-                                                        #if rename defined then run method
-                                                        if self.config_post_rename_files != "existing":
-                                                                
-                                                                mg_log.info(u"Running file rename")
-                                                                self.rename()                                                                
-                                                        
-                                                        #if rules defined then run method
-                                                        if self.config_post_rule:
+                                                                else:
 
-                                                                mg_log.info(u"Processing defined rules")                                                                                                                
-                                                                self.rules()
+                                                                        self.index_post_spanned = False
 
-                def move(self):
+                                                #walk completed dir + imdb movie title
+                                                for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
 
-                        #walk completed dir + imdb movie title
-                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
-                                
-                                for os_movie_files_item in files:
+                                                        #loop over list of files in folders
+                                                        for self.os_movie_filenames in files:
 
-                                        source_path_with_filename = os.path.join(folder, os_movie_files_item)
-                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, os_movie_files_item)
+                                                                #create absolute path for files
+                                                                self.os_movie_path_filenames = os.path.join(folder, self.os_movie_filenames)
+                                                                self.os_movie_path_filenames = os.path.normpath(self.os_movie_path_filenames)
 
-                                        if not os.path.exists(dest_path_with_filename):
+                                                                if self.config_post_rename_files == "yes":
 
-                                                try:
+                                                                        mg_log.info(u"Running rename files function")
 
-                                                        #move movie file to movie root folder
-                                                        shutil.move(source_path_with_filename, dest_path_with_filename)
-                                                        mg_log.info(u"Moved file from %s to %s" % (source_path_with_filename,dest_path_with_filename))
+                                                                        #call rename function
+                                                                        self.switches_rename()
 
-                                                except IOError:
+                def switches_rename(self):
 
-                                                        mg_log.warning(u"Cannot move filename to %s" % (dest_path_with_filename))
+                        #make sure filename to rename exists - has not been deleted by delete function
+                        if os.path.exists(self.os_movie_path_filenames):
 
-                                #remove all sub directories from movie folder (excluding movie folder root)                                                                                       
-                                if os.path.isdir(folder) and folder != self.os_movie_path_folder:
-                                                
-                                        shutil.rmtree(folder)
-                                                                                                                                                        
-                def rename(self):
+                                source_path_filenames = self.os_movie_path_filenames
 
-                        #create list of valid movie file extensions
-                        valid_extensions_list = [u".mkv", u".avi", u".mp4", u".dvx", u".wmv", u".mov"]
+                                #get extension from files located in completed folder, strip filename and convert to lower case (includes period)
+                                source_path_filenames_extension = os.path.splitext(source_path_filenames)[1].lower()
 
-                        #walk completed dir + imdb movie title
-                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
-                                
-                                for os_movie_files_item in files:
+                                #check file is movie file, if not skip rename
+                                if source_path_filenames_extension == ".avi" or source_path_filenames_extension == ".mkv" or source_path_filenames_extension == ".mp4" or source_path_filenames_extension == ".dvx" or source_path_filenames_extension == ".wmv" or source_path_filenames_extension == ".mov":
 
-                                        #generate filename and file extension
-                                        os_movie_files, os_movie_files_ext = os.path.splitext(os_movie_files_item)
+                                        if self.index_post_spanned == True:
 
-                                        #check file extension in valid movie file extension list
-                                        if os_movie_files_ext in valid_extensions_list:
+                                                #check existing source filename for CD number using regex
+                                                movie_source_string = re.compile("CD[0-9]{1,2}", re.IGNORECASE).search(source_path_filenames)
 
-                                                source_path_with_filename = os.path.join(folder, os_movie_files_item)                                                
+                                                if movie_source_string != None:
 
-                                                #if post rename set to imdb then set destination filename to imdb name
-                                                if self.config_post_rename_files == "imdb":
+                                                        movie_source_string = movie_source_string.group()
 
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_dlname + os_movie_files_ext)
+                                                        #generate destination filename
+                                                        destination_path_filenames = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_dlname + self.config_movie_title_separator + movie_source_string + source_path_filenames_extension)
 
-                                                #if post rename set to postname then set destination filename to post title
-                                                elif self.config_post_rename_files == "postname":
-                                                        
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_postname + os_movie_files_ext)
-                                                        
-                                                if not os.path.exists(dest_path_with_filename):
+                                                        if not os.path.exists(destination_path_filenames):
 
-                                                        try:
+                                                                #rename file from source to destination
+                                                                os.rename(source_path_filenames, destination_path_filenames)
 
-                                                                os.rename(source_path_with_filename, dest_path_with_filename)
-                                                                mg_log.info(u"Renamed file from %s to %s" % (source_path_with_filename,dest_path_with_filename))
+                                                                mg_log.info(u"File renamed from %s" % source_path_filenames + " to %s" % destination_path_filenames)
 
-                                                        except IOError:
+                                        else:
 
-                                                                mg_log.warning(u"Cannot rename filename to %s" % (dest_path_with_filename))
-                                                                
+                                                #generate destination filename
+                                                destination_path_filenames = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_dlname + source_path_filenames_extension)
+
+                                                if not os.path.exists(destination_path_filenames):
+
+                                                        #rename file from source to destination
+                                                        os.rename(source_path_filenames, destination_path_filenames)
+
+                                                        mg_log.info(u"File renamed from %s" % source_path_filenames + " to %s" % destination_path_filenames)
+
                 def rules(self):
 
-                        #this is set to check the completed folder for movie downloaded exists
-                        if os.path.exists(self.os_movie_path_folder):
+                        #select all rules from config.ini
+                        config_post_rule = config_parser.get("post_processing", "post_rule")
+
+                        if config_post_rule:
 
                                 #convert comma seperated string into list - config parser cannot deal with lists
-                                config_post_rule_list = self.config_post_rule.split(",")
+                                config_post_rule_list = config_post_rule.split(",")
 
-                                for config_post_rule_item in config_post_rule_list:
+                                #select download name from history table where download status is downloaded
+                                sqlite_history_downloaded = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.dlstatus=="Downloaded").all()
 
-                                        #read rule dropdown and textbox values
-                                        self.config_post_rule_dropdown1 = config_parser.get("post_processing", config_post_rule_item + "_dropdown1")
-                                        self.config_post_rule_dropdown2 = config_parser.get("post_processing", config_post_rule_item + "_dropdown2")
-                                        self.config_post_rule_dropdown3 = config_parser.get("post_processing", config_post_rule_item + "_dropdown3")
-                                        self.config_post_rule_textbox1 = config_parser.get("post_processing", config_post_rule_item + "_textbox1")
-                                        self.config_post_rule_textbox2 = config_parser.get("post_processing", config_post_rule_item + "_textbox2")
+                                #remove scoped session
+                                sql_session.remove()
 
-                                        #walk completed dir + imdb movie title, need to walk again due to move and rename functions previously applied
-                                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
+                                for sqlite_history_downloaded_item in sqlite_history_downloaded:
 
-                                                #create filenames list - folder and subs not required as deleted in move function
-                                                self.os_movie_filenames_list = files
+                                        if not post_processing_poison_queue.empty():
 
-                                                if self.config_post_rule_dropdown1 == "filename":
+                                                #send task done and exit function
+                                                post_processing_poison_queue.task_done()
+                                                mg_log.info(u"Shutting down post processing")
 
-                                                        mg_log.info(u"Running filename function")
+                                                return
 
-                                                        #call filename function - return 1 for matching the operator, 0 for not
-                                                        rules_filename_result = self.rules_filename()
+                                        self.sqlite_history_downloaded_item = sqlite_history_downloaded_item
 
-                                                        if rules_filename_result == 1:
+                                        #read download filename for movies with status of downloaded
+                                        self.sqlite_history_downloaded_dlname = sqlite_history_downloaded_item.dlname
 
-                                                                #call proceed function
-                                                                self.rules_proceed()
+                                        #use string (from webui dropdown2) to mathematical self.post_processing_operators module
+                                        self.post_processing_operators = {'equal to' : operator.eq,
+                                               'not equal to' : operator.ne,
+                                               'greater than'  : operator.gt,
+                                               'less than'  : operator.lt}
 
-                                                elif self.config_post_rule_dropdown1 == "extension":
+                                        #read movie certificate and title
+                                        self.sqlite_history_downloaded_imdbcert = sqlite_history_downloaded_item.imdbcert.lower()
 
-                                                        mg_log.info(u"Running extension function")
+                                        #create variable for completed folder + movie title folder
+                                        self.os_movie_path_folder = os.path.join(self.config_completed_dir, self.sqlite_history_downloaded_dlname)
+                                        self.os_movie_path_folder = os.path.normpath(self.os_movie_path_folder)
 
-                                                        #call extension function - return 1 for matching the operator, 0 for not
-                                                        rules_extension_result = self.rules_extension()
+                                        #this is set to check the completed folder for movie downloaded exists
+                                        if os.path.exists(self.os_movie_path_folder):
 
-                                                        if rules_extension_result == 1:
+                                                for config_post_rule_item in config_post_rule_list:
 
-                                                                #call proceed function
-                                                                self.rules_proceed()
+                                                        #read rule dropdown and textbox values
+                                                        self.config_post_rule_dropdown1 = config_parser.get("post_processing", config_post_rule_item + "_dropdown1")
+                                                        self.config_post_rule_dropdown2 = config_parser.get("post_processing", config_post_rule_item + "_dropdown2")
+                                                        self.config_post_rule_dropdown3 = config_parser.get("post_processing", config_post_rule_item + "_dropdown3")
+                                                        self.config_post_rule_textbox1 = config_parser.get("post_processing", config_post_rule_item + "_textbox1")
+                                                        self.config_post_rule_textbox2 = config_parser.get("post_processing", config_post_rule_item + "_textbox2")
 
-                                                elif self.config_post_rule_dropdown1 == "genre":
+                                                        #walk completed dir + imdb movie title
+                                                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
 
-                                                        mg_log.info(u"Running genre function")
+                                                                #create folder and filename lists
+                                                                self.os_movie_path_folders = folder
+                                                                self.os_movie_filenames_list = files
 
-                                                        #call genre function - return 1 for matching the operator, 0 for not
-                                                        rules_genre_result = self.rules_genre()
+                                                                if self.config_post_rule_dropdown1 == "filename":
 
-                                                        if rules_genre_result == 1:
+                                                                        mg_log.info(u"Running filename function")
 
-                                                                #call proceed function
-                                                                self.rules_proceed()
+                                                                        #call filename function - return 1 for matching the operator, 0 for not
+                                                                        rules_filename_result = self.rules_filename()
 
-                                                elif self.config_post_rule_dropdown1 == "size":
+                                                                        if rules_filename_result == 1:
 
-                                                        mg_log.info(u"Running size function")
+                                                                                #call proceed function
+                                                                                self.rules_proceed()
 
-                                                        #call size function - return 1 for matching the operator, 0 for not
-                                                        rules_size_result = self.rules_size()
+                                                                elif self.config_post_rule_dropdown1 == "extension":
 
-                                                        if rules_size_result == 1:
+                                                                        mg_log.info(u"Running extension function")
 
-                                                                #call proceed function
-                                                                self.rules_proceed()
+                                                                        #call extension function - return 1 for matching the operator, 0 for not
+                                                                        rules_extension_result = self.rules_extension()
 
-                                                elif self.config_post_rule_dropdown1 == "certificate":
+                                                                        if rules_extension_result == 1:
 
-                                                        mg_log.info(u"Running certificate function")
+                                                                                #call proceed function
+                                                                                self.rules_proceed()
 
-                                                        #if movie cert "-" then skip otherwise run functins
-                                                        if self.imdb_movie_cert_dl != "-":
+                                                                elif self.config_post_rule_dropdown1 == "genre":
 
-                                                                #call certification function
-                                                                rules_certificate_result = self.rules_certificate()
+                                                                        mg_log.info(u"Running genre function")
 
-                                                                if rules_certificate_result == 1:
+                                                                        #call genre function - return 1 for matching the operator, 0 for not
+                                                                        rules_genre_result = self.rules_genre()
 
-                                                                        #call proceed function
-                                                                        self.rules_proceed()
+                                                                        if rules_genre_result == 1:
+
+                                                                                #call proceed function
+                                                                                self.rules_proceed()
+
+                                                                elif self.config_post_rule_dropdown1 == "size":
+
+                                                                        mg_log.info(u"Running size function")
+
+                                                                        #call size function - return 1 for matching the operator, 0 for not
+                                                                        rules_size_result = self.rules_size()
+
+                                                                        if rules_size_result == 1:
+
+                                                                                #call proceed function
+                                                                                self.rules_proceed()
+
+                                                                elif self.config_post_rule_dropdown1 == "certificate":
+
+                                                                        mg_log.info(u"Running certificate function")
+
+                                                                        #if movie cert "-" then skip otherwise run functins
+                                                                        if self.imdb_movie_cert_dl != "-":
+
+                                                                                #call certification function
+                                                                                rules_certificate_result = self.rules_certificate()
+
+                                                                                if rules_certificate_result == 1:
+
+                                                                                        #call proceed function
+                                                                                        self.rules_proceed()
 
                 def rules_filename(self):
 
-                        self.files_to_process = []
-                        
                         #loop over list of files in folders
-                        for os_movie_filenames in self.os_movie_filenames_list:
+                        for self.os_movie_filenames in self.os_movie_filenames_list:
 
                                 #create absolute path for files
-                                os_movie_path_filenames = os.path.join(self.os_movie_path_folder,os_movie_filenames)
-                                os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
+                                self.os_movie_path_filenames = os.path.join(self.os_movie_path_folders,self.os_movie_filenames)
+                                self.os_movie_path_filenames = os.path.normpath(self.os_movie_path_filenames)
 
                                 #get filename from files located in completed folder, strip extension and convert to lower case
-                                search = os.path.splitext(os_movie_filenames)[0].lower()
+                                search = os.path.splitext(self.os_movie_filenames)[0].lower()
 
                                 #replace comma's with regex OR symbol
                                 self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
@@ -3968,37 +3787,33 @@ class PostProcessing(object):
 
                                         if self.config_post_rule_dropdown2 == "equal to":
 
-                                                #append matching filenames to list
-                                                self.files_to_process.append(os_movie_path_filenames)
+                                                return 1
+
+                                        else:
+
+                                                return 0
 
                                 else:
 
                                         if self.config_post_rule_dropdown2 == "not equal to":
 
-                                                #append matching filenames to list
-                                                self.files_to_process.append(os_movie_path_filenames)
+                                                return 1
 
-                        if self.files_to_process:
-                                
-                                return 1
+                                        else:
 
-                        else:
-
-                                return 0
+                                                return 0
 
                 def rules_extension(self):
 
-                        self.files_to_process = []
-                        
                         #loop over list of files in folders
-                        for os_movie_filenames in self.os_movie_filenames_list:
+                        for self.os_movie_filenames in self.os_movie_filenames_list:
 
                                 #create absolute path for files
-                                os_movie_path_filenames = os.path.join(self.os_movie_path_folder,os_movie_filenames)
-                                os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
+                                self.os_movie_path_filenames = os.path.join(self.os_movie_path_folders,self.os_movie_filenames)
+                                self.os_movie_path_filenames = os.path.normpath(self.os_movie_path_filenames)
 
                                 #get extension from files located in completed folder, strip filename and convert to lower case
-                                search = os.path.splitext(os_movie_filenames)[1][1:].lower()
+                                search = os.path.splitext(self.os_movie_filenames)[1][1:].lower()
 
                                 #replace comma's with regex OR symbol
                                 self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
@@ -4008,74 +3823,35 @@ class PostProcessing(object):
 
                                         if self.config_post_rule_dropdown2 == "equal to":
 
-                                                #append matching filenames to list
-                                                self.files_to_process.append(os_movie_path_filenames)
+                                                return 1
+
+                                        else:
+
+                                                return 0
 
                                 else:
 
                                         if self.config_post_rule_dropdown2 == "not equal to":
 
-                                                #append matching filenames to list
-                                                self.files_to_process.append(os_movie_path_filenames)
+                                                return 1
 
-                        if self.files_to_process:
-                                
-                                return 1
+                                        else:
 
-                        else:
-
-                                return 0
-
-                def rules_size(self):
-
-                        self.files_to_process = []
-                        
-                        #loop over list of files in folders
-                        for os_movie_filenames in self.os_movie_filenames_list:
-
-                                #create absolute path for files
-                                os_movie_path_filenames = os.path.join(self.os_movie_path_folder,os_movie_filenames)
-                                os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
-
-                                mg_log.info(u"Checking file size for file %s" % (os_movie_path_filenames))
-
-                                #get size of file in movie folder located in completed folder, convert to integer
-                                os_movie_path_filenames_size = os.path.getsize(os_movie_path_filenames)
-                                path_filenames_int = int(os_movie_path_filenames_size)
-
-                                #convert from bytes to megabytes
-                                path_filenames_int = path_filenames_int/1000000
-
-                                mg_log.info(u"File size is %s MB" % (str(path_filenames_int)))
-
-                                #convert to integer
-                                config_post_rule_textbox1_int = int(self.config_post_rule_textbox1)
-
-                                #use mathematical operator in dropdown2 to evaluate textbox1 against file size in movie folder
-                                if self.post_processing_operators[self.config_post_rule_dropdown2](path_filenames_int, config_post_rule_textbox1_int):
-
-                                        #append matching filenames to list
-                                        self.files_to_process.append(os_movie_path_filenames)
-
-                        if self.files_to_process:
-                                
-                                return 1
-
-                        else:
-
-                                return 0
+                                                return 0
 
                 def rules_genre(self):
+
+                        #select imdb genre from history table for current movie download title
+                        sqlite_history_downloaded_imdbgenre = self.sqlite_history_downloaded_item.imdbgenre.lower()
 
                         #replace comma's with regex OR symbol
                         self.config_post_rule_textbox1 = re.sub("[,\s?]+","|",self.config_post_rule_textbox1)
 
                         #perform regex search (partial match)
-                        if re.compile(self.config_post_rule_textbox1, re.IGNORECASE).search(self.sqlite_history_downloaded_imdbgenre):
+                        if re.compile(self.config_post_rule_textbox1, re.IGNORECASE).search(sqlite_history_downloaded_imdbgenre):
 
                                 if self.config_post_rule_dropdown2 == "equal to":
 
-                                        self.files_to_process = self.os_movie_filenames_list
                                         return 1
 
                                 else:
@@ -4085,8 +3861,39 @@ class PostProcessing(object):
                         else:
 
                                 if self.config_post_rule_dropdown2 == "not equal to":
-                                        
-                                        self.files_to_process = self.os_movie_filenames_list
+
+                                        return 1
+
+                                else:
+
+                                        return 0
+
+                def rules_size(self):
+
+                        #loop over list of files in folders
+                        for self.os_movie_filenames in self.os_movie_filenames_list:
+
+                                #create absolute path for files
+                                self.os_movie_path_filenames = os.path.join(self.os_movie_path_folders,self.os_movie_filenames)
+                                self.os_movie_path_filenames = os.path.normpath(self.os_movie_path_filenames)
+
+                                mg_log.info(u"Check file size for file", self.os_movie_path_filenames)
+
+                                #get size of file in movie folder located in completed folder, convert to integer
+                                self.os_movie_path_filenames_size = os.path.getsize(self.os_movie_path_filenames)
+                                path_filenames_int = int(self.os_movie_path_filenames_size)
+
+                                #convert from bytes to megabytes
+                                path_filenames_int = path_filenames_int/1000000
+
+                                mg_log.info(u"File size in MB is", str(path_filenames_int))
+
+                                #convert to integer
+                                config_post_rule_textbox1_int = int(self.config_post_rule_textbox1)
+
+                                #use mathematical operator in dropdown2 to evaluate textbox1 against file size in movie folder
+                                if self.post_processing_operators[self.config_post_rule_dropdown2](path_filenames_int, config_post_rule_textbox1_int):
+
                                         return 1
 
                                 else:
@@ -4126,7 +3933,6 @@ class PostProcessing(object):
                         #use mathematical operator in dropdown2 to evaluate rule textbox1 against certificate for movie
                         if self.post_processing_operators[self.config_post_rule_dropdown2](movie_download_cert_int, config_post_rule_textbox1_int):
 
-                                self.files_to_process = self.os_movie_filenames_list
                                 return 1
 
                         else:
@@ -4139,67 +3945,82 @@ class PostProcessing(object):
                         destination_move_path = os.path.join(self.config_post_rule_textbox2, self.sqlite_history_downloaded_dlname)
                         destination_move_path = os.path.normpath(destination_move_path)
 
-                        mg_log.info(u"Source folder is %s" % self.os_movie_path_folder)
+                        mg_log.info(u"Source folder is %s" % self.os_movie_path_folders)
                         mg_log.info(u"Destination folder is %s" % destination_move_path)
 
-                        if self.config_post_replace_existing == "no" and os.path.exists(destination_move_path):
+                        #make sure destination doesnt already exist
+                        if not os.path.exists(destination_move_path):
 
-                                mg_log.info(u"Cannot move folder %s as destination already exist at %s" % (self.os_movie_path_folder,destination_move_path))
-
-                        else:        
-
-                                try:
-
-                                        if os.path.exists(destination_move_path):
-
-                                                #delete existing destination movie folder
-                                                shutil.rmtree(destination_move_path)
-                                                mg_log.info(u"Deleted existing destination folder %s" % (destination_move_path))
-
-                                except IOError:
-
-                                        mg_log.warning(u"Cannot delete existing destination folder %s" % (destination_move_path))
-                                        return
-                                
                                 try:
 
                                         #move movie folder to desination
-                                        shutil.copytree(self.os_movie_path_folder, destination_move_path)
-                                        mg_log.info(u"Copied folder from %s to %s" % (self.os_movie_path_folder,destination_move_path))
+                                        shutil.copytree(self.os_movie_path_folders, destination_move_path)
+                                        mg_log.info(u"Copying folder from", self.os_movie_path_folders, u"to", destination_move_path)
 
                                 except IOError:
 
-                                        mg_log.warning(u"Cannot copy folder to %s" % (destination_move_path))
+                                        mg_log.warning(u"Cannot move folder to", destination_move_path)
                                         return
 
                                 #delete source movie folder
-                                shutil.rmtree(self.os_movie_path_folder)
-                                mg_log.info(u"Deleted source folder %s" % (self.os_movie_path_folder))
+                                shutil.rmtree(self.os_movie_path_folders)
+                                mg_log.info(u"Delete source folder", self.os_movie_path_folders)
 
                                 #run xbmc functions
                                 self.xbmc_proceed()
-                                
+
                 def rules_delete(self):
 
                         #loop over list of files in folders
-                        for os_movie_filenames in self.files_to_process:
-                                
+                        for self.os_movie_filenames in self.os_movie_filenames_list:
+
                                 #create absolute path for files
-                                os_movie_path_filenames = os.path.join(self.os_movie_path_folder,os_movie_filenames)
-                                os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
+                                self.os_movie_path_filenames = os.path.join(self.os_movie_path_folders,self.os_movie_filenames)
+                                self.os_movie_path_filenames = os.path.normpath(self.os_movie_path_filenames)
 
                                 #delete files from movie folder
-                                if os.path.exists(os_movie_path_filenames):
+                                if os.path.exists(self.os_movie_path_filenames):
+
+                                        delete_files_retry_count = 0
+
+                                        while delete_files_retry_count < 3:
+
+                                                try:
+
+                                                        os.remove(self.os_movie_path_filenames)
+                                                        mg_log.info(u"File deleted %s" % self.os_movie_path_filenames)
+                                                        break
+
+                                                except IOError:
+
+                                                        delete_files_retry_count += 1
+                                                        time.sleep(10)
+
+                                        else:
+
+                                                mg_log.warning(u"Cannot delete file %s" % self.os_movie_path_filenames)
+
+                        #if folder exists and is empty then delete subfolders in movie folder
+                        if os.path.exists(self.os_movie_path_folders) and os.listdir(self.os_movie_path_folders) == []:
+
+                                delete_empty_folders_retry_count = 0
+
+                                while delete_empty_folders_retry_count < 3:
 
                                         try:
 
-                                                os.remove(os_movie_path_filenames)
-                                                mg_log.info(u"File deleted %s" % (os_movie_path_filenames))
+                                                shutil.rmtree(self.os_movie_path_folders)
+                                                mg_log.info(u"Empty folder deleted %s" % self.os_movie_path_folders)
+                                                break
 
                                         except IOError:
 
-                                                mg_log.warning(u"Cannot delete file %s" % (os_movie_path_filenames))
-                                                continue
+                                                delete_empty_folders_retry_count += 1
+                                                time.sleep(1)
+
+                                else:
+
+                                        mg_log.warning(u"Cannot delete empty folder %s" % self.os_movie_path_folders)
 
                 def rules_proceed(self):
 
@@ -4241,7 +4062,7 @@ def header():
 
         #header information
         template.templates_dir = templates_dir
-        template.local_version = config_parser.get("general", "local_version")
+        template.local_version = config_parser.get("misc", "local_version")
         template.title = "MovieGrabber %s" % template.local_version + " - %s" % section_name
         template.strapline = "The only truly automated movie downloader"
         template.color_scheme_file = template.color_scheme + ".css"
@@ -4249,17 +4070,17 @@ def header():
 def footer():
 
         #footer information
-        template.last_run = config_parser.get("general", "last_run")
+        template.last_run = config_parser.get("misc", "last_run")
         template.forum_link = "http://forums.sabnzbd.org/viewtopic.php?f=6&amp;t=8569"
 
         #check for new versions
-        local_version = config_parser.get("general", "local_version")
-        remote_version = config_parser.get("general", "remote_version")
-        remote_download = config_parser.get("general", "remote_download")
+        local_version = config_parser.get("misc", "local_version")
+        remote_version = config_parser.get("misc", "remote_version")
+        remote_download = config_parser.get("misc", "remote_download")
 
         #strip non numeric characters from version number
-        local_version_int = int(re.sub(u"[^0-9]+","" ,local_version))
-        remote_version_int = int(re.sub(u"[^0-9]+","" ,remote_version))
+        local_version_int = re.sub(u"[^0-9]+","" ,local_version)
+        remote_version_int = re.sub(u"[^0-9]+","" ,remote_version)
 
         #if local version less than remote version or remove version and remote download url are not empty then flag as update available
         if (local_version < remote_version) and (remote_version and remote_download):
@@ -4290,7 +4111,7 @@ class ConfigIMDB(object):
                 template = Template(file = os.path.join(templates_dir, "config_imdb.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.good_rating = config_parser.getfloat("imdb", "good_rating")
                 template.good_date = config_parser.getint("imdb", "good_date")
                 template.good_votes = config_parser.get("imdb", "good_votes")
@@ -4446,27 +4267,27 @@ class ConfigGeneral(object):
                 template = Template(file = os.path.join(templates_dir, "config_general.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.color_scheme_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
-                template.max_items_shown = config_parser.get("general", "max_items_shown")
+                template.max_items_shown = config_parser.get("misc", "max_items_shown")
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
-                template.launch_browser = config_parser.get("general", "launch_browser")
+                template.launch_browser = config_parser.get("misc", "launch_browser")
                 template.address = config_parser.get("webconfig", "address")
                 template.port = config_parser.get("webconfig", "port")
                 template.username = config_parser.get("webconfig", "username")
                 template.password = config_parser.get("webconfig", "password")
                 template.enable_ssl = config_parser.get("webconfig", "enable_ssl")
-                template.log_level = config_parser.get("general", "log_level")
+                template.log_level = config_parser.get("misc", "log_level")
                 template.log_level_list = ["INFO", "WARNING", "exception"]
-                template.check_version = config_parser.get("general", "check_version")
+                template.check_version = config_parser.get("misc", "check_version")
                 template.check_version_list = ["off", "daily", "weekly"]
-                template.movie_title_separator = config_parser.get("general", "movie_title_separator")
-                template.index_preferred_group = config_parser.get("general", "index_preferred_group")
-                template.index_special_cut = config_parser.get("general","index_special_cut")                                
-                template.index_bad_group = config_parser.get("general", "index_bad_group")
-                template.index_bad_report = config_parser.get("general", "index_bad_report")                
-                template.index_posts_to_process = config_parser.get("general", "index_posts_to_process")
-                
+                template.movie_title_separator = config_parser.get("misc", "movie_title_separator")
+                template.post_cert_system = config_parser.get("misc", "post_cert_system")
+                template.post_rename_files = config_parser.get("misc", "post_rename_files")
+                template.index_preferred_group = config_parser.get("misc", "index_preferred_group")
+                template.index_bad_group = config_parser.get("misc", "index_bad_group")
+                template.index_posts_to_process = config_parser.get("misc", "index_posts_to_process")
+
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
 
@@ -4497,20 +4318,19 @@ class ConfigGeneral(object):
         def save_config_general(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("general", "color_scheme", kwargs["color_scheme2"])
-                config_parser.set("general", "launch_browser", kwargs["launch_browser2"])
-                config_parser.set("general", "max_items_shown", kwargs["max_items_shown2"])
+                config_parser.set("misc", "color_scheme", kwargs["color_scheme2"])
+                config_parser.set("misc", "launch_browser", kwargs["launch_browser2"])
+                config_parser.set("misc", "max_items_shown", kwargs["max_items_shown2"])
                 config_parser.set("webconfig", "username", kwargs["username2"])
                 config_parser.set("webconfig", "password", kwargs["password2"])
                 config_parser.set("webconfig", "enable_ssl", kwargs["enable_ssl2"])
-                config_parser.set("general", "index_preferred_group", kwargs["index_preferred_group2"])
-                config_parser.set("general", "index_special_cut", kwargs["index_special_cut2"])                
-                config_parser.set("general", "index_bad_group", kwargs["index_bad_group2"])
-                config_parser.set("general", "index_bad_report", kwargs["index_bad_report2"])
-                config_parser.set("general", "log_level", kwargs["log_level2"])
-                config_parser.set("general", "check_version", kwargs["check_version2"])
+                config_parser.set("misc", "post_cert_system", kwargs["post_cert_system2"])
+                config_parser.set("misc", "post_rename_files", kwargs["post_rename_files2"])
+                config_parser.set("misc", "index_preferred_group", kwargs["index_preferred_group2"])
+                config_parser.set("misc", "index_bad_group", kwargs["index_bad_group2"])
+                config_parser.set("misc", "log_level", kwargs["log_level2"])
+                config_parser.set("misc", "check_version", kwargs["check_version2"])
 
-		
                 #contruct logger instance and new logging level
                 logging_level = getattr(logging, kwargs["log_level2"])
 
@@ -4523,19 +4343,19 @@ class ConfigGeneral(object):
                 #substitute friendly names for real values for movie separators
                 if kwargs["movie_title_separator2"] == "spaces":
 
-                        config_parser.set("general", "movie_title_separator", "<>")
+                        config_parser.set("misc", "movie_title_separator", "<>")
 
                 if kwargs["movie_title_separator2"] == "hyphens":
 
-                        config_parser.set("general", "movie_title_separator", "-")
+                        config_parser.set("misc", "movie_title_separator", "-")
 
                 if kwargs["movie_title_separator2"] == "dots":
 
-                        config_parser.set("general", "movie_title_separator", ".")
+                        config_parser.set("misc", "movie_title_separator", ".")
 
                 if kwargs["movie_title_separator2"] == "underscores":
 
-                        config_parser.set("general", "movie_title_separator", "_")
+                        config_parser.set("misc", "movie_title_separator", "_")
 
                 if kwargs["address2"]:
 
@@ -4550,7 +4370,7 @@ class ConfigGeneral(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["index_posts_to_process2"])
-                                config_parser.set("general", "index_posts_to_process", kwargs["index_posts_to_process2"])
+                                config_parser.set("misc", "index_posts_to_process", kwargs["index_posts_to_process2"])
 
                         except ValueError:
 
@@ -4558,7 +4378,7 @@ class ConfigGeneral(object):
 
                 else:
 
-                        config_parser.set("general", "index_posts_to_process", "50")
+                        config_parser.set("misc", "index_posts_to_process", "50")
 
                 with open(config_ini, 'w') as configini:
 
@@ -4581,7 +4401,7 @@ class ConfigSwitches(object):
                 template = Template(file = os.path.join(templates_dir, "config_switches.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
                 template.movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
                 template.email_server = config_parser.get("email_settings", "email_server")
@@ -4598,6 +4418,7 @@ class ConfigSwitches(object):
                 template.enable_preferred = config_parser.get("switches", "enable_preferred")
                 template.enable_queuing = config_parser.get("switches", "enable_queuing")
                 template.enable_email_notify = config_parser.get("switches", "enable_email_notify")
+                template.enable_xbmc = config_parser.get("switches", "enable_xbmc")
                 template.enable_append_year = config_parser.get("switches", "enable_append_year")
                 template.enable_posters = config_parser.get("switches", "enable_posters")
                 template.enable_group_filter = config_parser.get("switches", "enable_group_filter")
@@ -4620,6 +4441,7 @@ class ConfigSwitches(object):
                 config_parser.set("switches", "enable_preferred", kwargs["enable_preferred2"])
                 config_parser.set("switches", "enable_queuing", kwargs["enable_queuing2"])
                 config_parser.set("switches", "enable_email_notify", kwargs["enable_email_notify2"])
+                config_parser.set("switches", "enable_xbmc", kwargs["enable_xbmc2"])
                 config_parser.set("switches", "enable_append_year", kwargs["enable_append_year2"])
                 config_parser.set("switches", "enable_posters", kwargs["enable_posters2"])
                 config_parser.set("switches", "enable_group_filter", kwargs["enable_group_filter2"])
@@ -4648,13 +4470,8 @@ class ConfigPost(object):
                 #create variable for templates to read config entries
                 template.config_parser = config_parser
 
-                template.post_rename_files = config_parser.get("general", "post_rename_files")
-                template.post_replace_existing = config_parser.get("general", "post_replace_existing")                                
-                template.post_cert_system = config_parser.get("general", "post_cert_system")
-                template.xbmc_library_update = config_parser.get("xbmc", "xbmc_library_update")                
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
 
-                template.post_rename_files_list = ["existing", "imdb", "postname"]
                 template.dropdown1_list = ["select", "filename", "extension", "size", "genre", "certificate"]
                 template.dropdown2_list = ["select", "equal to", "not equal to", "greater than", "less than"]
                 template.dropdown3_list = ["select", "move", "delete"]
@@ -4675,23 +4492,6 @@ class ConfigPost(object):
                 footer()
 
                 return str(template)
-
-        #save config switches form
-        @cherrypy.expose
-        def save_config_post(self, **kwargs):
-
-                #write values to config.ini
-                config_parser.set("general", "post_cert_system", kwargs["post_cert_system2"])
-                config_parser.set("general", "post_rename_files", kwargs["post_rename_files2"])
-                config_parser.set("general", "post_replace_existing", kwargs["post_replace_existing2"])                
-		config_parser.set("xbmc", "xbmc_library_update", kwargs["xbmc_library_update2"])
-		
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
-
-                raise cherrypy.HTTPRedirect(".")
 
         #add config post processing rules form
         @cherrypy.expose
@@ -4762,24 +4562,15 @@ class ConfigPost(object):
                 edit_config_textbox1 = kwargs["edit_config_textbox1"]
                 edit_config_textbox2 = kwargs["edit_config_textbox2"]
 
-                #if dropdown3 set to delete then remove any entry in textbox2 (path)
-                if edit_config_dropdown3 == "delete":
+                #write values to config.ini
+                config_parser.set("post_processing", edit_config_rule + "_dropdown1", edit_config_dropdown1)
+                config_parser.set("post_processing", edit_config_rule + "_dropdown2", edit_config_dropdown2)
+                config_parser.set("post_processing", edit_config_rule + "_dropdown3", edit_config_dropdown3)
+                config_parser.set("post_processing", edit_config_rule + "_textbox1", edit_config_textbox1)
 
-                        #write values to config.ini
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown1", edit_config_dropdown1)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown2", edit_config_dropdown2)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown3", edit_config_dropdown3)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox1", edit_config_textbox1)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox2", "")
+                #check to make sure textbox2 is not empty and check path exists before saving
+                if edit_config_textbox2 != "" and os.path.exists(edit_config_textbox2):
 
-                #if dropdown3 set to move then check to make sure textbox2 (path) is not empty and path exists before saving
-                elif edit_config_dropdown3 == "move" and edit_config_textbox2 != "" and os.path.exists(edit_config_textbox2):
-
-                        #write values to config.ini
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown1", edit_config_dropdown1)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown2", edit_config_dropdown2)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown3", edit_config_dropdown3)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox1", edit_config_textbox1)
                         config_parser.set("post_processing", edit_config_rule + "_textbox2", edit_config_textbox2)
 
                 with open(config_ini, 'w') as configini:
@@ -4847,11 +4638,11 @@ class ConfigScheduling(object):
                 template = Template(file = os.path.join(templates_dir, "config_scheduling.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                template.index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
-                template.post_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                template.post_schedule_minute = config_parser.getint("general", "post_schedule_minute")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
+                template.index_schedule_hour = config_parser.getint("misc", "index_schedule_hour")
+                template.index_schedule_minute = config_parser.getint("misc", "index_schedule_minute")
+                template.post_schedule_hour = config_parser.getint("misc", "post_schedule_hour")
+                template.post_schedule_minute = config_parser.getint("misc", "post_schedule_minute")
 
                 header()
 
@@ -4869,10 +4660,10 @@ class ConfigScheduling(object):
                         kwargs["index_schedule_minute2"] = "30"
 
                 #write values to config.ini
-                config_parser.set("general", "index_schedule_hour", kwargs["index_schedule_hour2"])
-                config_parser.set("general", "index_schedule_minute", kwargs["index_schedule_minute2"])
-                config_parser.set("general", "post_schedule_hour", kwargs["post_schedule_hour2"])
-                config_parser.set("general", "post_schedule_minute", kwargs["post_schedule_minute2"])
+                config_parser.set("misc", "index_schedule_hour", kwargs["index_schedule_hour2"])
+                config_parser.set("misc", "index_schedule_minute", kwargs["index_schedule_minute2"])
+                config_parser.set("misc", "post_schedule_hour", kwargs["post_schedule_hour2"])
+                config_parser.set("misc", "post_schedule_minute", kwargs["post_schedule_minute2"])
 
                 with open(config_ini, 'w') as configini:
 
@@ -4898,7 +4689,7 @@ class ConfigUsenet(object):
                 template.config_parser = config_parser
 
                 template.index_site = config_parser.get("usenet", "index_site")
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
                 if template.index_site:
@@ -4964,7 +4755,7 @@ class ConfigUsenet(object):
 
                 elif add_newznab_site == "nzb_su":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://api.nzb.su")
+                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzb.su")
                         config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
 
                 elif add_newznab_site == "dognzb_cr":
@@ -5026,6 +4817,7 @@ class ConfigUsenet(object):
                 config_parser.set("usenet", add_newznab_site_index + "_search_not", "")
                 config_parser.set("usenet", add_newznab_site_index + "_minsize", "0")
                 config_parser.set("usenet", add_newznab_site_index + "_maxsize", "0")
+                config_parser.set("usenet", add_newznab_site_index + "_bad_report", "")
                 config_parser.set("usenet", add_newznab_site_index + "_spotweb_support", "no")
                 config_parser.set("usenet", add_newznab_site_index + "_enabled", "yes")
 
@@ -5051,6 +4843,7 @@ class ConfigUsenet(object):
                 config_parser.set("usenet", edit_newznab_site_index + "_search_and", kwargs["newznab_search_and2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_search_or", kwargs["newznab_search_or2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_search_not", kwargs["newznab_search_not2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_bad_report", del_inv_chars(kwargs["newznab_bad_report2"]))
                 config_parser.set("usenet", edit_newznab_site_index + "_spotweb_support", kwargs["spotweb_support2"])
                 config_parser.set("usenet", edit_newznab_site_index + "_enabled", kwargs["newznab_enabled2"])
 
@@ -5121,6 +4914,7 @@ class ConfigUsenet(object):
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_search_not")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_minsize")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_maxsize")
+                                config_parser.remove_option("usenet", delete_newznab_site_index + "_bad_report")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_spotweb_support")
                                 config_parser.remove_option("usenet", delete_newznab_site_index + "_enabled")
 
@@ -5148,7 +4942,7 @@ class ConfigTorrent(object):
                 template.config_parser = config_parser
 
                 template.index_site = config_parser.get("torrent", "index_site")
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.torrent_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
                 template.torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]
 
@@ -5221,6 +5015,7 @@ class ConfigTorrent(object):
                 config_parser.set("torrent", add_torrent_site_index + "_search_not", "")
                 config_parser.set("torrent", add_torrent_site_index + "_minsize", "0")
                 config_parser.set("torrent", add_torrent_site_index + "_maxsize", "0")
+                config_parser.set("torrent", add_torrent_site_index + "_bad_report", "")
                 config_parser.set("torrent", add_torrent_site_index + "_enabled", "yes")
 
                 with open(config_ini, 'w') as configini:
@@ -5244,6 +5039,7 @@ class ConfigTorrent(object):
                 config_parser.set("torrent", edit_torrent_site_index + "_search_and", kwargs["torrent_search_and2"])
                 config_parser.set("torrent", edit_torrent_site_index + "_search_or", kwargs["torrent_search_or2"])
                 config_parser.set("torrent", edit_torrent_site_index + "_search_not", kwargs["torrent_search_not2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_bad_report", del_inv_chars(kwargs["torrent_bad_report2"]))
                 config_parser.set("torrent", edit_torrent_site_index + "_enabled", kwargs["torrent_enabled2"])
 
                 if kwargs["torrent_minsize2"]:
@@ -5304,6 +5100,7 @@ class ConfigTorrent(object):
                                 config_parser.remove_option("torrent", delete_torrent_site_index + "_search_not")
                                 config_parser.remove_option("torrent", delete_torrent_site_index + "_minsize")
                                 config_parser.remove_option("torrent", delete_torrent_site_index + "_maxsize")
+                                config_parser.remove_option("torrent", delete_torrent_site_index + "_bad_report")
                                 config_parser.remove_option("torrent", delete_torrent_site_index + "_enabled")
 
                 with open(config_ini, 'w') as configini:
@@ -5327,7 +5124,7 @@ class ConfigDirectories(object):
                 template = Template(file = os.path.join(templates_dir, "config_directories.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
                 template.movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
                 template.usenet_watch_dir = config_parser.get("folders", "usenet_watch_dir")
@@ -5336,7 +5133,9 @@ class ConfigDirectories(object):
                 template.torrent_watch_dir = config_parser.get("folders", "torrent_watch_dir")
                 template.torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
                 template.torrent_completed_dir = config_parser.get("folders", "torrent_completed_dir")
-                template.logs_dir = config_parser.get("folders", "logs_dir")
+                template.cherrypylog_dir = config_parser.get("folders", "cherrypylog_dir")
+                template.moviegrabberlog_dir = config_parser.get("folders", "moviegrabberlog_dir")
+
                 header()
 
                 footer()
@@ -5372,9 +5171,9 @@ class ConfigDirectories(object):
 
                         config_parser.set("folders", "torrent_completed_dir", del_inv_chars(kwargs["torrent_completed_dir2"]).encode("utf-8"))
 
-                if os.path.exists(kwargs["logs_dir2"]) and kwargs["logs_dir2"]:
+                if os.path.exists(kwargs["moviegrabberlog_dir2"]) and kwargs["moviegrabberlog_dir2"]:
 
-                        config_parser.set("folders", "logs_dir", del_inv_chars(kwargs["logs_dir2"]).encode("utf-8"))
+                        config_parser.set("folders", "moviegrabberlog_dir", del_inv_chars(kwargs["moviegrabberlog_dir2"]).encode("utf-8"))
 
                 #create list of movies to replace
                 movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
@@ -5443,7 +5242,7 @@ class ConfigNotification(object):
                 template = Template(file = os.path.join(templates_dir, "config_notification.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.email_server = config_parser.get("email_settings", "email_server")
                 template.email_server_port = config_parser.get("email_settings", "email_server_port")
                 template.email_server_ssl = config_parser.get("email_settings", "email_server_ssl")
@@ -5456,6 +5255,7 @@ class ConfigNotification(object):
                 template.xbmc_username = config_parser.get("xbmc", "xbmc_username")
                 template.xbmc_password = config_parser.get("xbmc", "xbmc_password")
                 template.xbmc_notification = config_parser.get("xbmc", "xbmc_notification")
+                template.xbmc_library_update = config_parser.get("xbmc", "xbmc_library_update")
 
                 header()
 
@@ -5480,6 +5280,7 @@ class ConfigNotification(object):
                 config_parser.set("xbmc", "xbmc_username", kwargs["xbmc_username2"])
                 config_parser.set("xbmc", "xbmc_password", kwargs["xbmc_password2"])
                 config_parser.set("xbmc", "xbmc_notification", kwargs["xbmc_notification2"])
+                config_parser.set("xbmc", "xbmc_library_update", kwargs["xbmc_library_update2"])
 
                 with open(config_ini, 'w') as configini:
 
@@ -5517,7 +5318,7 @@ class ConfigRoot(object):
                 template = Template(file = os.path.join(templates_dir, "config.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
 
                 header()
 
@@ -5541,9 +5342,9 @@ class HistoryRoot(object):
                 template = Template(file = os.path.join(templates_dir, "history.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.enable_posters = config_parser.get("switches", "enable_posters")
-                template.history_sort_order = config_parser.get("general", "history_sort_order")
+                template.history_sort_order = config_parser.get("misc", "history_sort_order")
 
                 header()
 
@@ -5558,8 +5359,8 @@ class HistoryRoot(object):
 
                 else:
 
-                        history_sort_order = config_parser.get("general", "history_sort_order")
-                        max_items_shown = config_parser.get("general", "max_items_shown")
+                        history_sort_order = config_parser.get("misc", "history_sort_order")
+                        max_items_shown = config_parser.get("misc", "max_items_shown")
 
                         #select all rows from history table
                         template.sqlite_history_count = sql_session.query(ResultsDBHistory).count()
@@ -5615,7 +5416,7 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_parser.set("general", "history_sort_order", kwargs["sort_order"])
+                config_parser.set("misc", "history_sort_order", kwargs["sort_order"])
 
                 #write settings to config.ini
                 with open(config_ini, 'w') as configini:
@@ -5843,9 +5644,9 @@ class QueueRoot(object):
                 template = Template(file = os.path.join(templates_dir, "queue.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.enable_posters = config_parser.get("switches", "enable_posters")
-                template.queued_sort_order = config_parser.get("general", "queued_sort_order")
+                template.queued_sort_order = config_parser.get("misc", "queued_sort_order")
 
                 header()
 
@@ -5860,8 +5661,8 @@ class QueueRoot(object):
 
                 else:
 
-                        queued_sort_order = config_parser.get("general", "queued_sort_order")
-                        max_items_shown = config_parser.get("general", "max_items_shown")
+                        queued_sort_order = config_parser.get("misc", "queued_sort_order")
+                        max_items_shown = config_parser.get("misc", "max_items_shown")
 
                         #remove limit if max items shown is string all
                         if max_items_shown == "all":
@@ -5922,7 +5723,7 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_parser.set("general", "queued_sort_order", kwargs["sort_order"])
+                config_parser.set("misc", "queued_sort_order", kwargs["sort_order"])
 
                 #write settings to config.ini
                 with open(config_ini, 'w') as configini:
@@ -6164,7 +5965,7 @@ class HomeRoot(object):
                 config_parser.read(config_ini)
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_parser.get("misc", "color_scheme")
                 template.usenet_index_site = config_parser.get("usenet", "index_site")
                 template.usenet_watch_dir = config_parser.get("folders", "usenet_watch_dir")
                 template.usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")
@@ -6183,6 +5984,10 @@ class HomeRoot(object):
                 return str(template)
 
 def start_webgui():
+
+        #define cherrpy logging
+        cherrypylog_dir = config_parser.get("folders", "cherrypylog_dir")
+        cherrypy_logging(os.path.join(cherrypylog_dir, "cherrypy.log"))
 
         #check if webui username and password specified, if exist enable authentication for webconfig_settings
         if (config_parser.get("webconfig", "username")) and (config_parser.get("webconfig", "password")):
@@ -6272,7 +6077,7 @@ class DownloadThread(object):
 #post processing thread class
 class PostProcessingThread(object):
 
-        def checks(self):
+        def run(self):
 
                 #read config.ini - required to re-read any changes to config.ini
                 config_parser.read(config_ini)
@@ -6280,29 +6085,31 @@ class PostProcessingThread(object):
 
                 if self.enable_post_processing == "yes":
 
-                        #enumerate list of running threads, includes daemonized and main process
-                        thread_list = threading.enumerate()
+                        #if thread active then return
+                        try:
 
-                        #if thread NOT active then run
-                        if not any("post_processing_thread" in item.getName() for item in thread_list):
+                                if PostProcessingThread.post_processing_thread.is_alive() == True:
 
-                                self.run()
-                                
-                #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                post_processing_schedule_minute = config_parser.getint("general", "post_schedule_minute")
-                post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
+                                        return
 
-                #run post processing plugin as scheduled background task daemonized (non blocking)
-                post_processing_schedule = threading.Timer(post_processing_schedule_time, self.checks)
-                post_processing_schedule.daemon = True
-                post_processing_schedule.start()
+                        #if variable not found then assume thread not run - prevents multiple threads overwriting variables
+                        except AttributeError:
 
-        def run(self):
-                
-                #start post processing thread
-                post_processing_thread = threading.Thread(name="post_processing_thread", target=PostProcessing().run, args=())
-                post_processing_thread.start()
+                                pass
+
+                        #start post processing thread
+                        post_processing_thread = threading.Thread(name="post_processing_thread", target=PostProcessing().run, args=())
+                        post_processing_thread.start()
+
+                        #read scheduler from config.ini for post processing and convert to seconds
+                        post_processing_schedule_hour = config_parser.getint("misc", "post_schedule_hour")
+                        post_processing_schedule_minute = config_parser.getint("misc", "post_schedule_minute")
+                        post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
+
+                        #run post processing plugin as scheduled background task daemonized (non blocking)
+                        post_processing_schedule = threading.Timer(post_processing_schedule_time, self.run)
+                        post_processing_schedule.daemon = True
+                        post_processing_schedule.start()
 
 #search index thread class
 class SearchIndexThread(object):
@@ -6373,8 +6180,8 @@ class SearchIndexThread(object):
                                                         self.run()
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                search_index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
+                search_index_schedule_hour = config_parser.getint("misc", "index_schedule_hour")
+                search_index_schedule_minute = config_parser.getint("misc", "index_schedule_minute")
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index plugin as scheduled background task daemonized (non blocking)
@@ -6396,7 +6203,7 @@ class SearchIndexThread(object):
                 current_date_time_str = time.strftime(time_format, time.localtime())
 
                 #set current date time for last run
-                config_parser.set("general", "last_run", current_date_time_str)
+                config_parser.set("misc", "last_run", current_date_time_str)
 
                 #write settings to config.ini
                 with open(config_ini, 'w') as configini:
@@ -6410,7 +6217,7 @@ class VersionCheckThread(object):
         #check current version
         def checks(self):
 
-                check_version = config_parser.get("general", "check_version")
+                check_version = config_parser.get("misc", "check_version")
 
                 if check_version != "off":
 
@@ -6419,7 +6226,7 @@ class VersionCheckThread(object):
 
                         #construct time format string
                         current_date_time_str = time.strftime(time_format, time.localtime())
-                        last_version_check_str = config_parser.get("general", "last_version_check")
+                        last_version_check_str = config_parser.get("misc", "last_version_check")
 
                         #if version check never run then start check
                         if last_version_check_str == "":
@@ -6501,13 +6308,13 @@ class VersionCheckThread(object):
                         return
 
                 #set remote version
-                config_parser.set("general", "remote_version", remote_version)
+                config_parser.set("misc", "remote_version", remote_version)
 
                 #set remote download url
-                config_parser.set("general", "remote_download", remote_download)
+                config_parser.set("misc", "remote_download", remote_download)
 
                 #set last version check
-                config_parser.set("general", "last_version_check", current_date_time_str)
+                config_parser.set("misc", "last_version_check", current_date_time_str)
 
                 mg_log.info(u"Version check succeeded")
 
@@ -6554,14 +6361,19 @@ class CherrypyDownloadPlugin(cherrypy.process.plugins.SimplePlugin):
                 #enumerate list of running threads, includes daemonized and main process
                 thread_list = threading.enumerate()
 
-                #if thread active then send poison pill
-                if any("download_thread" in item.getName() for item in thread_list):
+                for thread_item in thread_list:
 
-                        #send poison pill to thread
-                        download_poison_queue.put("poison_pill")
+                        #get thread name
+                        thread_item_name = thread_item.getName()
 
-                        #wait for queue to join
-                        download_poison_queue.join()
+                        #if thread name contains search_index_thread then send poison pill
+                        if "download_thread" in thread_item_name:
+
+                                #send poison pill to thread
+                                download_poison_queue.put("poison_pill")
+
+                                #wait for queue to join
+                                download_poison_queue.join()
 
                 self.bus.log("Stopped download plugin")
 
@@ -6574,12 +6386,12 @@ class CherrypyPostPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                post_processing_schedule_minute = config_parser.getint("general", "post_schedule_minute")
+                post_processing_schedule_hour = config_parser.getint("misc", "post_schedule_hour")
+                post_processing_schedule_minute = config_parser.getint("misc", "post_schedule_minute")
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing timer daemonized (non blocking)
-                post_processing_threading_timer = threading.Timer(post_processing_schedule_time, PostProcessingThread().checks)
+                post_processing_threading_timer = threading.Timer(post_processing_schedule_time, PostProcessingThread().run)
                 post_processing_threading_timer.daemon = True
                 post_processing_threading_timer.start()
 
@@ -6593,14 +6405,19 @@ class CherrypyPostPlugin(cherrypy.process.plugins.SimplePlugin):
                 #enumerate list of running threads, includes daemonized and main process
                 thread_list = threading.enumerate()
 
-                #if thread active then send poison pill
-                if any("post_processing_thread" in item.getName() for item in thread_list):
+                for thread_item in thread_list:
 
-                        #send poison pill to thread
-                        search_index_poison_queue.put("poison_pill")
+                        #get thread name
+                        thread_item_name = thread_item.getName()
 
-                        #wait for queue to join
-                        search_index_poison_queue.join()
+                        #if thread name contains search_index_thread then send poison pill
+                        if "post_processing_thread" in thread_item_name:
+
+                                #send poison pill to thread
+                                search_index_poison_queue.put("poison_pill")
+
+                                #wait for queue to join
+                                search_index_poison_queue.join()
 
                 self.bus.log("Stopped post processing plugin")
 
@@ -6613,8 +6430,8 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                search_index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
+                search_index_schedule_hour = config_parser.getint("misc", "index_schedule_hour")
+                search_index_schedule_minute = config_parser.getint("misc", "index_schedule_minute")
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index timer daemonized (non blocking)
@@ -6632,56 +6449,61 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
                 #enumerate list of running threads, includes daemonized and main process
                 thread_list = threading.enumerate()
 
-                #if thread active then send poison pill
-                if any("search_index_thread" in item.getName() for item in thread_list):
+                for thread_item in thread_list:
 
-                        #send poison pill to thread
-                        search_index_poison_queue.put("poison_pill")
+                        #get thread name
+                        thread_item_name = thread_item.getName()
 
-                        #wait for queue to join
-                        search_index_poison_queue.join()
+                        #if thread name contains search_index_thread then send poison pill
+                        if "search_index_thread" in thread_item_name:
+
+                                #send poison pill to thread
+                                search_index_poison_queue.put("poison_pill")
+
+                                #wait for queue to join
+                                search_index_poison_queue.join()
 
                 self.bus.log("Stopped search index plugin")
 
         #set priority so search index stops first as its reliant on sqlite, lower number means higher priority
         stop.priority = 80
-                
+
 #run default client browser on startup
 def launch_default_browser():
 
         mg_log.info(u"Launching browser")
 
-        config_webconfig_address = config_parser.get("webconfig", "address")
-        config_webconfig_port = config_parser.get("webconfig", "port")
-        config_webconfig_enable_ssl = config_parser.get("webconfig", "enable_ssl")
+        webui_hostname = config_parser.get("webconfig", "address")
+        webui_portnumber = config_parser.get("webconfig", "port")
+        webui_ssl = config_parser.get("webconfig", "enable_ssl")
 
         #check if ssl is enabled
-        if config_webconfig_enable_ssl == "yes":
+        if webui_ssl == "yes":
 
-                website_protocol = "https://"
+                protocol = "https://"
 
         else:
 
-                website_protocol = "http://"
+                protocol = "http://"
 
-        config_webconfig_address = re.sub("\"","", config_webconfig_address)
+        webui_hostname = re.sub("\"","", webui_hostname)
 
         #check for localhost
-        if config_webconfig_address == "0.0.0.0":
+        if webui_hostname == "0.0.0.0":
 
-                config_webconfig_address = "localhost"
+                webui_hostname = "localhost"
 
         try:
 
                 #open client browser
-                webbrowser.open(website_protocol + config_webconfig_address + ":" + config_webconfig_port, 2, 1)
+                webbrowser.open(protocol + webui_hostname + ":" + webui_portnumber, 2, 1)
 
         except Exception:
 
                 try:
 
                         #open client browser
-                        webbrowser.open(website_protocol + config_webconfig_address + ":" + config_webconfig_port, 1, 1)
+                        webbrowser.open(protocol + webui_hostname + ":" + webui_portnumber, 1, 1)
 
                 except Exception:
 
@@ -6689,6 +6511,65 @@ def launch_default_browser():
 
 #required to prevent seperate process (search index) from trying to load parent process (webui)
 if __name__ == '__main__':
+
+        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
+        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
+
+                #custom argparse to redirect user to help if unknown argument specified
+                class argparse_custom(argparse.ArgumentParser):
+
+                        def error(self, message):
+
+                                sys.stderr.write('error: %s\n' % message)
+                                self.print_help()
+                                sys.exit(2)
+
+                #setup argparse description and usage, also increase spacing for help to 50
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--pidfile <path>] [--deamon] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+
+                #add argparse command line flags
+                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
+                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
+                commandline_parser.add_argument("--pidfile", metavar="<path>", help="create pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
+                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
+
+                #save arguments in dictionary
+                args = vars(commandline_parser.parse_args())
+
+                if args["ip"] != None:
+
+                        config_parser.set("webconfig", "address", args["ip"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                if args["port"] != None:
+
+                        config_parser.set("webconfig", "port",  args["port"])
+
+                        #write settings to config.ini
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
+
+                #check os is not windows and then create pidfile for cherrypy forked process
+                if args["pidfile"] != None and os.name != "nt":
+
+                        #create pidfile for daemonized process, used to end process in unraid
+                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
+                        pidfile.subscribe()
+
+                #check os is not windows and then run cherrypy as daemonized process
+                if args["daemon"] == True and os.name != "nt":
+
+                        #run cherrypy as daemonized process
+                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+                        daemon.subscribe()
 
         #create queue to send poison pill to post processing thread
         post_processing_poison_queue = Queue.Queue()
@@ -6765,14 +6646,12 @@ if __name__ == '__main__':
         config_ip()
 
         #check if launch browser on startup is enabled
-        launch_browser = config_parser.get("general", "launch_browser")
+        launch_browser = config_parser.get("misc", "launch_browser")
 
         if launch_browser == "yes":
 
-                #hook browser launch into the cherrypy engine start
-                cherrypy.engine.subscribe('start', launch_default_browser, priority=150)
-                
-                mg_log.info(u"Launch browser on startup enabled")
-                
+                #start clients default browser
+                launch_default_browser()
+
         #start cherrypy webui
         start_webgui()
