@@ -9,12 +9,12 @@ import sys
 if hasattr(sys, "frozen"):
 
         #define path to moviegrabber root folder
-        moviegrabber_root_dir = os.path.abspath("")
+        moviegrabber_root_dir = os.path.abspath("").decode("utf-8")
 
 else:
 
         #define path to moviegrabber root path - required for linux
-        moviegrabber_root_dir = os.path.dirname(os.path.realpath(__file__))
+        moviegrabber_root_dir = os.path.dirname(os.path.realpath(__file__)).decode("utf-8")
 
         #check version of python is 2.6.x or 2.7.x
         if sys.version_info<(2,6,0) or sys.version_info>=(3,0,0):
@@ -25,28 +25,28 @@ else:
         else:
 
                 #create full path to bundles modules
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to feedparser module
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/feedparser")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/feedparser")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to argparse module
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/argparse")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to moviegrabber modules
-                moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/moviegrabber")
+                moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/moviegrabber")
                 moviegrabber_modules_full_path = os.path.normpath(moviegrabber_modules_full_path)
 
                 #append full path to sys path
@@ -149,7 +149,6 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
                 if config_parser.has_option(section_name, option_name) == False:
 
                         config_parser.set(section_name, option_name, option_value)
-
 
         #open config file with utf-8 encoding, this then returns unicode
         with codecs.open(config_ini, 'r', encoding='utf-8') as f:
@@ -269,13 +268,10 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
                 config_parser.write(configini)
                 configini.close()
 
-        #read config.ini
-        config_parser.read(config_ini)
-
 def cli_arguments():
 
         #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
+        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
 
                 #custom argparse to redirect user to help if unknown argument specified
                 class argparse_custom(argparse.ArgumentParser):
@@ -318,7 +314,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
+                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
                                         config_dir = os.path.normpath(config_dir)
                                         
                         else:
@@ -328,28 +324,46 @@ def cli_arguments():
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
 
-                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
+                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
                         config_dir = os.path.normpath(config_dir)
-                        
-                config_ini = os.path.join(config_dir, "config.ini")
 
-                #read config.ini - used for logs and db path checks in config.ini
-                config_parser.read(config_ini)
+                config_ini = os.path.join(config_dir, u"config.ini")
 
-                try:
-                        
-                        #read values from config.ini
-                        logs_dir = config_parser.get("folders", "logs_dir")
-                        results_dir = config_parser.get("folders", "results_dir")
-                        webconfig_address = config_parser.get("webconfig", "address")
-                        webconfig_port = config_parser.get("webconfig", "port")                
+                #if config.ini does not exist then create
+                if not os.path.exists(config_ini):
 
-                except ConfigParser.NoSectionError:
+                        #write config.ini and close
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
 
                         logs_dir = None
                         results_dir = None
                         webconfig_address = None
                         webconfig_port = None
+
+                else:
+                        
+                        #open config file with utf-8 encoding, this then returns unicode
+                        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
+                                
+                                config_parser.readfp(f)
+
+                        try:
+                                
+                                #read values from config.ini
+                                logs_dir = config_parser.get("folders", "logs_dir")
+                                results_dir = config_parser.get("folders", "results_dir")
+                                webconfig_address = config_parser.get("webconfig", "address")
+                                webconfig_port = config_parser.get("webconfig", "port")                
+
+                        except Exception:
+
+                                logs_dir = None
+                                results_dir = None
+                                webconfig_address = None
+                                webconfig_port = None
                         
                 #if argument specified then use
                 if args["logs"] != None:
@@ -365,7 +379,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
+                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
                                         logs_dir = os.path.normpath(logs_dir)
                                         
                         else:
@@ -375,7 +389,7 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif logs_dir == None:
                         
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
+                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
                         logs_dir = os.path.normpath(logs_dir)
 
                 #if argument specified then use
@@ -392,7 +406,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
                                         results_dir = os.path.normpath(results_dir)
                                         
                         else:
@@ -402,10 +416,10 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif results_dir == None:
                 
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
+                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
                         results_dir = os.path.normpath(results_dir)
 
-                results_db = os.path.join(results_dir, "results.db")
+                results_db = os.path.join(results_dir, u"results.db")
                 
                 #if argument specified then use
                 if args["ip"] != None:
@@ -458,38 +472,59 @@ def cli_arguments():
         else:
 
                 #default path to config.ini
-                config_dir = os.path.join(moviegrabber_root_dir, "configs")
+                config_dir = os.path.join(moviegrabber_root_dir, u"configs")
                 config_dir = os.path.normpath(config_dir)                
-                config_ini = os.path.join(config_dir, "config.ini")
+                config_ini = os.path.join(config_dir, u"config.ini")
 
                 #read config.ini - used for logs and db path checks in config.ini
                 config_parser.read(config_ini)
 
-                try:
-                        
-                        #read values from config.ini
-                        logs_dir = config_parser.get("folders", "logs_dir")
-                        results_dir = config_parser.get("folders", "results_dir")
-                        webconfig_address = config_parser.get("webconfig", "address")
-                        webconfig_port = config_parser.get("webconfig", "port")                
+                #if config.ini does not exist then create
+                if not os.path.exists(config_ini):
 
-                except ConfigParser.NoSectionError:
+                        #write config.ini and close
+                        with open(config_ini, 'w') as configini:
+
+                                config_parser.write(configini)
+                                configini.close()
 
                         logs_dir = None
                         results_dir = None
                         webconfig_address = None
                         webconfig_port = None
 
+                else:
+                        
+                        #open config file with utf-8 encoding, this then returns unicode
+                        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
+                                
+                                config_parser.readfp(f)
+
+                        try:
+                                
+                                #read values from config.ini
+                                logs_dir = config_parser.get("folders", "logs_dir")
+                                results_dir = config_parser.get("folders", "results_dir")
+                                webconfig_address = config_parser.get("webconfig", "address")
+                                webconfig_port = config_parser.get("webconfig", "port")                
+
+                        except Exception:
+
+                                logs_dir = None
+                                results_dir = None
+                                webconfig_address = None
+                                webconfig_port = None
+                        
                 #if not specified in config.ini then set to defaults
                 if logs_dir == None:
 
-                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
+                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
                         logs_dir = os.path.normpath(logs_dir)                
 
                 #if not specified in config.ini then set to defaults
                 if results_dir == None:
 
-                        results_dir = os.path.join(moviegrabber_root_dir, "db")
+                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
                         results_dir = os.path.normpath(results_dir)                
 
                 #if not specified in config.ini then set to defaults
@@ -511,18 +546,20 @@ def cli_arguments():
 #save returned value
 config_ini = cli_arguments()
 
-#read config.ini
-config_parser.read(config_ini)
+#open config file with utf-8 encoding, this then returns unicode
+with codecs.open(config_ini, 'r', encoding='utf-8') as f:
+        
+        config_parser.readfp(f)
 
 #read values for logs and results db
 logs_dir = config_parser.get("folders", "logs_dir")
 results_dir = config_parser.get("folders", "results_dir")
 
 #construct full path to files
-cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
-moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
-sqlite_log = os.path.join(logs_dir, "sqlite.log")
-results_db = os.path.join(results_dir, "results.db")
+cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
+moviegrabber_log = os.path.join(logs_dir, u"moviegrabber.log")
+sqlite_log = os.path.join(logs_dir, u"sqlite.log")
+results_db = os.path.join(results_dir, u"results.db")
 
 #create connection to sqlite db using sqlalchemy
 engine = create_engine("sqlite:///" + results_db, echo=False)
@@ -676,23 +713,25 @@ class ResultsDBQueued(Base):
 theme = config_parser.get("general", "theme")
 
 #define path to cheetah templates
-templates_dir = os.path.join(moviegrabber_root_dir, "interfaces/" + theme + "/templates")
+templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
 templates_dir = os.path.normpath(templates_dir)
 
+templates_dir = templates_dir.encode("utf-8")
+
 #define path to history thumbnail images
-history_thumbnails_dir = os.path.join(moviegrabber_root_dir, "images/posters/thumbnails/history")
+history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
 history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
 
 #define path to queued thumbnail images
-queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, "images/posters/thumbnails/queued")
+queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
 queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
 
 #define path to static images
-images_dir = os.path.join(moviegrabber_root_dir, "images")
+images_dir = os.path.join(moviegrabber_root_dir, u"images")
 images_dir = os.path.normpath(images_dir)
 
 #define path to certs dir
-certs_dir = os.path.join(moviegrabber_root_dir, "certs")
+certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
 certs_dir = os.path.normpath(certs_dir)
 
 ###########
@@ -6934,7 +6973,7 @@ def start_webgui():
                         'server.environment' : "production",
                         'engine.autoreload.on' : False,
                         'engine.timeout_monitor.on' : False,
-                        'server.socket_host' : (config_parser.get("webconfig", "address")),
+                        'server.socket_host' : (config_parser.get("webconfig", "address").encode("utf-8")),
                         'server.socket_port' : int(config_parser.get("webconfig", "port")),
                         'tools.staticdir.root' : os.path.dirname(os.path.abspath(sys.argv[0]))
                 },
@@ -7244,7 +7283,7 @@ class VersionCheckThread(object):
                 try:
 
                         #if lib folder exists then source code download url, else win32 binary download url
-                        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
+                        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
 
                                 remote_download = sourceforge_webpage.splitlines()[1]
 
@@ -7486,8 +7525,8 @@ if __name__ == '__main__':
                         import OpenSSL
 
                         #enable ssl self signed certs
-                        cherrypy.server.ssl_certificate = os.path.join(certs_dir, "host.cert")
-                        cherrypy.server.ssl_private_key = os.path.join(certs_dir, "host.key")
+                        cherrypy.server.ssl_certificate = os.path.join(certs_dir, u"host.cert")
+                        cherrypy.server.ssl_private_key = os.path.join(certs_dir, u"host.key")
 
                 except Exception:
 
