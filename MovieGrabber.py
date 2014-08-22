@@ -1027,10 +1027,10 @@ def string_type(name):
                 print "not string"
 
 #used to decode byte strings to unicode, either utf-8 (normally used on linux) or cp1252 (windows)
-def bytestring_to_unicode(name):
+def byte_to_uni(name):
 
         #if type is byte string then decode to unicode, otherwise assume already unicode
-        if isinstance(name, str):
+        if isinstance(name, str) and name != None:
                 
                 try:
 
@@ -1045,10 +1045,10 @@ def bytestring_to_unicode(name):
         return name
 
 #used to encode unicode to byte strings, either utf-8 (normally used on linux) or cp1252 (windows)
-def unicode_to_bytestring(name):
+def uni_to_byte(name):
 
         #if type is unicode then encode to byte string, otherwise assume already byte string
-        if isinstance(name, unicode):
+        if isinstance(name, unicode) and name != None:
                 
                 try:
 
@@ -1545,7 +1545,7 @@ class SearchIndex(object):
                         try:
                                 
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                                self.movies_downloaded_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
+                                self.movies_downloaded_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
 
                         except UnicodeDecodeError:
 
@@ -1561,7 +1561,7 @@ class SearchIndex(object):
                         try:
 
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                                self.movies_replace_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_replace_dir_list))
+                                self.movies_replace_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_replace_dir_list))
                                 
                         except UnicodeDecodeError:
 
