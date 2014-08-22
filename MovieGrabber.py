@@ -1506,52 +1506,52 @@ class SearchIndex(object):
                 self.index_site_item = index_site_item
 
                 #read folder paths from config.ini
-                self.config_watch_dir = (config_parser.get("folders", download_type + "_watch_dir")).decode("utf-8")
+                self.config_watch_dir = (config_parser.get("folders", download_type + "_watch_dir"))
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
-                self.config_completed_dir = (config_parser.get("folders", download_type + "_completed_dir")).decode("utf-8")
+                self.config_completed_dir = (config_parser.get("folders", download_type + "_completed_dir"))
                 self.config_completed_dir = os.path.normpath(self.config_completed_dir)
-                self.config_torrent_archive_dir = (config_parser.get("folders", "torrent_archive_dir")).decode("utf-8")
-                self.config_usenet_archive_dir = (config_parser.get("folders", "usenet_archive_dir")).decode("utf-8")
+                self.config_torrent_archive_dir = (config_parser.get("folders", "torrent_archive_dir"))
+                self.config_usenet_archive_dir = (config_parser.get("folders", "usenet_archive_dir"))
                 self.config_torrent_archive_dir = os.path.normpath(self.config_torrent_archive_dir)
                 self.config_usenet_archive_dir = os.path.normpath(self.config_usenet_archive_dir)
 
                 #read imdb from config.ini
-                self.config_bad_title = (config_parser.get("imdb", "bad_title")).decode("utf-8")
-                self.config_fav_title = (config_parser.get("imdb", "fav_title")).decode("utf-8")
-                self.config_fav_char = (config_parser.get("imdb", "fav_char")).decode("utf-8")
-                self.config_fav_actor = (config_parser.get("imdb", "fav_actor")).decode("utf-8")
-                self.config_fav_writer = (config_parser.get("imdb", "fav_writer")).decode("utf-8")
-                self.config_fav_dir = (config_parser.get("imdb", "fav_dir")).decode("utf-8")
-                self.config_queue_genre = (config_parser.get("imdb", "queue_genre")).decode("utf-8")
+                self.config_bad_title = (config_parser.get("imdb", "bad_title"))
+                self.config_fav_title = (config_parser.get("imdb", "fav_title"))
+                self.config_fav_char = (config_parser.get("imdb", "fav_char"))
+                self.config_fav_actor = (config_parser.get("imdb", "fav_actor"))
+                self.config_fav_writer = (config_parser.get("imdb", "fav_writer"))
+                self.config_fav_dir = (config_parser.get("imdb", "fav_dir"))
+                self.config_queue_genre = (config_parser.get("imdb", "queue_genre"))
                 self.config_queue_date = config_parser.getint("imdb", "queue_date")
-                self.config_good_genre = (config_parser.get("imdb", "good_genre")).decode("utf-8")
+                self.config_good_genre = (config_parser.get("imdb", "good_genre"))
                 self.config_good_date = config_parser.getint("imdb", "good_date")
                 self.config_good_votes = config_parser.getint("imdb", "good_votes")
                 self.config_good_rating = config_parser.getfloat("imdb", "good_rating")
                 self.config_preferred_rating = config_parser.getfloat("imdb", "preferred_rating")
-                self.config_preferred_genre = (config_parser.get("imdb", "preferred_genre")).decode("utf-8")
+                self.config_preferred_genre = (config_parser.get("imdb", "preferred_genre"))
 
                 #read switches from config.ini
-                self.config_enable_append_year = (config_parser.get("switches", "enable_append_year")).decode("utf-8")
-                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")
-                self.config_enable_xbmc = (config_parser.get("switches", "enable_xbmc")).decode("utf-8")
-                self.config_enable_downloaded = (config_parser.get("switches", "enable_downloaded")).decode("utf-8")
-                self.config_enable_replace = (config_parser.get("switches", "enable_replace")).decode("utf-8")
-                self.config_enable_group_filter = (config_parser.get("switches", "enable_group_filter")).decode("utf-8")
-                self.config_enable_preferred = (config_parser.get("switches", "enable_preferred")).decode("utf-8")
-                self.config_enable_favorites = (config_parser.get("switches", "enable_favorites")).decode("utf-8")
-                self.config_enable_queuing = (config_parser.get("switches", "enable_queuing")).decode("utf-8")
-                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")                
+                self.config_enable_append_year = (config_parser.get("switches", "enable_append_year"))
+                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify"))
+                self.config_enable_xbmc = (config_parser.get("switches", "enable_xbmc"))
+                self.config_enable_downloaded = (config_parser.get("switches", "enable_downloaded"))
+                self.config_enable_replace = (config_parser.get("switches", "enable_replace"))
+                self.config_enable_group_filter = (config_parser.get("switches", "enable_group_filter"))
+                self.config_enable_preferred = (config_parser.get("switches", "enable_preferred"))
+                self.config_enable_favorites = (config_parser.get("switches", "enable_favorites"))
+                self.config_enable_queuing = (config_parser.get("switches", "enable_queuing"))
+                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify"))                
 
                 #read search criteria from config.ini
-                self.config_search_and = (config_parser.get(download_type, index_site_item + "_search_and")).decode("utf-8")
-                self.config_search_or = (config_parser.get(download_type, index_site_item + "_search_or")).decode("utf-8")
-                self.config_search_not = (config_parser.get(download_type, index_site_item + "_search_not")).decode("utf-8")
-                self.config_cat = (config_parser.get(download_type, index_site_item + "_cat")).decode("utf-8")
+                self.config_search_and = (config_parser.get(download_type, index_site_item + "_search_and"))
+                self.config_search_or = (config_parser.get(download_type, index_site_item + "_search_or"))
+                self.config_search_not = (config_parser.get(download_type, index_site_item + "_search_not"))
+                self.config_cat = (config_parser.get(download_type, index_site_item + "_cat"))
                 self.config_minsize = config_parser.getint(download_type, index_site_item + "_minsize")
                 self.config_maxsize = config_parser.getint(download_type, index_site_item + "_maxsize")
-                self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname")).decode("utf-8")
-                self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber")).decode("utf-8")
+                self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname"))
+                self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber"))
 
                 #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
                 self.config_movies_replace_dir = (config_parser.get("folders", "movies_replace_dir"))
@@ -1560,23 +1560,23 @@ class SearchIndex(object):
                 self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
 
                 #read general settings from config.ini
-                self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
-                self.config_special_cut = (config_parser.get("general", "index_special_cut")).decode("utf-8")
-                self.config_preferred_group = (config_parser.get("general", "index_preferred_group")).decode("utf-8")                
-                self.config_bad_group = (config_parser.get("general", "index_bad_group")).decode("utf-8")
-                self.config_bad_report = (config_parser.get("general", "index_bad_report")).decode("utf-8")                
+                self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator"))
+                self.config_special_cut = (config_parser.get("general", "index_special_cut"))
+                self.config_preferred_group = (config_parser.get("general", "index_preferred_group"))                
+                self.config_bad_group = (config_parser.get("general", "index_bad_group"))
+                self.config_bad_report = (config_parser.get("general", "index_bad_report"))                
                 self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
 
                 if self.download_type == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = (config_parser.get(download_type, index_site_item + "_path")).decode("utf-8")
-                        self.config_apikey = (config_parser.get(download_type, index_site_item + "_key")).decode("utf-8")
-                        self.config_spotweb_support = (config_parser.get(download_type, index_site_item + "_spotweb_support")).decode("utf-8")
+                        self.config_path = (config_parser.get(download_type, index_site_item + "_path"))
+                        self.config_apikey = (config_parser.get(download_type, index_site_item + "_key"))
+                        self.config_spotweb_support = (config_parser.get(download_type, index_site_item + "_spotweb_support"))
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = (config_parser.get(download_type, index_site_item + "_lang")).decode("utf-8")
+                        self.config_lang = (config_parser.get(download_type, index_site_item + "_lang"))
                         self.config_min_seeds = (config_parser.get("general", "min_seeds"))
                         self.config_min_peers = (config_parser.get("general", "min_peers"))
                         
@@ -4431,11 +4431,11 @@ class PostProcessing(object):
                 def __init__(self):
 
                         #read config.ini entries
-                        self.config_post_rename_files = (config_parser.get("general", "post_rename_files")).decode("utf-8")
+                        self.config_post_rename_files = (config_parser.get("general", "post_rename_files"))
                         self.config_post_rule = config_parser.get("post_processing", "post_rule")
-                        self.config_post_replace_existing = (config_parser.get("general", "post_replace_existing")).decode("utf-8")                        
-                        self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
-                        self.config_completed_dir = (config_parser.get("folders", "usenet_completed_dir")).decode("utf-8")
+                        self.config_post_replace_existing = (config_parser.get("general", "post_replace_existing"))                        
+                        self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator"))
+                        self.config_completed_dir = (config_parser.get("folders", "usenet_completed_dir"))
                         self.config_completed_dir = os.path.normpath(self.config_completed_dir)
 
                 def run(self):
