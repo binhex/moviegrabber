@@ -2,9 +2,6 @@
 latest_mg_version = "2.2.1.0"
 latest_db_version = "2"
 
-# use byte to uni for config.get, replace blah + blagh with string replacement %s, remove all .decode and .encode ref other than start of script - dnot modify templates_dir, argparse values byte or unicode?
-# bug remote version must wait otherwise error about base 10 due to no value
-
 import os
 import sys
 
@@ -12,44 +9,44 @@ import sys
 if hasattr(sys, "frozen"):
 
         #define path to moviegrabber root folder
-        moviegrabber_root_dir = os.path.abspath("").decode("utf-8")
+        moviegrabber_root_dir = os.path.abspath("")
 
 else:
 
         #define path to moviegrabber root path - required for linux
-        moviegrabber_root_dir = os.path.dirname(os.path.realpath(__file__)).decode("utf-8")
+        moviegrabber_root_dir = os.path.dirname(os.path.realpath(__file__))
 
         #check version of python is 2.6.x or 2.7.x
         if sys.version_info<(2,6,0) or sys.version_info>=(3,0,0):
 
-                sys.stderr.write(u"You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
+                sys.stderr.write("You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
                 os._exit(1)
 
         else:
 
                 #create full path to bundles modules
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to feedparser module
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/feedparser")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/feedparser")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to argparse module
-                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/site-packages/argparse")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
 
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
                 #create full path to moviegrabber modules
-                moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/moviegrabber")
+                moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, "lib/moviegrabber")
                 moviegrabber_modules_full_path = os.path.normpath(moviegrabber_modules_full_path)
 
                 #append full path to sys path
@@ -61,7 +58,7 @@ try:
 
 except Exception:
 
-        sys.stderr.write(u"Required SQLite Python module missing, please install before running MovieGrabber\n")
+        sys.stderr.write("Required SQLite Python module missing, please install before running MovieGrabber\n")
         os._exit(1)
 
 #-------------------------- shared ------------------------
@@ -129,9 +126,9 @@ import email.iterators
 socket.setdefaulttimeout(240)
 
 #user agent strings
-user_agent_ie = u"Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)"
-user_agent_iphone = u"Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
-user_agent_moviegrabber = u"moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
+user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)"
+user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
+user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
 
 #enable config parser
 config_parser = ConfigParser.SafeConfigParser()
@@ -274,7 +271,7 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
 def cli_arguments():
 
         #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
+        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
 
                 #custom argparse to redirect user to help if unknown argument specified
                 class argparse_custom(argparse.ArgumentParser):
@@ -317,7 +314,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+                                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
                                         config_dir = os.path.normpath(config_dir)
                                         
                         else:
@@ -327,10 +324,10 @@ def cli_arguments():
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
 
-                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")
+                        config_dir = os.path.join(moviegrabber_root_dir, "configs")                        
                         config_dir = os.path.normpath(config_dir)
                         
-                config_ini = os.path.join(config_dir, u"config.ini")
+                config_ini = os.path.join(config_dir, "config.ini")
 
                 #read config.ini - used for logs and db path checks in config.ini
                 config_parser.read(config_ini)
@@ -364,7 +361,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
+                                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
                                         logs_dir = os.path.normpath(logs_dir)
                                         
                         else:
@@ -374,7 +371,7 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif logs_dir == None:
                         
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")                        
                         logs_dir = os.path.normpath(logs_dir)
 
                 #if argument specified then use
@@ -391,7 +388,7 @@ def cli_arguments():
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
+                                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
                                         results_dir = os.path.normpath(results_dir)
                                         
                         else:
@@ -401,10 +398,10 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif results_dir == None:
                 
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")                        
                         results_dir = os.path.normpath(results_dir)
 
-                results_db = os.path.join(results_dir, u"results.db")
+                results_db = os.path.join(results_dir, "results.db")
                 
                 #if argument specified then use
                 if args["ip"] != None:
@@ -457,9 +454,9 @@ def cli_arguments():
         else:
 
                 #default path to config.ini
-                config_dir = os.path.join(moviegrabber_root_dir, u"configs")
+                config_dir = os.path.join(moviegrabber_root_dir, "configs")
                 config_dir = os.path.normpath(config_dir)                
-                config_ini = os.path.join(config_dir, u"config.ini")
+                config_ini = os.path.join(config_dir, "config.ini")
 
                 #read config.ini - used for logs and db path checks in config.ini
                 config_parser.read(config_ini)
@@ -482,13 +479,13 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 if logs_dir == None:
 
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
+                        logs_dir = os.path.join(moviegrabber_root_dir, "logs")
                         logs_dir = os.path.normpath(logs_dir)                
 
                 #if not specified in config.ini then set to defaults
                 if results_dir == None:
 
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
+                        results_dir = os.path.join(moviegrabber_root_dir, "db")
                         results_dir = os.path.normpath(results_dir)                
 
                 #if not specified in config.ini then set to defaults
@@ -518,13 +515,13 @@ logs_dir = config_parser.get("folders", "logs_dir")
 results_dir = config_parser.get("folders", "results_dir")
 
 #construct full path to files
-cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
-moviegrabber_log = os.path.join(logs_dir, u"moviegrabber.log")
-sqlite_log = os.path.join(logs_dir, u"sqlite.log")
-results_db = os.path.join(results_dir, u"results.db")
+cherrypy_log = os.path.join(logs_dir, "cherrypy.log")
+moviegrabber_log = os.path.join(logs_dir, "moviegrabber.log")
+sqlite_log = os.path.join(logs_dir, "sqlite.log")
+results_db = os.path.join(results_dir, "results.db")
 
 #create connection to sqlite db using sqlalchemy
-engine = create_engine(u"sqlite:///%s" % (results_db), echo=False)
+engine = create_engine("sqlite:///" + results_db, echo=False)
 Base = declarative_base()
 
 #create sqlite session
@@ -675,26 +672,23 @@ class ResultsDBQueued(Base):
 theme = config_parser.get("general", "theme")
 
 #define path to cheetah templates
-templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
+templates_dir = os.path.join(moviegrabber_root_dir, "interfaces/" + theme + "/templates")
 templates_dir = os.path.normpath(templates_dir)
 
-#cheetah requires byte string, encode from unicode to utf-8
-templates_dir = templates_dir.encode("utf-8")
-
 #define path to history thumbnail images
-history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
+history_thumbnails_dir = os.path.join(moviegrabber_root_dir, "images/posters/thumbnails/history")
 history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
 
 #define path to queued thumbnail images
-queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
+queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, "images/posters/thumbnails/queued")
 queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
 
 #define path to static images
-images_dir = os.path.join(moviegrabber_root_dir, u"images")
+images_dir = os.path.join(moviegrabber_root_dir, "images")
 images_dir = os.path.normpath(images_dir)
 
 #define path to certs dir
-certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
+certs_dir = os.path.join(moviegrabber_root_dir, "certs")
 certs_dir = os.path.normpath(certs_dir)
 
 ###########
@@ -707,17 +701,17 @@ def cherrypy_logging():
         log = cherrypy.log
         
         #remove the default FileHandlers if present
-        log.access_file = u""
-        log.error_file = u""
+        log.access_file = ""
+        log.error_file = ""
 
         #max size of 512KB
-        maxBytes = getattr(log, u"rot_maxBytes", 524288)
+        maxBytes = getattr(log, "rot_maxBytes", 524288)
 
         #cherrypy.log cherrypy.log.1 cherrypy.log.2
-        backupCount = getattr(log, u"rot_backupCount", 3)
+        backupCount = getattr(log, "rot_backupCount", 3)
 
         #create a new rotating log for error logging
-        fname = getattr(log, u"rot_error_file", cherrypy_log)
+        fname = getattr(log, "rot_error_file", cherrypy_log)
         h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
         h.setLevel(logging.DEBUG)
         h.setFormatter(cherrypy._cplogging.logfmt)
@@ -732,10 +726,10 @@ def moviegrabber_logging():
         threadname = threading.currentThread().getName()
 
         #setup formatting for log messages
-        moviegrabber_formatter = logging.Formatter(u"%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
+        moviegrabber_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
 
         #setup logger for moviegrabber
-        moviegrabber_logger = logging.getLogger(u"moviegrabber")
+        moviegrabber_logger = logging.getLogger("moviegrabber")
 
         #setup logging to file for moviegrabber
         moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a")
@@ -792,10 +786,10 @@ def sqlite_logging():
         threadname = threading.currentThread().getName()
 
         #setup formatting for log messages
-        sqlite_formatter = logging.Formatter(u"%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
+        sqlite_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
 
         #setup logger for sqlite using sqlalchemy
-        sqlite_logger = logging.getLogger(u"sqlalchemy.engine")
+        sqlite_logger = logging.getLogger("sqlalchemy.engine")
 
         #setup logging to file for sqlite
         sqlite_filehandler = logging.FileHandler(sqlite_log, "a")
@@ -1033,10 +1027,10 @@ def string_type(name):
                 print "not string"
 
 #used to decode byte strings to unicode, either utf-8 (normally used on linux) or cp1252 (windows)
-def byte_to_uni(name):
+def bytestring_to_unicode(name):
 
         #if type is byte string then decode to unicode, otherwise assume already unicode
-        if isinstance(name, str) or name != None:
+        if isinstance(name, str):
                 
                 try:
 
@@ -1051,10 +1045,10 @@ def byte_to_uni(name):
         return name
 
 #used to encode unicode to byte strings, either utf-8 (normally used on linux) or cp1252 (windows)
-def uni_to_byte(name):
+def unicode_to_bytestring(name):
 
         #if type is unicode then encode to byte string, otherwise assume already byte string
-        if isinstance(name, unicode) or name != None:
+        if isinstance(name, unicode):
                 
                 try:
 
@@ -1469,93 +1463,89 @@ class SearchIndex(object):
                 self.index_site_item = index_site_item
 
                 #read folder paths from config.ini
-                self.config_watch_dir = byte_to_uni(config_parser.get("folders", download_type + "_watch_dir"))
-                self.config_completed_dir = byte_to_uni(config_parser.get("folders", download_type + "_completed_dir"))
-                self.config_torrent_archive_dir = byte_to_uni(config_parser.get("folders", "torrent_archive_dir"))
-                self.config_usenet_archive_dir = byte_to_uni(config_parser.get("folders", "usenet_archive_dir"))
-                
-                self.config_completed_dir = os.path.normpath(self.config_completed_dir)
+                self.config_watch_dir = (config_parser.get("folders", download_type + "_watch_dir")).decode("utf-8")
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
+                self.config_completed_dir = (config_parser.get("folders", download_type + "_completed_dir")).decode("utf-8")
+                self.config_completed_dir = os.path.normpath(self.config_completed_dir)
+                self.config_torrent_archive_dir = (config_parser.get("folders", "torrent_archive_dir")).decode("utf-8")
+                self.config_usenet_archive_dir = (config_parser.get("folders", "usenet_archive_dir")).decode("utf-8")
                 self.config_torrent_archive_dir = os.path.normpath(self.config_torrent_archive_dir)
                 self.config_usenet_archive_dir = os.path.normpath(self.config_usenet_archive_dir)
 
-                #read folder paths for movies downloaded and movies to replace from config.ini
-                self.config_movies_replace_dir = byte_to_uni(config_parser.get("folders", "movies_replace_dir"))
-                self.config_movies_downloaded_dir = byte_to_uni(config_parser.get("folders", "movies_downloaded_dir"))
-                self.config_movies_replace_dir = os.path.normpath(self.config_movies_replace_dir)                
-                self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
-
                 #read imdb from config.ini
-                self.config_bad_title = byte_to_uni(config_parser.get("imdb", "bad_title"))
-                self.config_fav_title = byte_to_uni(config_parser.get("imdb", "fav_title"))
-                self.config_fav_char = byte_to_uni(config_parser.get("imdb", "fav_char"))
-                self.config_fav_actor = byte_to_uni(config_parser.get("imdb", "fav_actor"))
-                self.config_fav_writer = byte_to_uni(config_parser.get("imdb", "fav_writer"))
-                self.config_fav_dir = byte_to_uni(config_parser.get("imdb", "fav_dir"))
-                self.config_queue_genre = byte_to_uni(config_parser.get("imdb", "queue_genre"))
+                self.config_bad_title = (config_parser.get("imdb", "bad_title")).decode("utf-8")
+                self.config_fav_title = (config_parser.get("imdb", "fav_title")).decode("utf-8")
+                self.config_fav_char = (config_parser.get("imdb", "fav_char")).decode("utf-8")
+                self.config_fav_actor = (config_parser.get("imdb", "fav_actor")).decode("utf-8")
+                self.config_fav_writer = (config_parser.get("imdb", "fav_writer")).decode("utf-8")
+                self.config_fav_dir = (config_parser.get("imdb", "fav_dir")).decode("utf-8")
+                self.config_queue_genre = (config_parser.get("imdb", "queue_genre")).decode("utf-8")
                 self.config_queue_date = config_parser.getint("imdb", "queue_date")
-                self.config_good_genre = byte_to_uni(config_parser.get("imdb", "good_genre"))
+                self.config_good_genre = (config_parser.get("imdb", "good_genre")).decode("utf-8")
                 self.config_good_date = config_parser.getint("imdb", "good_date")
                 self.config_good_votes = config_parser.getint("imdb", "good_votes")
                 self.config_good_rating = config_parser.getfloat("imdb", "good_rating")
                 self.config_preferred_rating = config_parser.getfloat("imdb", "preferred_rating")
-                self.config_preferred_genre = byte_to_uni(config_parser.get("imdb", "preferred_genre"))
+                self.config_preferred_genre = (config_parser.get("imdb", "preferred_genre")).decode("utf-8")
 
                 #read switches from config.ini
-                self.config_enable_append_year = byte_to_uni(config_parser.get("switches", "enable_append_year"))
-                self.config_enable_email_notify = byte_to_uni(config_parser.get("switches", "enable_email_notify"))
-                self.config_enable_xbmc = byte_to_uni(config_parser.get("switches", "enable_xbmc"))
-                self.config_enable_downloaded = byte_to_uni(config_parser.get("switches", "enable_downloaded"))
-                self.config_enable_replace = byte_to_uni(config_parser.get("switches", "enable_replace"))
-                self.config_enable_group_filter = byte_to_uni(config_parser.get("switches", "enable_group_filter"))
-                self.config_enable_preferred = byte_to_uni(config_parser.get("switches", "enable_preferred"))
-                self.config_enable_favorites = byte_to_uni(config_parser.get("switches", "enable_favorites"))
-                self.config_enable_queuing = byte_to_uni(config_parser.get("switches", "enable_queuing"))
-                self.config_enable_email_notify = byte_to_uni(config_parser.get("switches", "enable_email_notify"))
+                self.config_enable_append_year = (config_parser.get("switches", "enable_append_year")).decode("utf-8")
+                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")
+                self.config_enable_xbmc = (config_parser.get("switches", "enable_xbmc")).decode("utf-8")
+                self.config_enable_downloaded = (config_parser.get("switches", "enable_downloaded")).decode("utf-8")
+                self.config_enable_replace = (config_parser.get("switches", "enable_replace")).decode("utf-8")
+                self.config_enable_group_filter = (config_parser.get("switches", "enable_group_filter")).decode("utf-8")
+                self.config_enable_preferred = (config_parser.get("switches", "enable_preferred")).decode("utf-8")
+                self.config_enable_favorites = (config_parser.get("switches", "enable_favorites")).decode("utf-8")
+                self.config_enable_queuing = (config_parser.get("switches", "enable_queuing")).decode("utf-8")
+                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify")).decode("utf-8")                
 
                 #read search criteria from config.ini
-                self.config_search_and = byte_to_uni(config_parser.get(download_type, index_site_item + "_search_and"))
-                self.config_search_or = byte_to_uni(config_parser.get(download_type, index_site_item + "_search_or"))
-                self.config_search_not = byte_to_uni(config_parser.get(download_type, index_site_item + "_search_not"))
-                self.config_cat = byte_to_uni(config_parser.get(download_type, index_site_item + "_cat"))
+                self.config_search_and = (config_parser.get(download_type, index_site_item + "_search_and")).decode("utf-8")
+                self.config_search_or = (config_parser.get(download_type, index_site_item + "_search_or")).decode("utf-8")
+                self.config_search_not = (config_parser.get(download_type, index_site_item + "_search_not")).decode("utf-8")
+                self.config_cat = (config_parser.get(download_type, index_site_item + "_cat")).decode("utf-8")
                 self.config_minsize = config_parser.getint(download_type, index_site_item + "_minsize")
                 self.config_maxsize = config_parser.getint(download_type, index_site_item + "_maxsize")
-                self.config_hostname = byte_to_uni(config_parser.get(download_type, index_site_item + "_hostname"))
-                self.config_portnumber = byte_to_uni(config_parser.get(download_type, index_site_item + "_portnumber"))
+                self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname")).decode("utf-8")
+                self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber")).decode("utf-8")
+
+                #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
+                self.config_movies_replace_dir = (config_parser.get("folders", "movies_replace_dir"))
+                self.config_movies_replace_dir = os.path.normpath(self.config_movies_replace_dir)
+                self.config_movies_downloaded_dir = (config_parser.get("folders", "movies_downloaded_dir"))
+                self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
 
                 #read general settings from config.ini
-                self.config_movie_title_separator = byte_to_uni(config_parser.get("general", "movie_title_separator"))
-                self.config_special_cut = byte_to_uni(config_parser.get("general", "index_special_cut"))
-                self.config_preferred_group = byte_to_uni(config_parser.get("general", "index_preferred_group"))
-                self.config_bad_group = byte_to_uni(config_parser.get("general", "index_bad_group"))
-                self.config_bad_report = byte_to_uni(config_parser.get("general", "index_bad_report"))
+                self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
+                self.config_special_cut = (config_parser.get("general", "index_special_cut")).decode("utf-8")
+                self.config_preferred_group = (config_parser.get("general", "index_preferred_group")).decode("utf-8")                
+                self.config_bad_group = (config_parser.get("general", "index_bad_group")).decode("utf-8")
+                self.config_bad_report = (config_parser.get("general", "index_bad_report")).decode("utf-8")                
                 self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
 
                 if self.download_type == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = byte_to_uni(config_parser.get(download_type, index_site_item + "_path"))
-                        self.config_apikey = byte_to_uni(config_parser.get(download_type, index_site_item + "_key"))
-                        self.config_spotweb_support = byte_to_uni(config_parser.get(download_type, index_site_item + "_spotweb_support"))
+                        self.config_path = (config_parser.get(download_type, index_site_item + "_path")).decode("utf-8")
+                        self.config_apikey = (config_parser.get(download_type, index_site_item + "_key")).decode("utf-8")
+                        self.config_spotweb_support = (config_parser.get(download_type, index_site_item + "_spotweb_support")).decode("utf-8")
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = byte_to_uni(config_parser.get(download_type, index_site_item + "_lang"))
-                        self.config_min_seeds = byte_to_uni(config_parser.get("general", "min_seeds"))
-                        self.config_min_peers = byte_to_uni(config_parser.get("general", "min_peers"))
-
+                        self.config_lang = (config_parser.get(download_type, index_site_item + "_lang")).decode("utf-8")
+                        self.config_min_seeds = (config_parser.get("general", "min_seeds"))
+                        self.config_min_peers = (config_parser.get("general", "min_peers"))
+                        
                 if self.config_movies_downloaded_dir:
-
-                        #encode from unicode back to byte string - required for os.walk
-                        self.config_movies_downloaded_dir = uni_to_byte(self.config_movies_downloaded_dir)
 
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
                         try:
-
+                                
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                                self.movies_downloaded_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
+                                self.movies_downloaded_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
 
                         except UnicodeDecodeError:
 
@@ -1564,24 +1554,21 @@ class SearchIndex(object):
                                 mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies Downloaded folder, check locale is set correctly")
 
                 if self.config_movies_replace_dir:
-
-                        #encode from unicode back to byte string - required for os.walk
-                        self.config_movies_replace_dir = uni_to_byte(self.config_movies_replace_dir)
-
+                        
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
-
+                        
                         try:
 
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
-                                self.movies_replace_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_replace_dir_list))
-
+                                self.movies_replace_cache = list(itertools.chain.from_iterable(unicode_to_bytestring(os.walk(root_path)) for root_path in movies_replace_dir_list))
+                                
                         except UnicodeDecodeError:
 
                                 #if cannot decode non ascii char then log error
                                 self.movies_replace_cache = u""
                                 mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies to Replace folder, check locale is set correctly")
-
+                                
                 if self.config_enable_email_notify == "yes":
 
                         #run external_ip() and store return value
@@ -4398,11 +4385,11 @@ class PostProcessing(object):
                 def __init__(self):
 
                         #read config.ini entries
-                        self.config_post_rename_files = byte_to_uni(config_parser.get("general", "post_rename_files"))
-                        self.config_post_rule = byte_to_uni(config_parser.get("post_processing", "post_rule"))
-                        self.config_post_replace_existing = byte_to_uni(config_parser.get("general", "post_replace_existing"))                  
-                        self.config_movie_title_separator = byte_to_uni(config_parser.get("general", "movie_title_separator"))
-                        self.config_completed_dir = byte_to_uni(config_parser.get("folders", "usenet_completed_dir"))
+                        self.config_post_rename_files = (config_parser.get("general", "post_rename_files")).decode("utf-8")
+                        self.config_post_rule = config_parser.get("post_processing", "post_rule")
+                        self.config_post_replace_existing = (config_parser.get("general", "post_replace_existing")).decode("utf-8")                        
+                        self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator")).decode("utf-8")
+                        self.config_completed_dir = (config_parser.get("folders", "usenet_completed_dir")).decode("utf-8")
                         self.config_completed_dir = os.path.normpath(self.config_completed_dir)
 
                 def run(self):
@@ -5022,23 +5009,23 @@ class ConfigIMDB(object):
         def save_config_imdb(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("imdb", "good_date", uni_to_byte(kwargs["good_date2"]))
-                config_parser.set("imdb", "good_rating", uni_to_byte(kwargs["good_rating2"]))
-                config_parser.set("imdb", "good_date", uni_to_byte(kwargs["good_date2"]))
-                config_parser.set("imdb", "queue_date", uni_to_byte(kwargs["queue_date2"]))
-                config_parser.set("imdb", "bad_title",  del_inv_chars(uni_to_byte(kwargs["bad_title2"])))
-                config_parser.set("imdb", "fav_dir", del_inv_chars(uni_to_byte(kwargs["fav_dir2"])))
-                config_parser.set("imdb", "fav_writer", del_inv_chars(uni_to_byte(kwargs["fav_writer2"])))
-                config_parser.set("imdb", "fav_actor", del_inv_chars(uni_to_byte(kwargs["fav_actor2"])))
-                config_parser.set("imdb", "fav_char", del_inv_chars(uni_to_byte(kwargs["fav_char2"])))
-                config_parser.set("imdb", "fav_title", del_inv_chars(uni_to_byte(kwargs["fav_title2"])))
+                config_parser.set("imdb", "good_date", kwargs["good_date2"])
+                config_parser.set("imdb", "good_rating", kwargs["good_rating2"])
+                config_parser.set("imdb", "good_date", kwargs["good_date2"])
+                config_parser.set("imdb", "queue_date", kwargs["queue_date2"])
+                config_parser.set("imdb", "bad_title", del_inv_chars(kwargs["bad_title2"]).encode("utf-8"))
+                config_parser.set("imdb", "fav_dir", del_inv_chars(kwargs["fav_dir2"]).encode("utf-8"))
+                config_parser.set("imdb", "fav_writer", del_inv_chars(kwargs["fav_writer2"]).encode("utf-8"))
+                config_parser.set("imdb", "fav_actor", del_inv_chars(kwargs["fav_actor2"]).encode("utf-8"))
+                config_parser.set("imdb", "fav_char", del_inv_chars(kwargs["fav_char2"]).encode("utf-8"))
+                config_parser.set("imdb", "fav_title", del_inv_chars(kwargs["fav_title2"]).encode("utf-8"))
 
                 if kwargs["good_votes2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["good_votes2"])
-                                config_parser.set("imdb", "good_votes", uni_to_byte(kwargs["good_votes2"]))
+                                config_parser.set("imdb", "good_votes", kwargs["good_votes2"])
 
                         except ValueError:
 
@@ -5194,18 +5181,18 @@ class ConfigGeneral(object):
         def save_config_general(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("general", "color_scheme", uni_to_byte(kwargs["color_scheme2"]))
-                config_parser.set("general", "launch_browser", uni_to_byte(kwargs["launch_browser2"]))
-                config_parser.set("general", "max_items_shown", uni_to_byte(kwargs["max_items_shown2"]))
-                config_parser.set("webconfig", "username", uni_to_byte(kwargs["username2"]))
-                config_parser.set("webconfig", "password", uni_to_byte(kwargs["password2"]))
-                config_parser.set("webconfig", "enable_ssl", uni_to_byte(kwargs["enable_ssl2"]))
-                config_parser.set("general", "index_preferred_group", uni_to_byte(kwargs["index_preferred_group2"]))
-                config_parser.set("general", "index_special_cut", uni_to_byte(kwargs["index_special_cut2"]))       
-                config_parser.set("general", "index_bad_group", uni_to_byte(kwargs["index_bad_group2"]))
-                config_parser.set("general", "index_bad_report", uni_to_byte(kwargs["index_bad_report2"]))
-                config_parser.set("general", "log_level", uni_to_byte(kwargs["log_level2"]))
-                config_parser.set("general", "check_version", uni_to_byte(kwargs["check_version2"]))
+                config_parser.set("general", "color_scheme", kwargs["color_scheme2"])
+                config_parser.set("general", "launch_browser", kwargs["launch_browser2"])
+                config_parser.set("general", "max_items_shown", kwargs["max_items_shown2"])
+                config_parser.set("webconfig", "username", kwargs["username2"])
+                config_parser.set("webconfig", "password", kwargs["password2"])
+                config_parser.set("webconfig", "enable_ssl", kwargs["enable_ssl2"])
+                config_parser.set("general", "index_preferred_group", kwargs["index_preferred_group2"])
+                config_parser.set("general", "index_special_cut", kwargs["index_special_cut2"])                
+                config_parser.set("general", "index_bad_group", kwargs["index_bad_group2"])
+                config_parser.set("general", "index_bad_report", kwargs["index_bad_report2"])
+                config_parser.set("general", "log_level", kwargs["log_level2"])
+                config_parser.set("general", "check_version", kwargs["check_version2"])
 		
                 #contruct logger instance and new logging level
                 logging_level = getattr(logging, kwargs["log_level2"])
@@ -5235,18 +5222,18 @@ class ConfigGeneral(object):
 
                 if kwargs["address2"]:
 
-                        config_parser.set("webconfig", "address", uni_to_byte(kwargs["address2"]))
+                        config_parser.set("webconfig", "address", kwargs["address2"])
 
                 if kwargs["port2"]:
 
-                        config_parser.set("webconfig", "port", uni_to_byte(kwargs["port2"]))
+                        config_parser.set("webconfig", "port", kwargs["port2"])
 
                 if kwargs["index_posts_to_process2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["index_posts_to_process2"])
-                                config_parser.set("general", "index_posts_to_process", uni_to_byte(kwargs["index_posts_to_process2"]))
+                                config_parser.set("general", "index_posts_to_process", kwargs["index_posts_to_process2"])
 
                         except ValueError:
 
@@ -5261,7 +5248,7 @@ class ConfigGeneral(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["min_seeds2"])
-                                config_parser.set("general", "min_seeds", uni_to_byte(kwargs["min_seeds2"]))
+                                config_parser.set("general", "min_seeds", kwargs["min_seeds2"])
 
                         except ValueError:
 
@@ -5272,7 +5259,7 @@ class ConfigGeneral(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["min_peers2"])
-                                config_parser.set("general", "min_peers", uni_to_byte(kwargs["min_peers2"]))
+                                config_parser.set("general", "min_peers", kwargs["min_peers2"])
 
                         except ValueError:
 
@@ -5332,16 +5319,16 @@ class ConfigSwitches(object):
         def save_config_switches(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("switches", "enable_downloaded", uni_to_byte(kwargs["enable_downloaded2"]))
-                config_parser.set("switches", "enable_replace", uni_to_byte(kwargs["enable_replace2"]))
-                config_parser.set("switches", "enable_favorites", uni_to_byte(kwargs["enable_favorites2"]))
-                config_parser.set("switches", "enable_preferred", uni_to_byte(kwargs["enable_preferred2"]))
-                config_parser.set("switches", "enable_queuing", uni_to_byte(kwargs["enable_queuing2"]))
-                config_parser.set("switches", "enable_email_notify", uni_to_byte(kwargs["enable_email_notify2"]))
-                config_parser.set("switches", "enable_append_year", uni_to_byte(kwargs["enable_append_year2"]))
-                config_parser.set("switches", "enable_posters", uni_to_byte(kwargs["enable_posters2"]))
-                config_parser.set("switches", "enable_group_filter", uni_to_byte(kwargs["enable_group_filter2"]))
-                config_parser.set("switches", "enable_post_processing", uni_to_byte(kwargs["enable_post_processing2"]))
+                config_parser.set("switches", "enable_downloaded", kwargs["enable_downloaded2"])
+                config_parser.set("switches", "enable_replace", kwargs["enable_replace2"])
+                config_parser.set("switches", "enable_favorites", kwargs["enable_favorites2"])
+                config_parser.set("switches", "enable_preferred", kwargs["enable_preferred2"])
+                config_parser.set("switches", "enable_queuing", kwargs["enable_queuing2"])
+                config_parser.set("switches", "enable_email_notify", kwargs["enable_email_notify2"])
+                config_parser.set("switches", "enable_append_year", kwargs["enable_append_year2"])
+                config_parser.set("switches", "enable_posters", kwargs["enable_posters2"])
+                config_parser.set("switches", "enable_group_filter", kwargs["enable_group_filter2"])
+                config_parser.set("switches", "enable_post_processing", kwargs["enable_post_processing2"])
 
                 with open(config_ini, 'w') as configini:
 
@@ -5399,10 +5386,10 @@ class ConfigPost(object):
         def save_config_post(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("general", "post_cert_system", uni_to_byte(kwargs["post_cert_system2"]))
-                config_parser.set("general", "post_rename_files", uni_to_byte(kwargs["post_rename_files2"]))
-                config_parser.set("general", "post_replace_existing", uni_to_byte(kwargs["post_replace_existing2"]))
-		config_parser.set("xbmc", "xbmc_library_update", uni_to_byte(kwargs["xbmc_library_update2"]))
+                config_parser.set("general", "post_cert_system", kwargs["post_cert_system2"])
+                config_parser.set("general", "post_rename_files", kwargs["post_rename_files2"])
+                config_parser.set("general", "post_replace_existing", kwargs["post_replace_existing2"])                
+		config_parser.set("xbmc", "xbmc_library_update", kwargs["xbmc_library_update2"])
 		
                 with open(config_ini, 'w') as configini:
 
@@ -5587,10 +5574,10 @@ class ConfigScheduling(object):
                         kwargs["index_schedule_minute2"] = "30"
 
                 #write values to config.ini
-                config_parser.set("general", "index_schedule_hour", uni_to_byte(kwargs["index_schedule_hour2"]))
-                config_parser.set("general", "index_schedule_minute", uni_to_byte(kwargs["index_schedule_minute2"]))
-                config_parser.set("general", "post_schedule_hour", uni_to_byte(kwargs["post_schedule_hour2"]))
-                config_parser.set("general", "post_schedule_minute", uni_to_byte(kwargs["post_schedule_minute2"]))
+                config_parser.set("general", "index_schedule_hour", kwargs["index_schedule_hour2"])
+                config_parser.set("general", "index_schedule_minute", kwargs["index_schedule_minute2"])
+                config_parser.set("general", "post_schedule_hour", kwargs["post_schedule_hour2"])
+                config_parser.set("general", "post_schedule_minute", kwargs["post_schedule_minute2"])
 
                 with open(config_ini, 'w') as configini:
 
@@ -5761,23 +5748,23 @@ class ConfigUsenet(object):
                 edit_newznab_site_index = kwargs["edit_newznab_site2"]
 
                 #write values to config.ini
-                config_parser.set("usenet", edit_newznab_site_index + "_hostname", uni_to_byte(kwargs["newznab_hostname2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_path", uni_to_byte(kwargs["newznab_path2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_portnumber", uni_to_byte(kwargs["newznab_portnumber2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_key", uni_to_byte(kwargs["newznab_key2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_cat", uni_to_byte(kwargs["newznab_cat2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_search_and", uni_to_byte(kwargs["newznab_search_and2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_search_or", uni_to_byte(kwargs["newznab_search_or2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_search_not", uni_to_byte(kwargs["newznab_search_not2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_spotweb_support", uni_to_byte(kwargs["spotweb_support2"]))
-                config_parser.set("usenet", edit_newznab_site_index + "_enabled", uni_to_byte(kwargs["newznab_enabled2"]))
+                config_parser.set("usenet", edit_newznab_site_index + "_hostname", kwargs["newznab_hostname2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_path", kwargs["newznab_path2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_portnumber", kwargs["newznab_portnumber2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_key", kwargs["newznab_key2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_cat", kwargs["newznab_cat2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_search_and", kwargs["newznab_search_and2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_search_or", kwargs["newznab_search_or2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_search_not", kwargs["newznab_search_not2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_spotweb_support", kwargs["spotweb_support2"])
+                config_parser.set("usenet", edit_newznab_site_index + "_enabled", kwargs["newznab_enabled2"])
 
                 if kwargs["newznab_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_minsize2"])
-                                config_parser.set("usenet",  edit_newznab_site_index + "_minsize",uni_to_byte(kwargs["newznab_minsize2"]))
+                                config_parser.set("usenet",  edit_newznab_site_index + "_minsize",kwargs["newznab_minsize2"])
 
                         except ValueError:
 
@@ -5792,7 +5779,7 @@ class ConfigUsenet(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_maxsize2"])
-                                config_parser.set("usenet",  edit_newznab_site_index + "_maxsize", uni_to_byte(kwargs["newznab_maxsize2"]))
+                                config_parser.set("usenet",  edit_newznab_site_index + "_maxsize", kwargs["newznab_maxsize2"])
 
                         except ValueError:
 
@@ -5971,21 +5958,21 @@ class ConfigTorrent(object):
                 edit_torrent_site_index = kwargs["edit_torrent_site2"]
 
                 #write values to config.ini
-                config_parser.set("torrent", edit_torrent_site_index + "_hostname", uni_to_byte(kwargs["torrent_hostname2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_portnumber", uni_to_byte(kwargs["torrent_portnumber2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_cat", uni_to_byte(kwargs["torrent_cat2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_lang", uni_to_byte(kwargs["torrent_lang2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_search_and", uni_to_byte(kwargs["torrent_search_and2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_search_or", uni_to_byte(kwargs["torrent_search_or2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_search_not", uni_to_byte(kwargs["torrent_search_not2"]))
-                config_parser.set("torrent", edit_torrent_site_index + "_enabled", uni_to_byte(kwargs["torrent_enabled2"]))
+                config_parser.set("torrent", edit_torrent_site_index + "_hostname", kwargs["torrent_hostname2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_portnumber", kwargs["torrent_portnumber2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_cat", kwargs["torrent_cat2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_lang", kwargs["torrent_lang2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_search_and", kwargs["torrent_search_and2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_search_or", kwargs["torrent_search_or2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_search_not", kwargs["torrent_search_not2"])
+                config_parser.set("torrent", edit_torrent_site_index + "_enabled", kwargs["torrent_enabled2"])
 
                 if kwargs["torrent_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_minsize2"])
-                                config_parser.set("torrent",  edit_torrent_site_index + "_minsize",uni_to_byte(kwargs["torrent_minsize2"]))
+                                config_parser.set("torrent",  edit_torrent_site_index + "_minsize",kwargs["torrent_minsize2"])
 
                         except ValueError:
 
@@ -5996,7 +5983,7 @@ class ConfigTorrent(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_maxsize2"])
-                                config_parser.set("torrent",  edit_torrent_site_index + "_maxsize", uni_to_byte(kwargs["torrent_maxsize2"]))
+                                config_parser.set("torrent",  edit_torrent_site_index + "_maxsize", kwargs["torrent_maxsize2"])
 
                         except ValueError:
 
@@ -6084,31 +6071,31 @@ class ConfigDirectories(object):
                 #write values to config.ini - check to see if folders exist and check folder logic
                 if os.path.exists(kwargs["usenet_watch_dir2"]) and kwargs["usenet_watch_dir2"] != kwargs["usenet_archive_dir2"] or kwargs["usenet_watch_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_watch_dir", del_inv_chars(uni_to_byte(kwargs["usenet_watch_dir2"])))
+                        config_parser.set("folders", "usenet_watch_dir", del_inv_chars(kwargs["usenet_watch_dir2"]).encode("utf-8"))
 
                 if os.path.exists(kwargs["usenet_archive_dir2"]) and kwargs["usenet_archive_dir2"] != kwargs["usenet_watch_dir2"] or kwargs["usenet_archive_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_archive_dir", del_inv_chars(uni_to_byte(kwargs["usenet_archive_dir2"])))
-                        
+                        config_parser.set("folders", "usenet_archive_dir", del_inv_chars(kwargs["usenet_archive_dir2"]).encode("utf-8"))
+
                 if os.path.exists(kwargs["usenet_completed_dir2"]) or kwargs["usenet_completed_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_completed_dir", del_inv_chars(uni_to_byte(kwargs["usenet_completed_dir2"])))
+                        config_parser.set("folders", "usenet_completed_dir", del_inv_chars(kwargs["usenet_completed_dir2"]).encode("utf-8"))
 
                 if os.path.exists(kwargs["torrent_watch_dir2"]) and kwargs["torrent_watch_dir2"] != kwargs["torrent_archive_dir2"] or kwargs["torrent_watch_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_watch_dir", del_inv_chars(uni_to_byte(kwargs["torrent_watch_dir2"])))
+                        config_parser.set("folders", "torrent_watch_dir", del_inv_chars(kwargs["torrent_watch_dir2"]).encode("utf-8"))
 
                 if os.path.exists(kwargs["torrent_archive_dir2"]) and kwargs["torrent_archive_dir2"] != kwargs["torrent_watch_dir2"] or kwargs["torrent_archive_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_archive_dir", del_inv_chars(uni_to_byte(kwargs["torrent_archive_dir2"])))
+                        config_parser.set("folders", "torrent_archive_dir", del_inv_chars(kwargs["torrent_archive_dir2"]).encode("utf-8"))
 
                 if os.path.exists(kwargs["torrent_completed_dir2"]) or kwargs["torrent_completed_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_completed_dir", del_inv_chars(uni_to_byte(kwargs["torrent_completed_dir2"])))
+                        config_parser.set("folders", "torrent_completed_dir", del_inv_chars(kwargs["torrent_completed_dir2"]).encode("utf-8"))
 
                 if os.path.exists(kwargs["logs_dir2"]) and kwargs["logs_dir2"]:
 
-                        config_parser.set("folders", "logs_dir", del_inv_chars(uni_to_byte(kwargs["logs_dir2"])))
+                        config_parser.set("folders", "logs_dir", del_inv_chars(kwargs["logs_dir2"]).encode("utf-8"))
 
                 #create list of movies to replace
                 movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
@@ -6131,7 +6118,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_replace_dir2"] == "":
 
-                        config_parser.set("folders", "movies_replace_dir", del_inv_chars(uni_to_byte(kwargs["movies_replace_dir2"])))
+                        config_parser.set("folders", "movies_replace_dir", del_inv_chars(kwargs["movies_replace_dir2"]).encode("utf-8"))
 
                 #create list of movies already downloaded
                 movies_downloaded_list = (kwargs["movies_downloaded_dir2"]).split(",")
@@ -6154,7 +6141,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_downloaded_dir2"] == "":
 
-                        config_parser.set("folders", "movies_downloaded_dir", del_inv_chars(uni_to_byte(kwargs["movies_downloaded_dir2"])))
+                        config_parser.set("folders", "movies_downloaded_dir", del_inv_chars(kwargs["movies_downloaded_dir2"]).encode("utf-8"))
 
                 with open(config_ini, 'w') as configini:
 
@@ -6202,18 +6189,18 @@ class ConfigNotification(object):
         def save_config_notification(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("email_settings", "email_server", uni_to_byte(kwargs["email_server2"]))
-                config_parser.set("email_settings", "email_server_port", uni_to_byte(kwargs["email_server_port2"]))
-                config_parser.set("email_settings", "email_server_ssl", uni_to_byte(kwargs["email_server_ssl2"]))
-                config_parser.set("email_settings", "email_username", uni_to_byte(kwargs["email_username2"]))
-                config_parser.set("email_settings", "email_password", uni_to_byte(kwargs["email_password2"]))
-                config_parser.set("email_settings", "email_from", uni_to_byte(kwargs["email_from2"]))
-                config_parser.set("email_settings", "email_to", uni_to_byte(kwargs["email_to2"]))
-                config_parser.set("xbmc", "xbmc_host", uni_to_byte(kwargs["xbmc_host2"]))
-                config_parser.set("xbmc", "xbmc_port", uni_to_byte(kwargs["xbmc_port2"]))
-                config_parser.set("xbmc", "xbmc_username", uni_to_byte(kwargs["xbmc_username2"]))
-                config_parser.set("xbmc", "xbmc_password", uni_to_byte(kwargs["xbmc_password2"]))
-                config_parser.set("xbmc", "xbmc_notification", uni_to_byte(kwargs["xbmc_notification2"]))
+                config_parser.set("email_settings", "email_server", kwargs["email_server2"])
+                config_parser.set("email_settings", "email_server_port", kwargs["email_server_port2"])
+                config_parser.set("email_settings", "email_server_ssl", kwargs["email_server_ssl2"])
+                config_parser.set("email_settings", "email_username", kwargs["email_username2"])
+                config_parser.set("email_settings", "email_password", kwargs["email_password2"])
+                config_parser.set("email_settings", "email_from", kwargs["email_from2"])
+                config_parser.set("email_settings", "email_to", kwargs["email_to2"])
+                config_parser.set("xbmc", "xbmc_host", kwargs["xbmc_host2"])
+                config_parser.set("xbmc", "xbmc_port", kwargs["xbmc_port2"])
+                config_parser.set("xbmc", "xbmc_username", kwargs["xbmc_username2"])
+                config_parser.set("xbmc", "xbmc_password", kwargs["xbmc_password2"])
+                config_parser.set("xbmc", "xbmc_notification", kwargs["xbmc_notification2"])
 
                 with open(config_ini, 'w') as configini:
 
@@ -6349,7 +6336,7 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_parser.set("general", "history_sort_order", uni_to_byte(kwargs["sort_order"]))
+                config_parser.set("general", "history_sort_order", kwargs["sort_order"])
 
                 #write settings to config.ini
                 with open(config_ini, 'w') as configini:
@@ -6656,7 +6643,7 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_parser.set("general", "queued_sort_order", uni_to_byte(kwargs["sort_order"]))
+                config_parser.set("general", "queued_sort_order", kwargs["sort_order"])
 
                 #write settings to config.ini
                 with open(config_ini, 'w') as configini:
@@ -7250,7 +7237,7 @@ class VersionCheckThread(object):
                 try:
 
                         #if lib folder exists then source code download url, else win32 binary download url
-                        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
+                        if os.path.exists(os.path.join(moviegrabber_root_dir, "lib")):
 
                                 remote_download = sourceforge_webpage.splitlines()[1]
 
@@ -7492,8 +7479,8 @@ if __name__ == '__main__':
                         import OpenSSL
 
                         #enable ssl self signed certs
-                        cherrypy.server.ssl_certificate = os.path.join(certs_dir, u"host.cert")
-                        cherrypy.server.ssl_private_key = os.path.join(certs_dir, u"host.key")
+                        cherrypy.server.ssl_certificate = os.path.join(certs_dir, "host.cert")
+                        cherrypy.server.ssl_private_key = os.path.join(certs_dir, "host.key")
 
                 except Exception:
 
