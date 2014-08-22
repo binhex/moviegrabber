@@ -75,6 +75,7 @@ import traceback
 import StringIO
 import fileinput
 import ConfigParser
+import codecs
 import decimal
 import operator
 import ast
@@ -149,8 +150,11 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
 
                         config_parser.set(section_name, option_name, option_value)
 
-        #read config.ini
-        config_parser.read(config_ini)
+
+        #open config file with utf-8 encoding, this then returns unicode
+        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
+                
+                config_parser.readfp(f)
 
         #create config sections
         config_write_section("folders")
