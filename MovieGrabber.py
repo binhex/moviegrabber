@@ -19,7 +19,7 @@ else:
         #check version of python is 2.6.x or 2.7.x
         if sys.version_info<(2,6,0) or sys.version_info>=(3,0,0):
 
-                sys.stderr.write("You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
+                sys.stderr.write(u"You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
                 os._exit(1)
 
         else:
@@ -562,7 +562,7 @@ sqlite_log = os.path.join(logs_dir, u"sqlite.log")
 results_db = os.path.join(results_dir, u"results.db")
 
 #create connection to sqlite db using sqlalchemy
-engine = create_engine("sqlite:///" + results_db, echo=False)
+engine = create_engine("sqlite:///%s" % (results_db), echo=False)
 Base = declarative_base()
 
 #create sqlite session
@@ -1326,7 +1326,7 @@ class DownloadWatched():
                         config_watch_dir = config_parser.get("folders", "usenet_watch_dir")
                         config_watch_dir = os.path.normpath(config_watch_dir)
 
-                        download_filename = self.sqlite_row.dlname + ur".nzb"
+                        download_filename = u"%s.nzb" % (self.sqlite_row.dlname)
 
                 else:
 
@@ -1334,7 +1334,7 @@ class DownloadWatched():
                         config_watch_dir = config_parser.get("folders", "torrent_watch_dir")
                         config_watch_dir = os.path.normpath(config_watch_dir)
 
-                        download_filename = self.sqlite_row.dlname + ur".torrent"
+                        download_filename = u"%s.torrent" % (self.sqlite_row.dlname)
 
                 #check watched folder exists, if not continue
                 if os.path.exists(config_watch_dir):
@@ -1506,79 +1506,79 @@ class SearchIndex(object):
                 self.index_site_item = index_site_item
 
                 #read folder paths from config.ini
-                self.config_watch_dir = (config_parser.get("folders", download_type + "_watch_dir"))
+                self.config_watch_dir = config_parser.get("folders", "%s_watch_dir" % (download_type))
+                self.config_completed_dir = config_parser.get("folders", "%s_completed_dir" % (download_type))
+                self.config_torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
+                self.config_usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")                
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
-                self.config_completed_dir = (config_parser.get("folders", download_type + "_completed_dir"))
                 self.config_completed_dir = os.path.normpath(self.config_completed_dir)
-                self.config_torrent_archive_dir = (config_parser.get("folders", "torrent_archive_dir"))
-                self.config_usenet_archive_dir = (config_parser.get("folders", "usenet_archive_dir"))
                 self.config_torrent_archive_dir = os.path.normpath(self.config_torrent_archive_dir)
                 self.config_usenet_archive_dir = os.path.normpath(self.config_usenet_archive_dir)
 
                 #read imdb from config.ini
-                self.config_bad_title = (config_parser.get("imdb", "bad_title"))
-                self.config_fav_title = (config_parser.get("imdb", "fav_title"))
-                self.config_fav_char = (config_parser.get("imdb", "fav_char"))
-                self.config_fav_actor = (config_parser.get("imdb", "fav_actor"))
-                self.config_fav_writer = (config_parser.get("imdb", "fav_writer"))
-                self.config_fav_dir = (config_parser.get("imdb", "fav_dir"))
-                self.config_queue_genre = (config_parser.get("imdb", "queue_genre"))
+                self.config_bad_title = config_parser.get("imdb", "bad_title")
+                self.config_fav_title = config_parser.get("imdb", "fav_title")
+                self.config_fav_char = config_parser.get("imdb", "fav_char")
+                self.config_fav_actor = config_parser.get("imdb", "fav_actor")
+                self.config_fav_writer = config_parser.get("imdb", "fav_writer")
+                self.config_fav_dir = config_parser.get("imdb", "fav_dir")
+                self.config_queue_genre = config_parser.get("imdb", "queue_genre")
                 self.config_queue_date = config_parser.getint("imdb", "queue_date")
-                self.config_good_genre = (config_parser.get("imdb", "good_genre"))
+                self.config_good_genre = config_parser.get("imdb", "good_genre")
                 self.config_good_date = config_parser.getint("imdb", "good_date")
                 self.config_good_votes = config_parser.getint("imdb", "good_votes")
                 self.config_good_rating = config_parser.getfloat("imdb", "good_rating")
                 self.config_preferred_rating = config_parser.getfloat("imdb", "preferred_rating")
-                self.config_preferred_genre = (config_parser.get("imdb", "preferred_genre"))
+                self.config_preferred_genre = config_parser.get("imdb", "preferred_genre")
 
                 #read switches from config.ini
-                self.config_enable_append_year = (config_parser.get("switches", "enable_append_year"))
-                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify"))
-                self.config_enable_xbmc = (config_parser.get("switches", "enable_xbmc"))
-                self.config_enable_downloaded = (config_parser.get("switches", "enable_downloaded"))
-                self.config_enable_replace = (config_parser.get("switches", "enable_replace"))
-                self.config_enable_group_filter = (config_parser.get("switches", "enable_group_filter"))
-                self.config_enable_preferred = (config_parser.get("switches", "enable_preferred"))
-                self.config_enable_favorites = (config_parser.get("switches", "enable_favorites"))
-                self.config_enable_queuing = (config_parser.get("switches", "enable_queuing"))
-                self.config_enable_email_notify = (config_parser.get("switches", "enable_email_notify"))                
+                self.config_enable_append_year = config_parser.get("switches", "enable_append_year")
+                self.config_enable_email_notify = config_parser.get("switches", "enable_email_notify")
+                self.config_enable_xbmc = config_parser.get("switches", "enable_xbmc")
+                self.config_enable_downloaded = config_parser.get("switches", "enable_downloaded")
+                self.config_enable_replace = config_parser.get("switches", "enable_replace")
+                self.config_enable_group_filter = config_parser.get("switches", "enable_group_filter")
+                self.config_enable_preferred = config_parser.get("switches", "enable_preferred")
+                self.config_enable_favorites = config_parser.get("switches", "enable_favorites")
+                self.config_enable_queuing = config_parser.get("switches", "enable_queuing")
+                self.config_enable_email_notify = config_parser.get("switches", "enable_email_notify")              
 
                 #read search criteria from config.ini
-                self.config_search_and = (config_parser.get(download_type, index_site_item + "_search_and"))
-                self.config_search_or = (config_parser.get(download_type, index_site_item + "_search_or"))
-                self.config_search_not = (config_parser.get(download_type, index_site_item + "_search_not"))
-                self.config_cat = (config_parser.get(download_type, index_site_item + "_cat"))
-                self.config_minsize = config_parser.getint(download_type, index_site_item + "_minsize")
-                self.config_maxsize = config_parser.getint(download_type, index_site_item + "_maxsize")
-                self.config_hostname = (config_parser.get(download_type, index_site_item + "_hostname"))
-                self.config_portnumber = (config_parser.get(download_type, index_site_item + "_portnumber"))
+                self.config_search_and = config_parser.get(download_type, "%s_search_and" % (index_site_item))
+                self.config_search_or = config_parser.get(download_type, "%s_search_or" % (index_site_item))
+                self.config_search_not = config_parser.get(download_type, "%s_search_not" % (index_site_item))
+                self.config_cat = config_parser.get(download_type, "%s_cat" % (index_site_item))
+                self.config_minsize = config_parser.getint(download_type, "%s_minsize" % (index_site_item))
+                self.config_maxsize = config_parser.getint(download_type, "%s_maxsize" % (index_site_item))
+                self.config_hostname = config_parser.get(download_type, "%s_hostname" % (index_site_item))
+                self.config_portnumber = config_parser.get(download_type, "%s_portnumber" % (index_site_item))
 
                 #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
-                self.config_movies_replace_dir = (config_parser.get("folders", "movies_replace_dir"))
+                self.config_movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
                 self.config_movies_replace_dir = os.path.normpath(self.config_movies_replace_dir)
-                self.config_movies_downloaded_dir = (config_parser.get("folders", "movies_downloaded_dir"))
+                self.config_movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
                 self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
 
                 #read general settings from config.ini
-                self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator"))
-                self.config_special_cut = (config_parser.get("general", "index_special_cut"))
-                self.config_preferred_group = (config_parser.get("general", "index_preferred_group"))                
-                self.config_bad_group = (config_parser.get("general", "index_bad_group"))
-                self.config_bad_report = (config_parser.get("general", "index_bad_report"))                
+                self.config_movie_title_separator = config_parser.get("general", "movie_title_separator")
+                self.config_special_cut = config_parser.get("general", "index_special_cut")
+                self.config_preferred_group = config_parser.get("general", "index_preferred_group")              
+                self.config_bad_group = config_parser.get("general", "index_bad_group")
+                self.config_bad_report = config_parser.get("general", "index_bad_report")              
                 self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
 
                 if self.download_type == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = (config_parser.get(download_type, index_site_item + "_path"))
-                        self.config_apikey = (config_parser.get(download_type, index_site_item + "_key"))
-                        self.config_spotweb_support = (config_parser.get(download_type, index_site_item + "_spotweb_support"))
+                        self.config_path = config_parser.get(download_type, "%s_path" % (index_site_item))
+                        self.config_apikey = config_parser.get(download_type, "%s_key" % (index_site_item))
+                        self.config_spotweb_support = config_parser.get(download_type, "%s_spotweb_support" % (index_site_item))
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = (config_parser.get(download_type, index_site_item + "_lang"))
-                        self.config_min_seeds = (config_parser.get("general", "min_seeds"))
-                        self.config_min_peers = (config_parser.get("general", "min_peers"))
+                        self.config_lang = config_parser.get(download_type, "%s_lang" % (index_site_item))
+                        self.config_min_seeds = config_parser.get("general", "min_seeds")
+                        self.config_min_peers = config_parser.get("general", "min_peers")
                         
                 if self.config_movies_downloaded_dir:
 
@@ -1685,7 +1685,7 @@ class SearchIndex(object):
         def filter_os_watched(self):
                 
                 #this is set to download only if the nzb/torrent file doesn't exist in the watch folder
-                if os.path.exists(os.path.join(self.config_watch_dir, self.imdb_movie_title + ur".nzb").encode('utf-8')) or os.path.exists(os.path.join(self.config_watch_dir, self.imdb_movie_title + ur".torrent").encode('utf-8')):
+                if os.path.exists(os.path.join(self.config_watch_dir, u"%s.nzb" % (self.imdb_movie_title)).encode('utf-8')) or os.path.exists(os.path.join(self.config_watch_dir, u"%s.torrent" % (self.imdb_movie_title)).encode('utf-8')):
 
                         self.download_details_dict["filter_os_watched_result"] = [0,"Watched", "System - NZB/Torrent is in Watched folder"]
                         mg_log.info(ur"Filter System - NZB/Torrent is in Watched folder, skip")
@@ -1699,7 +1699,7 @@ class SearchIndex(object):
         def filter_os_archive(self):
                 
                 #this is set to download only if the nzb/torrent file doesn't exist in the nzb folder
-                if os.path.exists(os.path.join(self.config_usenet_archive_dir, self.imdb_movie_title + ur".nzb.gz").encode('utf-8')) or os.path.exists(os.path.join(self.config_torrent_archive_dir, self.imdb_movie_title + ur".torrent").encode('utf-8')):
+                if os.path.exists(os.path.join(self.config_usenet_archive_dir, u"%s.nzb.gz" % (self.imdb_movie_title)).encode('utf-8')) or os.path.exists(os.path.join(self.config_torrent_archive_dir, u"%s.torrent" % (self.imdb_movie_title)).encode('utf-8')):
 
                         self.download_details_dict["filter_os_archive_result"] = [0,"Archive", "System - NZB/Torrent is in Archive folder"]
                         mg_log.info(u"Filter System - NZB/Torrent is in Archive folder, skip")
@@ -2050,7 +2050,7 @@ class SearchIndex(object):
                         for config_search_and_item in config_search_and_list:
 
                                 #use regex word boundary to ensure no partial matching in post title
-                                config_search_and_item_re = re.compile(ur"\b" + config_search_and_item + ur"\b", re.IGNORECASE).search(self.index_post_title)
+                                config_search_and_item_re = re.compile(ur"\b%s\b" % (config_search_and_item), re.IGNORECASE).search(self.index_post_title)
 
                                 if config_search_and_item_re:
 
@@ -2078,7 +2078,7 @@ class SearchIndex(object):
                         for config_search_or_item in config_search_or_list:
 
                                 #use regex word boundary to ensure no partial matching in post title
-                                config_search_or_item_re = re.compile(ur"\b" + config_search_or_item + ur"\b", re.IGNORECASE).search(self.index_post_title)
+                                config_search_or_item_re = re.compile(ur"\b%s\b" % (config_search_or_item), re.IGNORECASE).search(self.index_post_title)
 
                                 if config_search_or_item_re:
 
@@ -2106,7 +2106,7 @@ class SearchIndex(object):
                         for config_search_not_item in config_search_not_list:
 
                                 #use regex word boundary to ensure no partial matching in post title
-                                config_search_not_item_re = re.compile(ur"\b" + config_search_not_item + ur"\b", re.IGNORECASE).search(self.index_post_title)
+                                config_search_not_item_re = re.compile(ur"\b%s\b" % (config_search_not_item), re.IGNORECASE).search(self.index_post_title)
 
                                 if config_search_not_item_re:
 
@@ -2845,7 +2845,7 @@ class SearchIndex(object):
                         imdb_movie_title_ascii = self.imdb_movie_title.encode('ascii', 'ignore')
 
                         #if poster image doesnt exist then proceed
-                        if not os.path.exists(os.path.join(history_thumbnails_dir, imdb_movie_title_ascii + ur".jpg")):
+                        if not os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % (imdb_movie_title_ascii))):
 
                                 try:
 
@@ -2862,7 +2862,7 @@ class SearchIndex(object):
                                         mg_log.info(u"Poster Download - Downloaded failed, url %s" % (self.imdb_movie_poster))                                  
                                         return
 
-                                self.poster_image_file = (imdb_movie_title_ascii + ur".jpg")
+                                self.poster_image_file = u"%s.jpg" % (imdb_movie_title_ascii)
 
                                 #create path to images directory
                                 self.poster_image_path = os.path.join(history_thumbnails_dir, self.poster_image_file)
@@ -2874,7 +2874,7 @@ class SearchIndex(object):
 
                         else:
 
-                                self.poster_image_file = (imdb_movie_title_ascii + ur".jpg")
+                                self.poster_image_file = u"%s.jpg" % (imdb_movie_title_ascii)
 
                 else:
 
