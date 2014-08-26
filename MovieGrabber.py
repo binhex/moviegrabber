@@ -3328,7 +3328,7 @@ class SearchIndex(object):
                                         continue
 
                                 #remove seperators from post title, used for compare
-                                self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
+                                self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)\[\]\,]+", "", self.index_post_title)
 
                                 #convert to lowercase
                                 self.index_post_title_strip = self.index_post_title_strip.lower()
@@ -3895,7 +3895,7 @@ class SearchIndex(object):
                                         continue
                         
                         #remove seperators from post title, used for compare
-                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)]+", "", self.index_post_title)
+                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)\[\]\,]+", "", self.index_post_title)
 
                         #convert to lowercase
                         self.index_post_title_strip = self.index_post_title_strip.lower()
