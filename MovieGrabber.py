@@ -2908,7 +2908,7 @@ class SearchIndex(object):
 
                         #create message container
                         msg = email.mime.multipart.MIMEMultipart('alternative')
-                        msg['Subject'] = ("MovieGrabber: %s (%s) - %s" % (self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.download_result_str)
+                        msg['Subject'] = ("MovieGrabber: %s (%s) - %s" % (self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.download_result_str))
                         msg['From'] = config_email_from
                         msg['To'] = config_email_to
 
@@ -2920,27 +2920,27 @@ class SearchIndex(object):
                         <body text="Black">
 
                         <p>
-                        <b>Title:</b> <a href=%s>%s (%s)</a> %s/10 from %s users""" % (self.imdb_link.encode("utf-8"),self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.imdb_movie_rating_str,elf.imdb_movie_votes_str)"""
+                        <b>Title:</b> <a href=%s>%s (%s)</a> %s/10 from %s users""" % (self.imdb_link.encode("utf-8"),self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.imdb_movie_rating_str,self.imdb_movie_votes_str) + """
                         </p>
 
                         <p>
-                        <b>Plot:</b> %s""" % (self.imdb_movie_description.encode("utf-8"))"""
+                        <b>Plot:</b> %s""" % (self.imdb_movie_description.encode("utf-8")) + """
                         </p>
 
                         <p>
-                        <b>Actors:</b %s""" % (self.imdb_movie_actors_str.encode("utf-8"))"""
+                        <b>Actors:</b> %s""" % (self.imdb_movie_actors_str.encode("utf-8")) + """
                         </p>
 
                         <p>
-                        <b>Genres:</b> %s""" % (self.imdb_movie_genres_str.encode("utf-8"))"""
+                        <b>Genres:</b> %s""" % (self.imdb_movie_genres_str.encode("utf-8")) + """
                         </p>
 
                         <p>
-                        <b>Post:</b> <a href=%s>%s""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"))"""
+                        <b>Post:</b> <a href=%s>%s""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8")) + """
                         </p>
 
                         <p>
-                        <b>Size:</b> %s""" % (self.index_post_size)"""
+                        <b>Size:</b> %s""" % (self.index_post_size) + """
                         </p>"""
 
                         #check to make sure movie is queue and not download (queue release not required if set to download)
@@ -2959,17 +2959,17 @@ class SearchIndex(object):
                                 queue_release_internal = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,config_webconfig_address,config_webconfig_port,str(self.sqlite_id_queued))                                        
                                 html = html + """
                                 <p>
-                                <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (queue_release_internal.encode("utf-8"),queue_release_external.encode("utf-8"))"""
+                                <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (queue_release_internal.encode("utf-8"),queue_release_external.encode("utf-8")) + """
                                 </p>
 
                                 </body>
-                                </html> """
+                                </html>"""
 
                         else:
 
                                 html = html + """
                                 </body>
-                                </html> """
+                                </html>"""
 
                         #record the mime types of text/html
                         part1 = email.mime.text.MIMEText(html, "html")
@@ -2999,11 +2999,11 @@ class SearchIndex(object):
 
                         except smtplib.SMTPException, e:
 
-                                mg_log.warning(u"SMTP error, response - %s" % str(e))
+                                mg_log.warning(u"SMTP error, response - %s" % (str(e)))
 
                         except smtplib.socket.error, e:
 
-                                mg_log.warning(u"SMTP socket error, response - %s" % str(e))
+                                mg_log.warning(u"SMTP socket error, response - %s" % (str(e)))
 
         #######################
         # check filter values #
