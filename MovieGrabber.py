@@ -1582,6 +1582,9 @@ class SearchIndex(object):
                         
                 if self.config_movies_downloaded_dir:
 
+                        #convert from unicode to byte string for root folders string, used for for os.walk
+                        self.config_movies_downloaded_dir = uni_to_byte(self.config_movies_downloaded_dir)
+
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
@@ -1597,6 +1600,9 @@ class SearchIndex(object):
                                 mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies Downloaded folder, check locale is set correctly")
 
                 if self.config_movies_replace_dir:
+
+                        #convert from unicode to byte string for root folders string, used for for os.walk
+                        self.config_movies_replace_dir = uni_to_byte(self.config_movies_replace_dir)
                         
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
@@ -2902,7 +2908,7 @@ class SearchIndex(object):
 
                         #create message container
                         msg = email.mime.multipart.MIMEMultipart('alternative')
-                        msg['Subject'] = ("MovieGrabber: %s" % self.imdb_movie_title_strip.encode("utf-8") + " (" + self.imdb_movie_year_str + ") - %s" % self.download_result_str)
+                        msg['Subject'] = ("MovieGrabber: %s (%s) - %s" % (self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.download_result_str)
                         msg['From'] = config_email_from
                         msg['To'] = config_email_to
 
@@ -2914,27 +2920,27 @@ class SearchIndex(object):
                         <body text="Black">
 
                         <p>
-                        <b>Title:</b> <a href=""" + self.imdb_link.encode("utf-8") + """>""" + self.imdb_movie_title_strip.encode("utf-8") + " (" + self.imdb_movie_year_str + ")" + """</a> """ + self.imdb_movie_rating_str + "/10 from %s" % self.imdb_movie_votes_str + " users" + """
+                        <b>Title:</b> <a href=%s>%s (%s)</a> %s/10 from %s users""" % (self.imdb_link.encode("utf-8"),self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.imdb_movie_rating_str,elf.imdb_movie_votes_str)"""
                         </p>
 
                         <p>
-                        <b>Plot:</b> """ + self.imdb_movie_description.encode("utf-8") + """
+                        <b>Plot:</b> %s""" % (self.imdb_movie_description.encode("utf-8"))"""
                         </p>
 
                         <p>
-                        <b>Actors:</b> """ + self.imdb_movie_actors_str.encode("utf-8") + """
+                        <b>Actors:</b %s""" % (self.imdb_movie_actors_str.encode("utf-8"))"""
                         </p>
 
                         <p>
-                        <b>Genres:</b> """ + self.imdb_movie_genres_str.encode("utf-8") + """
+                        <b>Genres:</b> %s""" % (self.imdb_movie_genres_str.encode("utf-8"))"""
                         </p>
 
                         <p>
-                        <b>Post:</b> <a href=""" + self.index_post_details.encode("utf-8") + """>""" + self.index_post_title.encode("utf-8") + """
+                        <b>Post:</b> <a href=%s>%s""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"))"""
                         </p>
 
                         <p>
-                        <b>Size:</b> """ + self.index_post_size + """
+                        <b>Size:</b> %s""" % (self.index_post_size)"""
                         </p>"""
 
                         #check to make sure movie is queue and not download (queue release not required if set to download)
@@ -2949,12 +2955,11 @@ class SearchIndex(object):
                                         webconfig_protocol = "http://"
 
                                 #create url's for local and remote
-                                queue_release_external = webconfig_protocol + self.external_ip_address + ":" + config_webconfig_port + "/queue/queue_release?queue_release_id=" + str(self.sqlite_id_queued)
-                                queue_release_internal = webconfig_protocol + config_webconfig_address + ":" + config_webconfig_port + "/queue/queue_release?queue_release_id=" + str(self.sqlite_id_queued)
-
+                                queue_release_external = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,self.external_ip_address,config_webconfig_port,str(self.sqlite_id_queued))
+                                queue_release_internal = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,config_webconfig_address,config_webconfig_port,str(self.sqlite_id_queued))                                        
                                 html = html + """
                                 <p>
-                                <b>Queue Release Links:</b> <a href=""" + queue_release_internal.encode("utf-8") + """>Local</a> | <a href=""" + queue_release_external.encode("utf-8") + """>Remote</a>
+                                <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (queue_release_internal.encode("utf-8"),queue_release_external.encode("utf-8"))"""
                                 </p>
 
                                 </body>
@@ -3188,16 +3193,16 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://" + self.config_hostname
+                        self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #add start and end slashes to pathname if not present
                 if not re.compile("^/", re.IGNORECASE).search(self.config_path):
 
-                        self.config_path = "/" + self.config_path
+                        self.config_path = "/%s" % (self.config_path)
 
                 if not re.compile("/$", re.IGNORECASE).search(self.config_path):
 
-                        self.config_path = self.config_path + "/"
+                        self.config_path = "%s/" % (self.config_path)
 
                 for offset in range(0,self.config_posts_to_process,50):
 
@@ -3574,7 +3579,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://" + self.config_hostname
+                        self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #use server side search term for rss feed
                 if self.config_search_and != "":
@@ -3643,7 +3648,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://" + self.config_hostname
+                        self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #site rss feed
                 self.site_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
@@ -3673,7 +3678,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://" + self.config_hostname
+                        self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #use server side search term for rss feed, bitsnoop REQUIRES search term
                 if self.config_search_and != "":
@@ -3725,7 +3730,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://" + self.config_hostname
+                        self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #construct site rss feed
                 site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)                
@@ -4599,11 +4604,11 @@ class PostProcessing(object):
                                 for config_post_rule_item in config_post_rule_list:
 
                                         #read rule dropdown and textbox values
-                                        self.config_post_rule_dropdown1 = config_parser.get("post_processing", config_post_rule_item + "_dropdown1")
-                                        self.config_post_rule_dropdown2 = config_parser.get("post_processing", config_post_rule_item + "_dropdown2")
-                                        self.config_post_rule_dropdown3 = config_parser.get("post_processing", config_post_rule_item + "_dropdown3")
-                                        self.config_post_rule_textbox1 = config_parser.get("post_processing", config_post_rule_item + "_textbox1")
-                                        self.config_post_rule_textbox2 = config_parser.get("post_processing", config_post_rule_item + "_textbox2")
+                                        self.config_post_rule_dropdown1 = config_parser.get("post_processing", "%s_dropdown1" % (config_post_rule_item))
+                                        self.config_post_rule_dropdown2 = config_parser.get("post_processing", "%s_dropdown2" % (config_post_rule_item))
+                                        self.config_post_rule_dropdown3 = config_parser.get("post_processing", "%s_dropdown3" % (config_post_rule_item))
+                                        self.config_post_rule_textbox1 = config_parser.get("post_processing", "%s_textbox1" % (config_post_rule_item))
+                                        self.config_post_rule_textbox2 = config_parser.get("post_processing", "%s_textbox2" % (config_post_rule_item))
 
                                         #walk completed dir + imdb movie title, need to walk again due to move and rename functions previously applied
                                         for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
@@ -4970,9 +4975,9 @@ def header():
         #header information
         template.templates_dir = templates_dir
         template.local_version = config_parser.get("general", "local_version")
-        template.title = "MovieGrabber %s" % template.local_version + " - %s" % section_name
+        template.title = "MovieGrabber %s - %s" % (template.local_version,section_name)
         template.strapline = "The only truly automated movie downloader"
-        template.color_scheme_file = template.color_scheme + ".css"
+        template.color_scheme_file = "%s.css" % (template.color_scheme)
 
 def footer():
 
@@ -5455,7 +5460,7 @@ class ConfigPost(object):
                 post_rule = 1
 
                 #construct rule name from new value and increment
-                add_post_rule = "rule_" + str(post_rule)
+                add_post_rule = "rule_%s" % (str(post_rule))
 
                 if config_post_rule:
 
@@ -5466,7 +5471,7 @@ class ConfigPost(object):
                         while add_post_rule in config_post_rule_list:
 
                                 post_rule += 1
-                                add_post_rule = "rule_" + str(post_rule)
+                                add_post_rule = "rule_%s" % (str(post_rule))
 
                         #check to make sure rule doesnt already exist
                         if add_post_rule not in config_post_rule_list:
@@ -5488,11 +5493,11 @@ class ConfigPost(object):
                         config_parser.set("post_processing", "post_rule", add_post_rule)
 
                 #write default values to config.ini
-                config_parser.set("post_processing", add_post_rule + "_dropdown1", "select")
-                config_parser.set("post_processing", add_post_rule + "_dropdown2", "select")
-                config_parser.set("post_processing", add_post_rule + "_dropdown3", "select")
-                config_parser.set("post_processing", add_post_rule + "_textbox1", "")
-                config_parser.set("post_processing", add_post_rule + "_textbox2", "")
+                config_parser.set("post_processing", "%s_dropdown1" % (add_post_rule), "select")
+                config_parser.set("post_processing", "%s_dropdown2" % (add_post_rule), "select")
+                config_parser.set("post_processing", "%s_dropdown3" % (add_post_rule), "select")
+                config_parser.set("post_processing", "%s_textbox1" % (add_post_rule), "")
+                config_parser.set("post_processing", "%s_textbox2" % (add_post_rule), "")
 
                 with open(config_ini, 'w') as configini:
 
@@ -5517,21 +5522,21 @@ class ConfigPost(object):
                 if edit_config_dropdown3 == "delete":
 
                         #write values to config.ini
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown1", edit_config_dropdown1)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown2", edit_config_dropdown2)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown3", edit_config_dropdown3)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox1", edit_config_textbox1)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox2", "")
+                        config_parser.set("post_processing", "%s_dropdown1" % (edit_config_rule), edit_config_dropdown1)
+                        config_parser.set("post_processing", "%s_dropdown2" % (edit_config_rule), edit_config_dropdown2)
+                        config_parser.set("post_processing", "%s_dropdown3" % (edit_config_rule), edit_config_dropdown3)
+                        config_parser.set("post_processing", "%s_textbox1" % (edit_config_rule), edit_config_textbox1)
+                        config_parser.set("post_processing", "%s_textbox2" % (edit_config_rule), "")
 
                 #if dropdown3 set to move then check to make sure textbox2 (path) is not empty and path exists before saving
                 elif edit_config_dropdown3 == "move" and edit_config_textbox2 != "" and os.path.exists(edit_config_textbox2):
 
                         #write values to config.ini
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown1", edit_config_dropdown1)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown2", edit_config_dropdown2)
-                        config_parser.set("post_processing", edit_config_rule + "_dropdown3", edit_config_dropdown3)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox1", edit_config_textbox1)
-                        config_parser.set("post_processing", edit_config_rule + "_textbox2", edit_config_textbox2)
+                        config_parser.set("post_processing", "%s_dropdown1" % (edit_config_rule), edit_config_dropdown1)
+                        config_parser.set("post_processing", "%s_dropdown2" % (edit_config_rule), edit_config_dropdown2)
+                        config_parser.set("post_processing", "%s_dropdown3" % (edit_config_rule), edit_config_dropdown3)
+                        config_parser.set("post_processing", "%s_textbox1" % (edit_config_rule), edit_config_textbox1)
+                        config_parser.set("post_processing", "%s_textbox2" % (edit_config_rule), edit_config_textbox2)
 
                 with open(config_ini, 'w') as configini:
 
@@ -5571,11 +5576,11 @@ class ConfigPost(object):
                                 config_parser.set("post_processing", "post_rule", config_post_rule_str)
 
                                 #delete config entries for selected post processing rule
-                                config_parser.remove_option("post_processing", delete_config_rule + "_dropdown1")
-                                config_parser.remove_option("post_processing", delete_config_rule + "_dropdown2")
-                                config_parser.remove_option("post_processing", delete_config_rule + "_dropdown3")
-                                config_parser.remove_option("post_processing", delete_config_rule + "_textbox1")
-                                config_parser.remove_option("post_processing", delete_config_rule + "_textbox2")
+                                config_parser.remove_option("post_processing", "%s_dropdown1" % (delete_config_rule))
+                                config_parser.remove_option("post_processing", "%s_dropdown2" % (delete_config_rule))
+                                config_parser.remove_option("post_processing", "%s_dropdown3" % (delete_config_rule))
+                                config_parser.remove_option("post_processing", "%s_textbox1" % (delete_config_rule))
+                                config_parser.remove_option("post_processing", "%s_textbox2" % (delete_config_rule))
 
                 with open(config_ini, 'w') as configini:
 
@@ -5675,7 +5680,7 @@ class ConfigUsenet(object):
                 add_newznab_site = kwargs["add_newznab_site2"]
 
                 site_index = 1
-                add_newznab_site_index = add_newznab_site + "_" + str(site_index)
+                add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
 
                 if config_index_site:
 
@@ -5686,7 +5691,7 @@ class ConfigUsenet(object):
                         while add_newznab_site_index in config_index_site_list:
 
                                 site_index += 1
-                                add_newznab_site_index = add_newznab_site + "_" + str(site_index)
+                                add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
 
                         #check to make sure rule doesnt already exist
                         if add_newznab_site_index not in config_index_site_list:
@@ -5710,75 +5715,75 @@ class ConfigUsenet(object):
                 #set hostname, path, and port number for known index sites
                 if add_newznab_site == "nzbs_org":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzbs.org")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbs.org")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzb_su":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://api.nzb.su")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://api.nzb.su")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "dognzb_cr":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://api.dognzb.cr")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://api.dognzb.cr")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzbs4u_net":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzbs4u.net")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbs4u.net")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "usenet_crawler":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://www.usenet-crawler.com")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.usenet-crawler.com")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzb_ag":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzb.ag")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzb.ag")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nmatrix_co_za":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://www.nmatrix.co.za")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.nmatrix.co.za")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "newzb_net":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://newzb.net")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://newzb.net")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzbplanet_net":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://nzbplanet.net")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbplanet.net")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzbndx_com":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "https://www.nzbndx.com")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "443")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.nzbndx.com")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
 
                 elif add_newznab_site == "nzbid_org":
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "http://nzbid.org")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "80")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "http://nzbid.org")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "80")
 
                 else:
 
-                        config_parser.set("usenet", add_newznab_site_index + "_hostname", "")
-                        config_parser.set("usenet", add_newznab_site_index + "_portnumber", "")
+                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "")
+                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "")
 
                 #write default values to config.ini
-                config_parser.set("usenet", add_newznab_site_index + "_path", "")
-                config_parser.set("usenet", add_newznab_site_index + "_key", "")
-                config_parser.set("usenet", add_newznab_site_index + "_cat", "")
-                config_parser.set("usenet", add_newznab_site_index + "_search_and", "")
-                config_parser.set("usenet", add_newznab_site_index + "_search_or", "")
-                config_parser.set("usenet", add_newznab_site_index + "_search_not", "")
-                config_parser.set("usenet", add_newznab_site_index + "_minsize", "0")
-                config_parser.set("usenet", add_newznab_site_index + "_maxsize", "0")
-                config_parser.set("usenet", add_newznab_site_index + "_spotweb_support", "no")
-                config_parser.set("usenet", add_newznab_site_index + "_enabled", "yes")
+                config_parser.set("usenet", "%s_path" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_key" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_cat" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_search_and" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_search_or" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_search_not" % (add_newznab_site_index), "")
+                config_parser.set("usenet", "%s_minsize" % (add_newznab_site_index), "0")
+                config_parser.set("usenet", "%s_maxsize" % (add_newznab_site_index), "0")
+                config_parser.set("usenet", "%s_spotweb_support" % (add_newznab_site_index), "no")
+                config_parser.set("usenet", "%s_enabled" % (add_newznab_site_index), "yes")
 
                 with open(config_ini, 'w') as configini:
 
@@ -5794,23 +5799,23 @@ class ConfigUsenet(object):
                 edit_newznab_site_index = kwargs["edit_newznab_site2"]
 
                 #write values to config.ini
-                config_parser.set("usenet", edit_newznab_site_index + "_hostname", kwargs["newznab_hostname2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_path", kwargs["newznab_path2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_portnumber", kwargs["newznab_portnumber2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_key", kwargs["newznab_key2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_cat", kwargs["newznab_cat2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_search_and", kwargs["newznab_search_and2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_search_or", kwargs["newznab_search_or2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_search_not", kwargs["newznab_search_not2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_spotweb_support", kwargs["spotweb_support2"])
-                config_parser.set("usenet", edit_newznab_site_index + "_enabled", kwargs["newznab_enabled2"])
+                config_parser.set("usenet", "%s_hostname" % (edit_newznab_site_index), kwargs["newznab_hostname2"])
+                config_parser.set("usenet", "%s_path" % (edit_newznab_site_index), kwargs["newznab_path2"])
+                config_parser.set("usenet", "%s_portnumber" % (edit_newznab_site_index), kwargs["newznab_portnumber2"])
+                config_parser.set("usenet", "%s_key" % (edit_newznab_site_index), kwargs["newznab_key2"])
+                config_parser.set("usenet", "%s_cat" % (edit_newznab_site_index), kwargs["newznab_cat2"])
+                config_parser.set("usenet", "%s_search_and" % (edit_newznab_site_index), kwargs["newznab_search_and2"])
+                config_parser.set("usenet", "%s_search_or" % (edit_newznab_site_index), kwargs["newznab_search_or2"])
+                config_parser.set("usenet", "%s_search_not" % (edit_newznab_site_index), kwargs["newznab_search_not2"])
+                config_parser.set("usenet", "%s_spotweb_support" % (edit_newznab_site_index), kwargs["spotweb_support2"])
+                config_parser.set("usenet", "%s_enabled" % (edit_newznab_site_index), kwargs["newznab_enabled2"])
 
                 if kwargs["newznab_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_minsize2"])
-                                config_parser.set("usenet",  edit_newznab_site_index + "_minsize",kwargs["newznab_minsize2"])
+                                config_parser.set("usenet", "%s_minsize" % (edit_newznab_site_index),kwargs["newznab_minsize2"])
 
                         except ValueError:
 
@@ -5818,14 +5823,14 @@ class ConfigUsenet(object):
 
                 else:
 
-                        config_parser.set("usenet",  edit_newznab_site_index + "_minsize","0")
+                        config_parser.set("usenet", "%s_minsize" % (edit_newznab_site_index),"0")
 
                 if kwargs["newznab_maxsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_maxsize2"])
-                                config_parser.set("usenet",  edit_newznab_site_index + "_maxsize", kwargs["newznab_maxsize2"])
+                                config_parser.set("usenet", "%s_maxsize" % (edit_newznab_site_index), kwargs["newznab_maxsize2"])
 
                         except ValueError:
 
@@ -5833,7 +5838,7 @@ class ConfigUsenet(object):
 
                 else:
 
-                        config_parser.set("usenet",  edit_newznab_site_index + "_maxsize","0")
+                        config_parser.set("usenet", "%s_maxsize" % (edit_newznab_site_index),"0")
 
                 with open(config_ini, 'w') as configini:
 
@@ -5862,18 +5867,18 @@ class ConfigUsenet(object):
                                 config_parser.set("usenet", "index_site", delete_newznab_site)
 
                                 #delete config entries for selected index site
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_hostname")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_path")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_portnumber")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_key")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_cat")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_search_and")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_search_or")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_search_not")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_minsize")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_maxsize")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_spotweb_support")
-                                config_parser.remove_option("usenet", delete_newznab_site_index + "_enabled")
+                                config_parser.remove_option("usenet", "%s_hostname" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_path" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_portnumber" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_key" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_cat" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_search_and" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_search_or" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_search_not" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_minsize" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_maxsize" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_spotweb_support" % (delete_newznab_site_index))
+                                config_parser.remove_option("usenet", "%s_enabled" % (delete_newznab_site_index))
 
                 with open(config_ini, 'w') as configini:
 
