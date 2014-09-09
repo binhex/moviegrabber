@@ -5305,6 +5305,10 @@ class ConfigGeneral(object):
 
                                 pass
 
+                else:
+
+                        config_parser.set("general", "min_seeds", "0")
+
                 if kwargs["min_peers2"]:
 
                         #check value is an integer, if not do not save
@@ -5315,6 +5319,10 @@ class ConfigGeneral(object):
                         except ValueError:
 
                                 pass
+                        
+                else:
+
+                        config_parser.set("general", "min_peers", "0")
 
                 with open(config_ini, 'w') as configini:
 
