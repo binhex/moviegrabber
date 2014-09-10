@@ -4343,6 +4343,14 @@ class SearchIndex(object):
                                         
                                         post_peers = None
 
+                                if post_seeders == "---":
+
+                                        post_seeders = None
+
+                                if post_peers == "---":
+
+                                        post_peers = None
+                                        
                         if post_seeders != None:
 
                                 self.index_min_seeds = post_seeders
@@ -4360,7 +4368,7 @@ class SearchIndex(object):
 
                         else:
 
-                                self.index_min_seeds = ""
+                                self.index_min_peers = ""
                                 mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #call imdb search json
