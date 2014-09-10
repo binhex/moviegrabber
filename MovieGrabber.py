@@ -283,7 +283,7 @@ def cli_arguments():
                                 sys.exit(2)
 
                 #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s %s" % (latest_mg_version), usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
                 commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
@@ -4512,7 +4512,7 @@ class PostProcessing(object):
                                                         'greater than'  : operator.gt,
                                                         'less than'  : operator.lt}
 
-                                                #create variable for completed folder + movie title folder
+                                                #create variable for completed folder and movie title folder
                                                 self.os_movie_path_folder = os.path.join(self.config_completed_dir, self.sqlite_history_downloaded_dlname)
                                                 self.os_movie_path_folder = os.path.normpath(self.os_movie_path_folder)
 
@@ -4537,7 +4537,7 @@ class PostProcessing(object):
 
                 def move(self):
 
-                        #walk completed dir + imdb movie title
+                        #walk completed dir and imdb movie title
                         for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
                                 
                                 for os_movie_files_item in files:
@@ -4567,7 +4567,7 @@ class PostProcessing(object):
                         #create list of valid movie file extensions
                         valid_extensions_list = [u".mkv", u".avi", u".mp4", u".dvx", u".wmv", u".mov"]
 
-                        #walk completed dir + imdb movie title
+                        #walk completed dir and imdb movie title
                         for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
                                 
                                 for os_movie_files_item in files:
@@ -4583,13 +4583,13 @@ class PostProcessing(object):
                                                 #if post rename set to imdb then set destination filename to imdb name
                                                 if self.config_post_rename_files == "imdb":
 
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_dlname + os_movie_files_ext)
+                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, "%s%s" % (self.sqlite_history_downloaded_dlname,os_movie_files_ext))
 
                                                 #if post rename set to postname then set destination filename to post title
                                                 elif self.config_post_rename_files == "postname":
                                                         
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, self.sqlite_history_downloaded_postname + os_movie_files_ext)
-                                                        
+                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, "%s%s" % (self.sqlite_history_downloaded_postname,os_movie_files_ext))
+
                                                 if not os.path.exists(dest_path_with_filename):
 
                                                         try:
@@ -4618,7 +4618,7 @@ class PostProcessing(object):
                                         self.config_post_rule_textbox1 = config_parser.get("post_processing", "%s_textbox1" % (config_post_rule_item))
                                         self.config_post_rule_textbox2 = config_parser.get("post_processing", "%s_textbox2" % (config_post_rule_item))
 
-                                        #walk completed dir + imdb movie title, need to walk again due to move and rename functions previously applied
+                                        #walk completed dir and imdb movie title, need to walk again due to move and rename functions previously applied
                                         for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
 
                                                 #create filenames list - folder and subs not required as deleted in move function
@@ -4876,7 +4876,7 @@ class PostProcessing(object):
 
                 def rules_move(self):
 
-                        #create variable for self.config_post_rule_textbox2 + movie title folder
+                        #create variable for self.config_post_rule_textbox2 and movie title folder
                         destination_move_path = os.path.join(self.config_post_rule_textbox2, self.sqlite_history_downloaded_dlname)
                         destination_move_path = os.path.normpath(destination_move_path)
 
@@ -5945,7 +5945,7 @@ class ConfigTorrent(object):
                 add_torrent_site = kwargs["add_torrent_site2"]
 
                 site_index = 1
-                add_torrent_site_index = add_torrent_site + "_" + str(site_index)
+                add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
 
                 if config_index_site:
 
@@ -5956,7 +5956,7 @@ class ConfigTorrent(object):
                         while add_torrent_site_index in config_index_site_list:
 
                                 site_index += 1
-                                add_torrent_site_index = add_torrent_site + "_" + str(site_index)
+                                add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
 
                         #check to make sure rule doesnt already exist
                         if add_torrent_site_index not in config_index_site_list:
@@ -5980,36 +5980,36 @@ class ConfigTorrent(object):
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "kat":
 
-                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "https://kickass.to")
-                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "443")
+                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "https://kickass.to")
+                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "443")
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "piratebay":
 
-                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://rss.thepiratebay.se")
-                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
+                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://rss.thepiratebay.se")
+                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "bitsnoop":
 
-                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://bitsnoop.com")
-                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
+                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://bitsnoop.com")
+                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "extratorrent":
 
-                        config_parser.set("torrent", add_torrent_site_index + "_hostname", "http://extratorrent.cc")
-                        config_parser.set("torrent", add_torrent_site_index + "_portnumber", "80")
+                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://extratorrent.cc")
+                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
 
                 #write default values to config.ini
-                config_parser.set("torrent", add_torrent_site_index + "_cat", "")
-                config_parser.set("torrent", add_torrent_site_index + "_lang", "")
-                config_parser.set("torrent", add_torrent_site_index + "_search_and", "")
-                config_parser.set("torrent", add_torrent_site_index + "_search_or", "")
-                config_parser.set("torrent", add_torrent_site_index + "_search_not", "")
-                config_parser.set("torrent", add_torrent_site_index + "_minsize", "0")
-                config_parser.set("torrent", add_torrent_site_index + "_maxsize", "0")
-                config_parser.set("torrent", add_torrent_site_index + "_enabled", "yes")
+                config_parser.set("torrent", "%s_cat" % (add_torrent_site_index), "")
+                config_parser.set("torrent", "%s_lang" % (add_torrent_site_index), "")
+                config_parser.set("torrent", "%s_search_and" % (add_torrent_site_index), "")
+                config_parser.set("torrent", "%s_search_or" % (add_torrent_site_index), "")
+                config_parser.set("torrent", "%s_search_not" % (add_torrent_site_index), "")
+                config_parser.set("torrent", "%s_minsize" % (add_torrent_site_index), "0")
+                config_parser.set("torrent", "%s_maxsize" % (add_torrent_site_index), "0")
+                config_parser.set("torrent", "%s_enabled" % (add_torrent_site_index), "yes")
                 
                 with open(config_ini, 'w') as configini:
 
@@ -6025,21 +6025,21 @@ class ConfigTorrent(object):
                 edit_torrent_site_index = kwargs["edit_torrent_site2"]
 
                 #write values to config.ini
-                config_parser.set("torrent", edit_torrent_site_index + "_hostname", kwargs["torrent_hostname2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_portnumber", kwargs["torrent_portnumber2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_cat", kwargs["torrent_cat2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_lang", kwargs["torrent_lang2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_search_and", kwargs["torrent_search_and2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_search_or", kwargs["torrent_search_or2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_search_not", kwargs["torrent_search_not2"])
-                config_parser.set("torrent", edit_torrent_site_index + "_enabled", kwargs["torrent_enabled2"])
+                config_parser.set("torrent", "%s_hostname" % (edit_torrent_site_index), kwargs["torrent_hostname2"])
+                config_parser.set("torrent", "%s_portnumber" % (edit_torrent_site_index), kwargs["torrent_portnumber2"])
+                config_parser.set("torrent", "%s_cat" % (edit_torrent_site_index), kwargs["torrent_cat2"])
+                config_parser.set("torrent", "%s_lang" % (edit_torrent_site_index), kwargs["torrent_lang2"])
+                config_parser.set("torrent", "%s_search_and" % (edit_torrent_site_index), kwargs["torrent_search_and2"])
+                config_parser.set("torrent", "%s_search_or" % (edit_torrent_site_index), kwargs["torrent_search_or2"])
+                config_parser.set("torrent", "%s_search_not" % (edit_torrent_site_index), kwargs["torrent_search_not2"])
+                config_parser.set("torrent", "%s_enabled" % (edit_torrent_site_index), kwargs["torrent_enabled2"])
 
                 if kwargs["torrent_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_minsize2"])
-                                config_parser.set("torrent",  edit_torrent_site_index + "_minsize",kwargs["torrent_minsize2"])
+                                config_parser.set("torrent", "%s_minsize" % (edit_torrent_site_index),kwargs["torrent_minsize2"])
 
                         except ValueError:
 
@@ -6050,7 +6050,7 @@ class ConfigTorrent(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_maxsize2"])
-                                config_parser.set("torrent",  edit_torrent_site_index + "_maxsize", kwargs["torrent_maxsize2"])
+                                config_parser.set("torrent", "%s_maxsize" % (edit_torrent_site_index), kwargs["torrent_maxsize2"])
 
                         except ValueError:
 
@@ -6083,16 +6083,16 @@ class ConfigTorrent(object):
                                 config_parser.set("torrent", "index_site", delete_torrent_site)
 
                                 #delete config entries for selected index site
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_hostname")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_portnumber")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_cat")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_lang")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_search_and")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_search_or")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_search_not")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_minsize")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_maxsize")
-                                config_parser.remove_option("torrent", delete_torrent_site_index + "_enabled")
+                                config_parser.remove_option("torrent", "%s_hostname" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_portnumber" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_cat" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_lang" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_search_and" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_search_or" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_search_not" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_minsize" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_maxsize" % (delete_torrent_site_index))
+                                config_parser.remove_option("torrent", "%s_enabled" % (delete_torrent_site_index))
 
                 with open(config_ini, 'w') as configini:
 
@@ -7001,12 +7001,12 @@ def start_webgui():
 
                 '/stylesheets' : {
                         'tools.staticdir.on' : True,
-                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/" + theme + "/templates/static/stylesheets")
+                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/stylesheets" % (theme))
                 },
 
                 '/javascript' : {
                         'tools.staticdir.on' : True,
-                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/" + theme + "/templates/static/javascript")
+                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/javascript" % (theme))
                 },
 
                 '/images' : {
@@ -7016,7 +7016,7 @@ def start_webgui():
 
                 '/favicon.ico' : {
                         'tools.staticfile.on' : True,
-                        'tools.staticfile.filename' : os.path.normpath(os.path.dirname(os.path.abspath (sys.argv[0])) + r"/images/icon/favicon.ico")
+                        'tools.staticfile.filename' : os.path.normpath(r"%s/images/icon/favicon.ico" % (os.path.dirname(os.path.abspath (sys.argv[0]))))
                 },
 
                 '/' : {
@@ -7116,7 +7116,7 @@ class SearchIndexThread(object):
                         #loop over list of usenet index sites
                         for usenet_index_site_item in usenet_index_site_list:
 
-                                config_index_enabled = config_parser.get("usenet", usenet_index_site_item + "_enabled")
+                                config_index_enabled = config_parser.get("usenet", "%s_enabled" % (usenet_index_site_item))
 
                                 if config_index_enabled == "yes":
 
@@ -7124,9 +7124,9 @@ class SearchIndexThread(object):
                                         self.search_index_function = "newznab_index"
                                         self.download_type = "usenet"
 
-                                        config_hostname = config_parser.get("usenet", usenet_index_site_item + "_hostname")
-                                        config_portnumber = config_parser.get("usenet", usenet_index_site_item + "_portnumber")
-                                        config_apikey = config_parser.get("usenet", usenet_index_site_item + "_key")
+                                        config_hostname = config_parser.get("usenet", "%s_hostname" % (usenet_index_site_item))
+                                        config_portnumber = config_parser.get("usenet", "%s_portnumber" % (usenet_index_site_item))
+                                        config_apikey = config_parser.get("usenet", "%s_key" % (usenet_index_site_item))
 
                                         #check all required details are complete for selected index sites
                                         if config_hostname and config_portnumber and config_apikey and usenet_watch_dir and usenet_archive_dir and usenet_completed_dir:
@@ -7145,7 +7145,7 @@ class SearchIndexThread(object):
                         #loop over list of torrent index sites
                         for torrent_index_site_item in torrent_index_site_list:
 
-                                config_index_enabled = config_parser.get("torrent", torrent_index_site_item + "_enabled")
+                                config_index_enabled = config_parser.get("torrent", "%s_enabled" % (torrent_index_site_item))
 
                                 if config_index_enabled == "yes":
 
@@ -7201,11 +7201,11 @@ class SearchIndexThread(object):
 
         def run(self):
 
-                #contruct class + function name and pass to thread with attributes
+                #contruct class and function name and pass to thread with attributes
                 search_index_function = getattr(SearchIndex(self.download_type,self.index_site_item), self.search_index_function)
 
                 #start search index thread
-                search_index_thread = threading.Thread(name="search_index_thread_" + self.index_site_item, target=search_index_function, args=())
+                search_index_thread = threading.Thread(name="search_index_thread_%s" % (self.index_site_item), target=search_index_function, args=())
                 search_index_thread.start()
 
                 #construct time format string
@@ -7491,14 +7491,14 @@ def launch_default_browser():
         try:
 
                 #open client browser
-                webbrowser.open(website_protocol + config_webconfig_address + ":" + config_webconfig_port, 2, 1)
+                webbrowser.open("%s%s:%s" % (website_protocol,config_webconfig_address,config_webconfig_port), 2, 1)
 
         except Exception:
 
                 try:
 
                         #open client browser
-                        webbrowser.open(website_protocol + config_webconfig_address + ":" + config_webconfig_port, 1, 1)
+                        webbrowser.open("%s%s:%s" % (website_protocol,config_webconfig_address,config_webconfig_port), 1, 1)
 
                 except Exception:
 
