@@ -6927,7 +6927,7 @@ class HomeRoot(object):
                 #run search index thread
                 SearchIndexThread().checks()
 
-                raise cherrypy.HTTPRedirect(".")
+                return HomeRoot().index()
 
         #read index page
         @cherrypy.expose
