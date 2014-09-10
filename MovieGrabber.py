@@ -283,7 +283,7 @@ def cli_arguments():
                                 sys.exit(2)
 
                 #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s %s" % (latest_mg_version), usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
                 commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
@@ -293,7 +293,7 @@ def cli_arguments():
                 commandline_parser.add_argument("--db", metavar="<path>", help="specify path for database e.g. --db /opt/moviegrabber/db/")
                 commandline_parser.add_argument("--pidfile", metavar="<path>", help="specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
                 commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--reset-config", action="store_true", help="reset settings to default")
+                commandline_parser.add_argument("--reset-config", action="store_true", help="reset config to default")
                 commandline_parser.add_argument("--reset-db", action="store_true", help="reset database to default")
                 commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
 
