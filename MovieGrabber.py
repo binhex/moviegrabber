@@ -4094,17 +4094,19 @@ class SearchIndex(object):
                                         #limit decimal precision to x.xx
                                         decimal.getcontext().prec = 3
 
-                                        #generate size in gb and append string GB for History/Queue
+                                        #generate size in gb
                                         post_size_int = decimal.Decimal(int(post_size)) / 1000000000
-
+                                        
+                                        #append string GB for History/Queue
                                         self.index_post_size = "%s GB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
 
                                 else:
 
-                                        #generate size in mb and append string mb for History/Queue
+                                        #generate size in mb
                                         post_size_int = int(post_size) / 1000000
-
+                                        
+                                        #append string mb for History/Queue
                                         self.index_post_size = "%s MB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
 
@@ -4115,7 +4117,7 @@ class SearchIndex(object):
                                 self.index_post_size_check = 0
                                 mg_log.info(u"%s Index - Post size not found" % (site_name))
 
-                        #if size is below min/max then continue to next post - %s does not support size filtering so has to be done at client end
+                        #if size is below min/max then continue to next post
                         if self.filter_index_good_size() != 1:
 
                                 mg_log.info(u"%s Index - Post Size is NOT within thresholds" % (site_name))
