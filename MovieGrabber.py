@@ -38,6 +38,20 @@ else:
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
+                #create full path to six module
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/six")
+                sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+                #append full path to sys path
+                sys.path.insert(1, sitepackages_modules_full_path)
+
+                #create full path to configobj module
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/configobj")
+                sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+                #append full path to sys path
+                sys.path.insert(1, sitepackages_modules_full_path)
+
                 #create full path to argparse module
                 sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
@@ -104,6 +118,7 @@ import base64
 
 #-------------------- 3rd party -----------------------------
 
+import configobj
 import feedparser
 import cherrypy
 from Cheetah.Template import Template
@@ -347,7 +362,7 @@ def cli_arguments():
                         
                         #open config file with utf-8 encoding, this then returns unicode
                         with codecs.open(config_ini, 'r', encoding='utf-8') as f:
-                                
+
                                 config_parser.readfp(f)
 
                         try:
@@ -545,6 +560,11 @@ def cli_arguments():
 
 #save returned value
 config_ini = cli_arguments()
+
+#test configobj - read
+config = configobj.ConfigObj(config_ini)
+value1 = config['imdb']['fav_title']
+print value1.encode("utf-8")
 
 #open config file with utf-8 encoding, this then returns unicode
 with codecs.open(config_ini, 'r', encoding='utf-8') as f:
@@ -4347,11 +4367,11 @@ class SearchIndex(object):
 
                                 if post_seeders == "---":
 
-                                        post_seeders = None
+                                        post_seeders = "0"
 
                                 if post_peers == "---":
 
-                                        post_peers = None
+                                        post_peers = "0"
                                         
                         if post_seeders != None:
 
@@ -5074,12 +5094,12 @@ class ConfigIMDB(object):
                 config_parser.set("imdb", "good_rating", kwargs["good_rating2"])
                 config_parser.set("imdb", "good_date", kwargs["good_date2"])
                 config_parser.set("imdb", "queue_date", kwargs["queue_date2"])
-                config_parser.set("imdb", "bad_title", del_inv_chars(kwargs["bad_title2"]).encode("utf-8"))
-                config_parser.set("imdb", "fav_dir", del_inv_chars(kwargs["fav_dir2"]).encode("utf-8"))
-                config_parser.set("imdb", "fav_writer", del_inv_chars(kwargs["fav_writer2"]).encode("utf-8"))
-                config_parser.set("imdb", "fav_actor", del_inv_chars(kwargs["fav_actor2"]).encode("utf-8"))
-                config_parser.set("imdb", "fav_char", del_inv_chars(kwargs["fav_char2"]).encode("utf-8"))
-                config_parser.set("imdb", "fav_title", del_inv_chars(kwargs["fav_title2"]).encode("utf-8"))
+                config_parser.set("imdb", "bad_title", uni_to_byte(del_inv_chars(kwargs["bad_title2"])))
+                config_parser.set("imdb", "fav_dir", uni_to_byte(del_inv_chars(kwargs["fav_dir2"])))
+                config_parser.set("imdb", "fav_writer", uni_to_byte(del_inv_chars(kwargs["fav_writer2"])))
+                config_parser.set("imdb", "fav_actor", uni_to_byte(del_inv_chars(kwargs["fav_actor2"])))
+                config_parser.set("imdb", "fav_char", uni_to_byte(del_inv_chars(kwargs["fav_char2"])))
+                config_parser.set("imdb", "fav_title", uni_to_byte(del_inv_chars(kwargs["fav_title2"])))
 
                 if kwargs["good_votes2"]:
 
@@ -5245,13 +5265,13 @@ class ConfigGeneral(object):
                 config_parser.set("general", "color_scheme", kwargs["color_scheme2"])
                 config_parser.set("general", "launch_browser", kwargs["launch_browser2"])
                 config_parser.set("general", "max_items_shown", kwargs["max_items_shown2"])
-                config_parser.set("webconfig", "username", kwargs["username2"])
-                config_parser.set("webconfig", "password", kwargs["password2"])
+                config_parser.set("webconfig", "username", uni_to_byte(kwargs["username2"]))
+                config_parser.set("webconfig", "password", uni_to_byte(kwargs["password2"]))
                 config_parser.set("webconfig", "enable_ssl", kwargs["enable_ssl2"])
-                config_parser.set("general", "index_preferred_group", kwargs["index_preferred_group2"])
-                config_parser.set("general", "index_special_cut", kwargs["index_special_cut2"])                
-                config_parser.set("general", "index_bad_group", kwargs["index_bad_group2"])
-                config_parser.set("general", "index_bad_report", kwargs["index_bad_report2"])
+                config_parser.set("general", "index_preferred_group", uni_to_byte(kwargs["index_preferred_group2"]))
+                config_parser.set("general", "index_special_cut", uni_to_byte(kwargs["index_special_cut2"]))
+                config_parser.set("general", "index_bad_group", uni_to_byte(kwargs["index_bad_group2"]))
+                config_parser.set("general", "index_bad_report", uni_to_byte(kwargs["index_bad_report2"]))
                 config_parser.set("general", "log_level", kwargs["log_level2"])
                 config_parser.set("general", "check_version", kwargs["check_version2"])
 		
@@ -5533,8 +5553,8 @@ class ConfigPost(object):
                 edit_config_dropdown1 = kwargs["edit_config_dropdown1"]
                 edit_config_dropdown2 = kwargs["edit_config_dropdown2"]
                 edit_config_dropdown3 = kwargs["edit_config_dropdown3"]
-                edit_config_textbox1 = kwargs["edit_config_textbox1"]
-                edit_config_textbox2 = kwargs["edit_config_textbox2"]
+                edit_config_textbox1 = uni_to_byte(kwargs["edit_config_textbox1"])
+                edit_config_textbox2 = uni_to_byte(kwargs["edit_config_textbox2"])
 
                 #if dropdown3 set to delete then remove any entry in textbox2 (path)
                 if edit_config_dropdown3 == "delete":
@@ -5822,9 +5842,9 @@ class ConfigUsenet(object):
                 config_parser.set("usenet", "%s_portnumber" % (edit_newznab_site_index), kwargs["newznab_portnumber2"])
                 config_parser.set("usenet", "%s_key" % (edit_newznab_site_index), kwargs["newznab_key2"])
                 config_parser.set("usenet", "%s_cat" % (edit_newznab_site_index), kwargs["newznab_cat2"])
-                config_parser.set("usenet", "%s_search_and" % (edit_newznab_site_index), kwargs["newznab_search_and2"])
-                config_parser.set("usenet", "%s_search_or" % (edit_newznab_site_index), kwargs["newznab_search_or2"])
-                config_parser.set("usenet", "%s_search_not" % (edit_newznab_site_index), kwargs["newznab_search_not2"])
+                config_parser.set("usenet", "%s_search_and" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_and2"]))
+                config_parser.set("usenet", "%s_search_or" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_or2"]))
+                config_parser.set("usenet", "%s_search_not" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_not2"]))
                 config_parser.set("usenet", "%s_spotweb_support" % (edit_newznab_site_index), kwargs["spotweb_support2"])
                 config_parser.set("usenet", "%s_enabled" % (edit_newznab_site_index), kwargs["newznab_enabled2"])
 
@@ -6031,9 +6051,9 @@ class ConfigTorrent(object):
                 config_parser.set("torrent", "%s_portnumber" % (edit_torrent_site_index), kwargs["torrent_portnumber2"])
                 config_parser.set("torrent", "%s_cat" % (edit_torrent_site_index), kwargs["torrent_cat2"])
                 config_parser.set("torrent", "%s_lang" % (edit_torrent_site_index), kwargs["torrent_lang2"])
-                config_parser.set("torrent", "%s_search_and" % (edit_torrent_site_index), kwargs["torrent_search_and2"])
-                config_parser.set("torrent", "%s_search_or" % (edit_torrent_site_index), kwargs["torrent_search_or2"])
-                config_parser.set("torrent", "%s_search_not" % (edit_torrent_site_index), kwargs["torrent_search_not2"])
+                config_parser.set("torrent", "%s_search_and" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_and2"]))
+                config_parser.set("torrent", "%s_search_or" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_or2"]))
+                config_parser.set("torrent", "%s_search_not" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_not2"]))
                 config_parser.set("torrent", "%s_enabled" % (edit_torrent_site_index), kwargs["torrent_enabled2"])
 
                 if kwargs["torrent_minsize2"]:
