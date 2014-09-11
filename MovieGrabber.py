@@ -561,10 +561,26 @@ def cli_arguments():
 #save returned value
 config_ini = cli_arguments()
 
+#test configobj
+config_obj = configobj.ConfigObj(config_ini)
+
 #test configobj - read
-config = configobj.ConfigObj(config_ini)
-value1 = config['imdb']['fav_title']
+value1 = config_obj['imdb']['fav_title']
 print value1.encode("utf-8")
+
+#test configobj - write
+config_obj['imdb']['fav_title'] = u"cheese"
+print config['imdb']['fav_title']
+
+#test configobj for sections
+print 'foo' in config_obj.sections
+print 'imdb' in config_obj.sections
+
+#test configobj for values
+test = config_obj['imdb']
+
+print 'foo' in test.scalars
+print 'fav_dir' in test.scalars
 
 #open config file with utf-8 encoding, this then returns unicode
 with codecs.open(config_ini, 'r', encoding='utf-8') as f:
@@ -7045,6 +7061,7 @@ def start_webgui():
                         'tools.auth_basic.on' : auth_basic,
                         'tools.auth_basic.realm' : "MovieGrabber",
                         'tools.auth_basic.checkpassword' : checkpassword,
+                        'tools.encode.on' : True,             
                         'tools.encode.encoding' : "utf-8",
                         'tools.gzip.on' : True
                 }
