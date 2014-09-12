@@ -737,7 +737,7 @@ class ResultsDBQueued(Base):
 #---------------------- paths ----------------------------------
 
 #read theme name and pass to paths
-theme = config_obj["general"]["theme")
+theme = config_obj["general"]["theme"]
 
 #define path to cheetah templates
 templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
@@ -790,7 +790,7 @@ def cherrypy_logging():
 def moviegrabber_logging():
 
         #read log levels
-        log_level = config_obj["general"]["log_level")
+        log_level = config_obj["general"]["log_level"]
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -850,7 +850,7 @@ def moviegrabber_logging():
 def sqlite_logging():
 
         #read log levels
-        log_level = config_obj["general"]["log_level")
+        log_level = config_obj["general"]["log_level"]
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -982,7 +982,7 @@ def host_ip():
         network_info = socket.getaddrinfo(socket.gethostname(), None)
 
         #get moviegrabber config.ini address
-        config_address = config_obj["webconfig"]["address")
+        config_address = config_obj["webconfig"]["address"]
 
         #if moviegrabber config.ini address is local address then skip check
         if config_address != "0.0.0.0" or "127.0.0.1" or "localhost":
@@ -1011,7 +1011,7 @@ def config_ip():
         network_info = socket.getaddrinfo(socket.gethostname(), None)
 
         #get moviegrabber config.ini address
-        config_address = config_obj["webconfig"]["address")
+        config_address = config_obj["webconfig"]["address"]
 
         #if moviegrabber config.ini address is local address then skip check
         if config_address != ("0.0.0.0" or "127.0.0.1" or "localhost"):
@@ -1547,12 +1547,12 @@ class SearchIndex(object):
                 self.config_fav_writer = config_obj["imdb"]["fav_writer"]
                 self.config_fav_dir = config_obj["imdb"]["fav_dir"]
                 self.config_queue_genre = config_obj["imdb"]["queue_genre"]
-                self.config_queue_date = config_obj.getint("imdb"]["queue_date"]
+                self.config_queue_date = config_obj.getint["imdb"]["queue_date"]
                 self.config_good_genre = config_obj["imdb"]["good_genre"]
-                self.config_good_date = config_obj.getint("imdb"]["good_date"]
-                self.config_good_votes = config_obj.getint("imdb"]["good_votes"]
-                self.config_good_rating = config_obj.getfloat("imdb"]["good_rating"]
-                self.config_preferred_rating = config_obj.getfloat("imdb"]["preferred_rating"]
+                self.config_good_date = config_obj.getint["imdb"]["good_date"]
+                self.config_good_votes = config_obj.getint["imdb"]["good_votes"]
+                self.config_good_rating = config_obj.getfloat["imdb"]["good_rating"]
+                self.config_preferred_rating = config_obj.getfloat["imdb"]["preferred_rating"]
                 self.config_preferred_genre = config_obj["imdb"]["preferred_genre"]
 
                 #read switches from config.ini
@@ -1568,14 +1568,14 @@ class SearchIndex(object):
                 self.config_enable_email_notify = config_obj["switches"]["enable_email_notify"]
 
                 #read search criteria from config.ini
-                self.config_search_and = config_obj[download_type, "%s_search_and" % (index_site_item)]
-                self.config_search_or = config_obj[download_type, "%s_search_or" % (index_site_item)]
-                self.config_search_not = config_obj[download_type, "%s_search_not" % (index_site_item)]
-                self.config_cat = config_obj[download_type, "%s_cat" % (index_site_item)]
-                self.config_minsize = config_obj.getint(download_type, "%s_minsize" % (index_site_item)]
-                self.config_maxsize = config_obj.getint(download_type, "%s_maxsize" % (index_site_item)]
-                self.config_hostname = config_obj[download_type, "%s_hostname" % (index_site_item)]
-                self.config_portnumber = config_obj[download_type, "%s_portnumber" % (index_site_item)]
+                self.config_search_and = config_obj[download_type]["%s_search_and" % (index_site_item)]
+                self.config_search_or = config_obj[download_type]["%s_search_or" % (index_site_item)]
+                self.config_search_not = config_obj[download_type]["%s_search_not" % (index_site_item)]
+                self.config_cat = config_obj[download_type]["%s_cat" % (index_site_item)]
+                self.config_minsize = config_obj.getint[download_type]["%s_minsize" % (index_site_item)]
+                self.config_maxsize = config_obj.getint[download_type]["%s_maxsize" % (index_site_item)]
+                self.config_hostname = config_obj[download_type]["%s_hostname" % (index_site_item)]
+                self.config_portnumber = config_obj[download_type]["%s_portnumber" % (index_site_item)]
 
                 #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
                 self.config_movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
@@ -1589,18 +1589,18 @@ class SearchIndex(object):
                 self.config_preferred_group = config_obj["general"]["index_preferred_group"]        
                 self.config_bad_group = config_obj["general"]["index_bad_group"]
                 self.config_bad_report = config_obj["general"]["index_bad_report"]    
-                self.config_posts_to_process = config_obj.getint("general"]["index_posts_to_process"]
+                self.config_posts_to_process = config_obj.getint["general"]["index_posts_to_process"]
 
                 if self.download_type == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = config_obj[download_type, "%s_path" % (index_site_item)]
-                        self.config_apikey = config_obj[download_type, "%s_key" % (index_site_item)]
-                        self.config_spotweb_support = config_obj[download_type, "%s_spotweb_support" % (index_site_item)]
+                        self.config_path = config_obj[download_type]["%s_path" % (index_site_item)]
+                        self.config_apikey = config_obj[download_type]["%s_key" % (index_site_item)]
+                        self.config_spotweb_support = config_obj[download_type]["%s_spotweb_support" % (index_site_item)]
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = config_obj[download_type, "%s_lang" % (index_site_item)]
+                        self.config_lang = config_obj[download_type]["%s_lang" % (index_site_item)]
                         self.config_min_seeds = config_obj["general"]["min_seeds"]
                         self.config_min_peers = config_obj["general"]["min_peers"]
                         
@@ -2919,7 +2919,7 @@ class SearchIndex(object):
                 if self.config_enable_email_notify == "yes":
 
                         config_email_server = config_obj["email_settings"]["email_server"]
-                        config_email_server_port = config_obj.getint("email_settings"]["email_server_port"]
+                        config_email_server_port = config_obj.getint["email_settings"]["email_server_port"]
                         config_email_server_ssl = config_obj["email_settings"]["email_server_ssl"]
                         config_email_username = config_obj["email_settings"]["email_username"]
                         config_email_password = config_obj["email_settings"]["email_password"]
@@ -5058,13 +5058,13 @@ class ConfigIMDB(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.good_rating = config_obj.getfloat("imdb"]["good_rating"]
-                template.good_date = config_obj.getint("imdb"]["good_date"]
+                template.good_rating = config_obj.getfloat["imdb"]["good_rating"]
+                template.good_date = config_obj.getint["imdb"]["good_date"]
                 template.good_votes = config_obj["imdb"]["good_votes"]
                 template.good_genre = config_obj["imdb"]["good_genre"]
-                template.preferred_rating = config_obj.getfloat("imdb"]["preferred_rating"]
+                template.preferred_rating = config_obj.getfloat["imdb"]["preferred_rating"]
                 template.preferred_genre = config_obj["imdb"]["preferred_genre"]
-                template.queue_date = config_obj.getint("imdb"]["queue_date"]
+                template.queue_date = config_obj.getint["imdb"]["queue_date"]
                 template.queue_genre = config_obj["imdb"]["queue_genre"]
                 template.bad_title = config_obj["imdb"]["bad_title"]
                 template.fav_dir = config_obj["imdb"]["fav_dir"]
@@ -5268,7 +5268,7 @@ class ConfigGeneral(object):
                 config_obj["general"]["max_items_shown"] = kwargs["max_items_shown2"]
                 config_obj["webconfig"]["username"] = kwargs["username2"]
                 config_obj["webconfig"]["password"] = kwargs["password2"]
-                config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"])
+                config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"]
                 config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"]
                 config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"]
                 config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"]
@@ -5338,7 +5338,7 @@ class ConfigGeneral(object):
 
                 else:
 
-                        config_obj["general"]["min_seeds", "0")
+                        config_obj["general"]["min_seeds"] = "0"
 
                 if kwargs["min_peers2"]:
 
@@ -5597,14 +5597,14 @@ class ConfigPost(object):
 
                                 #convert back to comma seperated list and set
                                 config_post_rule_str = ",".join(config_post_rule_list)
-                                config_obj["post_processing"]["post_rule", config_post_rule_str)
+                                config_obj["post_processing"]["post_rule"] = config_post_rule_str
 
                                 #delete config entries for selected post processing rule
-                                config_obj.remove_option("post_processing"]["%s_dropdown1" % (delete_config_rule)]
-                                config_obj.remove_option("post_processing"]["%s_dropdown2" % (delete_config_rule)]
-                                config_obj.remove_option("post_processing"]["%s_dropdown3" % (delete_config_rule)]
-                                config_obj.remove_option("post_processing"]["%s_textbox1" % (delete_config_rule)]
-                                config_obj.remove_option("post_processing"]["%s_textbox2" % (delete_config_rule)]
+                                config_obj.remove_option["post_processing"]["%s_dropdown1" % (delete_config_rule)]
+                                config_obj.remove_option["post_processing"]["%s_dropdown2" % (delete_config_rule)]
+                                config_obj.remove_option["post_processing"]["%s_dropdown3" % (delete_config_rule)]
+                                config_obj.remove_option["post_processing"]["%s_textbox1" % (delete_config_rule)]
+                                config_obj.remove_option["post_processing"]["%s_textbox2" % (delete_config_rule)]
 
                 config_obj.write()
 
@@ -5625,10 +5625,10 @@ class ConfigScheduling(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
-                template.index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
-                template.post_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
-                template.post_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
+                template.index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
+                template.index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
+                template.post_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
+                template.post_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
 
                 header()
 
@@ -5879,18 +5879,18 @@ class ConfigUsenet(object):
                                 config_obj["usenet"]["index_site"] = delete_newznab_site
 
                                 #delete config entries for selected index site
-                                config_obj.remove_option("usenet"]["%s_hostname" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_path" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_portnumber" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_key" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_cat" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_search_and" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_search_or" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_search_not" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_minsize" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_maxsize" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_spotweb_support" % (delete_newznab_site_index)]
-                                config_obj.remove_option("usenet"]["%s_enabled" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_hostname" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_path" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_portnumber" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_key" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_cat" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_search_and" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_search_or" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_search_not" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_minsize" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_maxsize" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_spotweb_support" % (delete_newznab_site_index)]
+                                config_obj.remove_option["usenet"]["%s_enabled" % (delete_newznab_site_index)]
 
                 config_obj.write()
 
@@ -6070,16 +6070,16 @@ class ConfigTorrent(object):
                                 config_obj["torrent"]["index_site"] = delete_torrent_site
 
                                 #delete config entries for selected index site
-                                config_obj.remove_option("torrent"]["%s_hostname" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_portnumber" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_cat" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_lang" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_search_and" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_search_or" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_search_not" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_minsize" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_maxsize" % (delete_torrent_site_index)]
-                                config_obj.remove_option("torrent"]["%s_enabled" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_hostname" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_portnumber" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_cat" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_lang" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_search_and" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_search_or" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_search_not" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_minsize" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_maxsize" % (delete_torrent_site_index)]
+                                config_obj.remove_option["torrent"]["%s_enabled" % (delete_torrent_site_index)]
 
                 config_obj.write()
 
