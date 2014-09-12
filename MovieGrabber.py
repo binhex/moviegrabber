@@ -88,7 +88,6 @@ import logging
 import traceback
 import StringIO
 import fileinput
-import ConfigParser
 import codecs
 import decimal
 import operator
@@ -146,29 +145,31 @@ user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0;
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
 
-#enable config parser
-config_parser = ConfigParser.SafeConfigParser()
+##config_obj = configobj.ConfigObj(config_ini)
+##config_obj["imdb"].scalars.remove("good_genre")
+##os._exit(1)
+#self.sections.remove(key)                        
 
 def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
+        #enable config parser
+        config_obj = configobj.ConfigObj(config_ini)
+        
         #create config.ini file with default sections
         def config_write_section(section_name):
 
-                if config_parser.has_section(section_name) == False:
+                if (section_name in config_obj.sections) == False:
 
-                        config_parser.add_section(section_name)
+                        config_obj[section_name] = {}
+                        config_obj.write()
 
         #create config.ini file with default options
         def config_write_option(section_name,option_name,option_value):
 
-                if config_parser.has_option(section_name, option_name) == False:
+                if (option_name in config_obj[section_name].scalars) == False:
 
-                        config_parser.set(section_name, option_name, option_value)
-
-        #open config file with utf-8 encoding, this then returns unicode
-        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
-                
-                config_parser.readfp(f)
+                        config_obj[section_name][option_name] = option_value
+                        config_obj.write()
 
         #create config sections
         config_write_section("folders")
@@ -271,18 +272,15 @@ def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_di
         config_write_option("post_processing","post_rule","")
 
         #force write of version to config.ini
-        config_parser.set("general","local_version",latest_mg_version)
-        config_parser.set("webconfig","address",webconfig_address)        
-        config_parser.set("webconfig","port",webconfig_port)
-        config_parser.set("folders","logs_dir",logs_dir)                        
-        config_parser.set("folders","results_dir",results_dir)
+        config_obj["general"]["local_version"] = latest_mg_version
+        config_obj["webconfig"]["address"] = webconfig_address
+        config_obj["webconfig"]["port"] = webconfig_port
+        config_obj["folders"]["logs_dir"] = logs_dir
+        config_obj["folders"]["results_dir"] = results_dir
 
-        #write settings to config.ini
-        with open(config_ini, 'w') as configini:
-
-                config_parser.write(configini)
-                configini.close()
-
+        #write out changes
+        config_obj.write()
+        
 def cli_arguments():
 
         #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
@@ -347,11 +345,9 @@ def cli_arguments():
                 #if config.ini does not exist then create
                 if not os.path.exists(config_ini):
 
-                        #write config.ini and close
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
+                        #create empty config.ini
+                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj.write()
 
                         logs_dir = None
                         results_dir = None
@@ -359,19 +355,17 @@ def cli_arguments():
                         webconfig_port = None
 
                 else:
+
+                        #enable config parser
+                        config_obj = configobj.ConfigObj(config_ini)
                         
-                        #open config file with utf-8 encoding, this then returns unicode
-                        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
-
-                                config_parser.readfp(f)
-
                         try:
                                 
                                 #read values from config.ini
-                                logs_dir = config_parser.get("folders", "logs_dir")
-                                results_dir = config_parser.get("folders", "results_dir")
-                                webconfig_address = config_parser.get("webconfig", "address")
-                                webconfig_port = config_parser.get("webconfig", "port")                
+                                logs_dir = config_obj["folders"]["logs_dir"]
+                                results_dir = config_obj["folders"]["results_dir"]
+                                webconfig_address = config_obj["webconfig"]["address"]
+                                webconfig_port = config_obj["webconfig"]["port"]              
 
                         except Exception:
 
@@ -491,17 +485,12 @@ def cli_arguments():
                 config_dir = os.path.normpath(config_dir)                
                 config_ini = os.path.join(config_dir, u"config.ini")
 
-                #read config.ini - used for logs and db path checks in config.ini
-                config_parser.read(config_ini)
-
                 #if config.ini does not exist then create
                 if not os.path.exists(config_ini):
 
-                        #write config.ini and close
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
+                        #create empty config.ini
+                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj.write()
 
                         logs_dir = None
                         results_dir = None
@@ -509,19 +498,17 @@ def cli_arguments():
                         webconfig_port = None
 
                 else:
-                        
-                        #open config file with utf-8 encoding, this then returns unicode
-                        with codecs.open(config_ini, 'r', encoding='utf-8') as f:
-                                
-                                config_parser.readfp(f)
 
+                        #enable config parser
+                        config_obj = configobj.ConfigObj(config_ini)
+                        
                         try:
                                 
                                 #read values from config.ini
-                                logs_dir = config_parser.get("folders", "logs_dir")
-                                results_dir = config_parser.get("folders", "results_dir")
-                                webconfig_address = config_parser.get("webconfig", "address")
-                                webconfig_port = config_parser.get("webconfig", "port")                
+                                logs_dir = config_obj["folders"]["logs_dir"]
+                                results_dir = config_obj["folders"]["results_dir"]
+                                webconfig_address = config_obj["webconfig"]["address"]
+                                webconfig_port = config_obj["webconfig"]["port"]             
 
                         except Exception:
 
@@ -561,35 +548,39 @@ def cli_arguments():
 #save returned value
 config_ini = cli_arguments()
 
-#test configobj
+###test configobj - create empty file
+##config_obj = configobj.ConfigObj(r"c:\temp\config2.ini")
+##config_obj.write()
+##
+###test configobj - read
+##value1 = config_obj['imdb']['fav_title']
+##print value1.encode("utf-8")
+##
+###test configobj - write section
+##config_obj['imdb'] = {}
+##config_obj.write()
+##
+###test configobj - write value
+##config_obj['imdb']['fav_title'] = u"cheese"
+##config_obj.write()
+##print config['imdb']['fav_title']
+##
+###test configobj for sections
+##print 'foo' in config_obj.sections
+##print 'imdb' in config_obj.sections
+##
+###test configobj for values
+##test = config_obj['imdb']
+##
+##print 'foo' in test.scalars
+##print 'fav_dir' in test.scalars
+
+#enable config parser
 config_obj = configobj.ConfigObj(config_ini)
 
-#test configobj - read
-value1 = config_obj['imdb']['fav_title']
-print value1.encode("utf-8")
-
-#test configobj - write
-config_obj['imdb']['fav_title'] = u"cheese"
-print config['imdb']['fav_title']
-
-#test configobj for sections
-print 'foo' in config_obj.sections
-print 'imdb' in config_obj.sections
-
-#test configobj for values
-test = config_obj['imdb']
-
-print 'foo' in test.scalars
-print 'fav_dir' in test.scalars
-
-#open config file with utf-8 encoding, this then returns unicode
-with codecs.open(config_ini, 'r', encoding='utf-8') as f:
-        
-        config_parser.readfp(f)
-
 #read values for logs and results db
-logs_dir = config_parser.get("folders", "logs_dir")
-results_dir = config_parser.get("folders", "results_dir")
+logs_dir = config_obj["folders"]["logs_dir"]
+results_dir = config_obj["folders"]["results_dir"]
 
 #construct full path to files
 cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
@@ -746,7 +737,7 @@ class ResultsDBQueued(Base):
 #---------------------- paths ----------------------------------
 
 #read theme name and pass to paths
-theme = config_parser.get("general", "theme")
+theme = config_obj["general"]["theme")
 
 #define path to cheetah templates
 templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
@@ -799,7 +790,7 @@ def cherrypy_logging():
 def moviegrabber_logging():
 
         #read log levels
-        log_level = config_parser.get("general", "log_level")
+        log_level = config_obj["general"]["log_level")
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -859,7 +850,7 @@ def moviegrabber_logging():
 def sqlite_logging():
 
         #read log levels
-        log_level = config_parser.get("general", "log_level")
+        log_level = config_obj["general"]["log_level")
 
         #get current thread name
         threadname = threading.currentThread().getName()
@@ -991,7 +982,7 @@ def host_ip():
         network_info = socket.getaddrinfo(socket.gethostname(), None)
 
         #get moviegrabber config.ini address
-        config_address = config_parser.get("webconfig", "address")
+        config_address = config_obj["webconfig"]["address")
 
         #if moviegrabber config.ini address is local address then skip check
         if config_address != "0.0.0.0" or "127.0.0.1" or "localhost":
@@ -1020,7 +1011,7 @@ def config_ip():
         network_info = socket.getaddrinfo(socket.gethostname(), None)
 
         #get moviegrabber config.ini address
-        config_address = config_parser.get("webconfig", "address")
+        config_address = config_obj["webconfig"]["address")
 
         #if moviegrabber config.ini address is local address then skip check
         if config_address != ("0.0.0.0" or "127.0.0.1" or "localhost"):
@@ -1042,13 +1033,10 @@ def config_ip():
                                 return
 
                 #if address not valid then set to default listen on all adapters
-                config_parser.set("webconfig","address","0.0.0.0")
+                config_obj["webconfig"]["address"] = "0.0.0.0"
 
                 #write settings to config.ini
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write(configini)
-                        configini.close()
+                config_obj.write()
 
                 mg_log.info(u"Config has invalid ipv4 address \"%s\", reset to 0.0.0.0" % (config_address))
 
@@ -1359,7 +1347,7 @@ class DownloadWatched():
                 if self.sqlite_row.dltype == "usenet":
 
                         #read watch directory entries from config.ini
-                        config_watch_dir = config_parser.get("folders", "usenet_watch_dir")
+                        config_watch_dir = config_obj["folders"]["usenet_watch_dir"]
                         config_watch_dir = os.path.normpath(config_watch_dir)
 
                         download_filename = u"%s.nzb" % (self.sqlite_row.dlname)
@@ -1367,7 +1355,7 @@ class DownloadWatched():
                 else:
 
                         #read watch directory entries from config.ini
-                        config_watch_dir = config_parser.get("folders", "torrent_watch_dir")
+                        config_watch_dir = config_obj["folders"]["torrent_watch_dir"]
                         config_watch_dir = os.path.normpath(config_watch_dir)
 
                         download_filename = u"%s.torrent" % (self.sqlite_row.dlname)
@@ -1464,13 +1452,13 @@ class XBMC(object):
         #create instance variables to pass between xbmc methods
         def __init__(self):
 
-                self.config_xbmc_host = config_parser.get("xbmc", "xbmc_host")
-                self.config_xbmc_port = config_parser.get("xbmc", "xbmc_port")
-                self.config_xbmc_username = config_parser.get("xbmc", "xbmc_username")
-                self.config_xbmc_password = config_parser.get("xbmc", "xbmc_password")
-                self.config_xbmc_notification = config_parser.get("xbmc", "xbmc_notification")
-                self.config_xbmc_library_update = config_parser.get("xbmc", "xbmc_library_update")
-                self.config_enable_xbmc = config_parser.get("switches", "enable_xbmc")
+                self.config_xbmc_host = config_obj["xbmc"]["xbmc_host"]
+                self.config_xbmc_port = config_obj["xbmc"]["xbmc_port"]
+                self.config_xbmc_username = config_obj["xbmc"]["xbmc_username"]
+                self.config_xbmc_password = config_obj["xbmc"]["xbmc_password"]
+                self.config_xbmc_notification = config_obj["xbmc"]["xbmc_notification"]
+                self.config_xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]
+                self.config_enable_xbmc = config_obj["switches"]["enable_xbmc"]
 
         def xbmc_gui_notify(self,imdb_movie_title_strip,imdb_movie_year_str,download_result_str):
                 
@@ -1542,79 +1530,79 @@ class SearchIndex(object):
                 self.index_site_item = index_site_item
 
                 #read folder paths from config.ini
-                self.config_watch_dir = config_parser.get("folders", "%s_watch_dir" % (download_type))
-                self.config_completed_dir = config_parser.get("folders", "%s_completed_dir" % (download_type))
-                self.config_torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
-                self.config_usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")                
+                self.config_watch_dir = config_obj["folders"]["%s_watch_dir" % (download_type)]
+                self.config_completed_dir = config_obj["folders"]["%s_completed_dir" % (download_type)]
+                self.config_torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
+                self.config_usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]            
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
                 self.config_completed_dir = os.path.normpath(self.config_completed_dir)
                 self.config_torrent_archive_dir = os.path.normpath(self.config_torrent_archive_dir)
                 self.config_usenet_archive_dir = os.path.normpath(self.config_usenet_archive_dir)
 
                 #read imdb from config.ini
-                self.config_bad_title = config_parser.get("imdb", "bad_title")
-                self.config_fav_title = config_parser.get("imdb", "fav_title")
-                self.config_fav_char = config_parser.get("imdb", "fav_char")
-                self.config_fav_actor = config_parser.get("imdb", "fav_actor")
-                self.config_fav_writer = config_parser.get("imdb", "fav_writer")
-                self.config_fav_dir = config_parser.get("imdb", "fav_dir")
-                self.config_queue_genre = config_parser.get("imdb", "queue_genre")
-                self.config_queue_date = config_parser.getint("imdb", "queue_date")
-                self.config_good_genre = config_parser.get("imdb", "good_genre")
-                self.config_good_date = config_parser.getint("imdb", "good_date")
-                self.config_good_votes = config_parser.getint("imdb", "good_votes")
-                self.config_good_rating = config_parser.getfloat("imdb", "good_rating")
-                self.config_preferred_rating = config_parser.getfloat("imdb", "preferred_rating")
-                self.config_preferred_genre = config_parser.get("imdb", "preferred_genre")
+                self.config_bad_title = config_obj["imdb"]["bad_title"]
+                self.config_fav_title = config_obj["imdb"]["fav_title"]
+                self.config_fav_char = config_obj["imdb"]["fav_char"]
+                self.config_fav_actor = config_obj["imdb"]["fav_actor"]
+                self.config_fav_writer = config_obj["imdb"]["fav_writer"]
+                self.config_fav_dir = config_obj["imdb"]["fav_dir"]
+                self.config_queue_genre = config_obj["imdb"]["queue_genre"]
+                self.config_queue_date = config_obj.getint("imdb"]["queue_date"]
+                self.config_good_genre = config_obj["imdb"]["good_genre"]
+                self.config_good_date = config_obj.getint("imdb"]["good_date"]
+                self.config_good_votes = config_obj.getint("imdb"]["good_votes"]
+                self.config_good_rating = config_obj.getfloat("imdb"]["good_rating"]
+                self.config_preferred_rating = config_obj.getfloat("imdb"]["preferred_rating"]
+                self.config_preferred_genre = config_obj["imdb"]["preferred_genre"]
 
                 #read switches from config.ini
-                self.config_enable_append_year = config_parser.get("switches", "enable_append_year")
-                self.config_enable_email_notify = config_parser.get("switches", "enable_email_notify")
-                self.config_enable_xbmc = config_parser.get("switches", "enable_xbmc")
-                self.config_enable_downloaded = config_parser.get("switches", "enable_downloaded")
-                self.config_enable_replace = config_parser.get("switches", "enable_replace")
-                self.config_enable_group_filter = config_parser.get("switches", "enable_group_filter")
-                self.config_enable_preferred = config_parser.get("switches", "enable_preferred")
-                self.config_enable_favorites = config_parser.get("switches", "enable_favorites")
-                self.config_enable_queuing = config_parser.get("switches", "enable_queuing")
-                self.config_enable_email_notify = config_parser.get("switches", "enable_email_notify")              
+                self.config_enable_append_year = config_obj["switches"]["enable_append_year"]
+                self.config_enable_email_notify = config_obj["switches"]["enable_email_notify"]
+                self.config_enable_xbmc = config_obj["switches"]["enable_xbmc"]
+                self.config_enable_downloaded = config_obj["switches"]["enable_downloaded"]
+                self.config_enable_replace = config_obj["switches"]["enable_replace"]
+                self.config_enable_group_filter = config_obj["switches"]["enable_group_filter"]
+                self.config_enable_preferred = config_obj["switches"]["enable_preferred"]
+                self.config_enable_favorites = config_obj["switches"]["enable_favorites"]
+                self.config_enable_queuing = config_obj["switches"]["enable_queuing"]
+                self.config_enable_email_notify = config_obj["switches"]["enable_email_notify"]
 
                 #read search criteria from config.ini
-                self.config_search_and = config_parser.get(download_type, "%s_search_and" % (index_site_item))
-                self.config_search_or = config_parser.get(download_type, "%s_search_or" % (index_site_item))
-                self.config_search_not = config_parser.get(download_type, "%s_search_not" % (index_site_item))
-                self.config_cat = config_parser.get(download_type, "%s_cat" % (index_site_item))
-                self.config_minsize = config_parser.getint(download_type, "%s_minsize" % (index_site_item))
-                self.config_maxsize = config_parser.getint(download_type, "%s_maxsize" % (index_site_item))
-                self.config_hostname = config_parser.get(download_type, "%s_hostname" % (index_site_item))
-                self.config_portnumber = config_parser.get(download_type, "%s_portnumber" % (index_site_item))
+                self.config_search_and = config_obj[download_type, "%s_search_and" % (index_site_item)]
+                self.config_search_or = config_obj[download_type, "%s_search_or" % (index_site_item)]
+                self.config_search_not = config_obj[download_type, "%s_search_not" % (index_site_item)]
+                self.config_cat = config_obj[download_type, "%s_cat" % (index_site_item)]
+                self.config_minsize = config_obj.getint(download_type, "%s_minsize" % (index_site_item)]
+                self.config_maxsize = config_obj.getint(download_type, "%s_maxsize" % (index_site_item)]
+                self.config_hostname = config_obj[download_type, "%s_hostname" % (index_site_item)]
+                self.config_portnumber = config_obj[download_type, "%s_portnumber" % (index_site_item)]
 
                 #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
-                self.config_movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
+                self.config_movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
                 self.config_movies_replace_dir = os.path.normpath(self.config_movies_replace_dir)
-                self.config_movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
+                self.config_movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
                 self.config_movies_downloaded_dir = os.path.normpath(self.config_movies_downloaded_dir)
 
                 #read general settings from config.ini
-                self.config_movie_title_separator = config_parser.get("general", "movie_title_separator")
-                self.config_special_cut = config_parser.get("general", "index_special_cut")
-                self.config_preferred_group = config_parser.get("general", "index_preferred_group")              
-                self.config_bad_group = config_parser.get("general", "index_bad_group")
-                self.config_bad_report = config_parser.get("general", "index_bad_report")              
-                self.config_posts_to_process = config_parser.getint("general", "index_posts_to_process")
+                self.config_movie_title_separator = config_obj["general"]["movie_title_separator"]
+                self.config_special_cut = config_obj["general"]["index_special_cut"]
+                self.config_preferred_group = config_obj["general"]["index_preferred_group"]        
+                self.config_bad_group = config_obj["general"]["index_bad_group"]
+                self.config_bad_report = config_obj["general"]["index_bad_report"]    
+                self.config_posts_to_process = config_obj.getint("general"]["index_posts_to_process"]
 
                 if self.download_type == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = config_parser.get(download_type, "%s_path" % (index_site_item))
-                        self.config_apikey = config_parser.get(download_type, "%s_key" % (index_site_item))
-                        self.config_spotweb_support = config_parser.get(download_type, "%s_spotweb_support" % (index_site_item))
+                        self.config_path = config_obj[download_type, "%s_path" % (index_site_item)]
+                        self.config_apikey = config_obj[download_type, "%s_key" % (index_site_item)]
+                        self.config_spotweb_support = config_obj[download_type, "%s_spotweb_support" % (index_site_item)]
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = config_parser.get(download_type, "%s_lang" % (index_site_item))
-                        self.config_min_seeds = config_parser.get("general", "min_seeds")
-                        self.config_min_peers = config_parser.get("general", "min_peers")
+                        self.config_lang = config_obj[download_type, "%s_lang" % (index_site_item)]
+                        self.config_min_seeds = config_obj["general"]["min_seeds"]
+                        self.config_min_peers = config_obj["general"]["min_peers"]
                         
                 if self.config_movies_downloaded_dir:
 
@@ -2823,7 +2811,7 @@ class SearchIndex(object):
 
         def cert_system(self):
 
-                post_cert_system = config_parser.get("general", "post_cert_system")
+                post_cert_system = config_obj["general"]["post_cert_system"]
 
                 if self.imdb_movie_cert == "GP" or self.imdb_movie_cert == "PG" or self.imdb_movie_cert == "IIA" or self.imdb_movie_cert == "K-8":
 
@@ -2930,17 +2918,17 @@ class SearchIndex(object):
 
                 if self.config_enable_email_notify == "yes":
 
-                        config_email_server = config_parser.get("email_settings", "email_server")
-                        config_email_server_port = config_parser.getint("email_settings", "email_server_port")
-                        config_email_server_ssl = config_parser.get("email_settings", "email_server_ssl")
-                        config_email_username = config_parser.get("email_settings", "email_username")
-                        config_email_password = config_parser.get("email_settings", "email_password")
-                        config_email_from = config_parser.get("email_settings", "email_from")
-                        config_email_to = config_parser.get("email_settings", "email_to")
+                        config_email_server = config_obj["email_settings"]["email_server"]
+                        config_email_server_port = config_obj.getint("email_settings"]["email_server_port"]
+                        config_email_server_ssl = config_obj["email_settings"]["email_server_ssl"]
+                        config_email_username = config_obj["email_settings"]["email_username"]
+                        config_email_password = config_obj["email_settings"]["email_password"]
+                        config_email_from = config_obj["email_settings"]["email_from"]
+                        config_email_to = config_obj["email_settings"]["email_to"]
 
-                        config_webconfig_address = config_parser.get("webconfig", "address")
-                        config_webconfig_port = config_parser.get("webconfig", "port")
-                        config_webconfig_enable_ssl = config_parser.get("webconfig", "enable_ssl")
+                        config_webconfig_address = config_obj["webconfig"]["address"]
+                        config_webconfig_port = config_obj["webconfig"]["port"]
+                        config_webconfig_enable_ssl = config_obj["webconfig"]["enable_ssl"]
 
                         #create message container
                         msg = email.mime.multipart.MIMEMultipart('alternative')
@@ -4482,11 +4470,11 @@ class PostProcessing(object):
                 def __init__(self):
 
                         #read config.ini entries
-                        self.config_post_rename_files = (config_parser.get("general", "post_rename_files"))
-                        self.config_post_rule = config_parser.get("post_processing", "post_rule")
-                        self.config_post_replace_existing = (config_parser.get("general", "post_replace_existing"))                        
-                        self.config_movie_title_separator = (config_parser.get("general", "movie_title_separator"))
-                        self.config_completed_dir = (config_parser.get("folders", "usenet_completed_dir"))
+                        self.config_post_rename_files = config_obj["general"]["post_rename_files"]
+                        self.config_post_rule = config_obj["post_processing"]["post_rule"]
+                        self.config_post_replace_existing = config_obj["general"]["post_replace_existing"]                   
+                        self.config_movie_title_separator = config_obj["general"]["movie_title_separator"]
+                        self.config_completed_dir = config_obj["folders"]["usenet_completed_dir"]
                         self.config_completed_dir = os.path.normpath(self.config_completed_dir)
 
                 def run(self):
@@ -4650,11 +4638,11 @@ class PostProcessing(object):
                                 for config_post_rule_item in config_post_rule_list:
 
                                         #read rule dropdown and textbox values
-                                        self.config_post_rule_dropdown1 = config_parser.get("post_processing", "%s_dropdown1" % (config_post_rule_item))
-                                        self.config_post_rule_dropdown2 = config_parser.get("post_processing", "%s_dropdown2" % (config_post_rule_item))
-                                        self.config_post_rule_dropdown3 = config_parser.get("post_processing", "%s_dropdown3" % (config_post_rule_item))
-                                        self.config_post_rule_textbox1 = config_parser.get("post_processing", "%s_textbox1" % (config_post_rule_item))
-                                        self.config_post_rule_textbox2 = config_parser.get("post_processing", "%s_textbox2" % (config_post_rule_item))
+                                        self.config_post_rule_dropdown1 = config_obj["post_processing"]["%s_dropdown1" % (config_post_rule_item)]
+                                        self.config_post_rule_dropdown2 = config_obj["post_processing"]["%s_dropdown2" % (config_post_rule_item)]
+                                        self.config_post_rule_dropdown3 = config_obj["post_processing"]["%s_dropdown3" % (config_post_rule_item)]
+                                        self.config_post_rule_textbox1 = config_obj["post_processing"]["%s_textbox1" % (config_post_rule_item)]
+                                        self.config_post_rule_textbox2 = config_obj["post_processing"]["%s_textbox2" % (config_post_rule_item)]
 
                                         #walk completed dir and imdb movie title, need to walk again due to move and rename functions previously applied
                                         for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
@@ -4999,7 +4987,7 @@ class PostProcessing(object):
                 def xbmc_proceed(self):
 
                         #read xbmc settings
-                        xbmc_library_update = config_parser.get("xbmc", "xbmc_library_update")
+                        xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]
 
                         if xbmc_library_update == "yes":
 
@@ -5020,7 +5008,7 @@ def header():
 
         #header information
         template.templates_dir = templates_dir
-        template.local_version = config_parser.get("general", "local_version")
+        template.local_version = config_obj["general"]["local_version"]
         template.title = "MovieGrabber %s - %s" % (template.local_version,section_name)
         template.strapline = "The only truly automated movie downloader"
         template.color_scheme_file = "%s.css" % (template.color_scheme)
@@ -5028,13 +5016,13 @@ def header():
 def footer():
 
         #footer information
-        template.last_run = config_parser.get("general", "last_run")
+        template.last_run = config_obj["general"]["last_run"]
         template.forum_link = "http://forums.sabnzbd.org/viewtopic.php?f=6&amp;t=8569"
 
         #check for new versions
-        local_version = config_parser.get("general", "local_version")
-        remote_version = config_parser.get("general", "remote_version")
-        remote_download = config_parser.get("general", "remote_download")
+        local_version = config_obj["general"]["local_version"]
+        remote_version = config_obj["general"]["remote_version"]
+        remote_download = config_obj["general"]["remote_download"]
 
         #strip non numeric characters from version number
         local_version_int = int(re.sub(ur"[^0-9]+","" ,local_version))
@@ -5069,21 +5057,21 @@ class ConfigIMDB(object):
                 template = Template(file = os.path.join(templates_dir, "config_imdb.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.good_rating = config_parser.getfloat("imdb", "good_rating")
-                template.good_date = config_parser.getint("imdb", "good_date")
-                template.good_votes = config_parser.get("imdb", "good_votes")
-                template.good_genre = config_parser.get("imdb", "good_genre")
-                template.preferred_rating = config_parser.getfloat("imdb", "preferred_rating")
-                template.preferred_genre = config_parser.get("imdb", "preferred_genre")
-                template.queue_date = config_parser.getint("imdb", "queue_date")
-                template.queue_genre = config_parser.get("imdb", "queue_genre")
-                template.bad_title = config_parser.get("imdb", "bad_title")
-                template.fav_dir = config_parser.get("imdb", "fav_dir")
-                template.fav_writer = config_parser.get("imdb", "fav_writer")
-                template.fav_actor = config_parser.get("imdb", "fav_actor")
-                template.fav_char = config_parser.get("imdb", "fav_char")
-                template.fav_title = config_parser.get("imdb", "fav_title")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.good_rating = config_obj.getfloat("imdb"]["good_rating"]
+                template.good_date = config_obj.getint("imdb"]["good_date"]
+                template.good_votes = config_obj["imdb"]["good_votes"]
+                template.good_genre = config_obj["imdb"]["good_genre"]
+                template.preferred_rating = config_obj.getfloat("imdb"]["preferred_rating"]
+                template.preferred_genre = config_obj["imdb"]["preferred_genre"]
+                template.queue_date = config_obj.getint("imdb"]["queue_date"]
+                template.queue_genre = config_obj["imdb"]["queue_genre"]
+                template.bad_title = config_obj["imdb"]["bad_title"]
+                template.fav_dir = config_obj["imdb"]["fav_dir"]
+                template.fav_writer = config_obj["imdb"]["fav_writer"]
+                template.fav_actor = config_obj["imdb"]["fav_actor"]
+                template.fav_char = config_obj["imdb"]["fav_char"]
+                template.fav_title = config_obj["imdb"]["fav_title"]
                 template.genre_list_all = ["action", "adventure", "animation", "biography", "comedy", "crime", "documentary", "drama", "family", "fantasy", "film-Noir", "game-show", "history", "horror", "music", "musical", "mystery", "news", "reality-tv", "romance", "sci-fi", "short", "sport", "talk-show", "thriller", "war", "western"]
 
                 #convert comma seperated string into list - config parser cannot deal with lists
@@ -5106,23 +5094,23 @@ class ConfigIMDB(object):
         def save_config_imdb(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("imdb", "good_date", kwargs["good_date2"])
-                config_parser.set("imdb", "good_rating", kwargs["good_rating2"])
-                config_parser.set("imdb", "good_date", kwargs["good_date2"])
-                config_parser.set("imdb", "queue_date", kwargs["queue_date2"])
-                config_parser.set("imdb", "bad_title", uni_to_byte(del_inv_chars(kwargs["bad_title2"])))
-                config_parser.set("imdb", "fav_dir", uni_to_byte(del_inv_chars(kwargs["fav_dir2"])))
-                config_parser.set("imdb", "fav_writer", uni_to_byte(del_inv_chars(kwargs["fav_writer2"])))
-                config_parser.set("imdb", "fav_actor", uni_to_byte(del_inv_chars(kwargs["fav_actor2"])))
-                config_parser.set("imdb", "fav_char", uni_to_byte(del_inv_chars(kwargs["fav_char2"])))
-                config_parser.set("imdb", "fav_title", uni_to_byte(del_inv_chars(kwargs["fav_title2"])))
+                config_obj["imdb"]["good_date"] = kwargs["good_date2"]
+                config_obj["imdb"]["good_rating"] = kwargs["good_rating2"]
+                config_obj["imdb"]["good_date"] = kwargs["good_date2"]
+                config_obj["imdb"]["queue_date"] = kwargs["queue_date2"]
+                config_obj["imdb"]["bad_title"] = del_inv_chars(kwargs["bad_title2"])
+                config_obj["imdb"]["fav_dir"] = del_inv_chars(kwargs["fav_dir2"])
+                config_obj["imdb"]["fav_writer"] = del_inv_chars(kwargs["fav_writer2"])
+                config_obj["imdb"]["fav_actor"] = del_inv_chars(kwargs["fav_actor2"])
+                config_obj["imdb"]["fav_char"] = del_inv_chars(kwargs["fav_char2"])
+                config_obj["imdb"]["fav_title"] = del_inv_chars(kwargs["fav_title2"])
 
                 if kwargs["good_votes2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["good_votes2"])
-                                config_parser.set("imdb", "good_votes", kwargs["good_votes2"])
+                                config_obj["imdb"]["good_votes"] = kwargs["good_votes2"]
 
                         except ValueError:
 
@@ -5141,11 +5129,11 @@ class ConfigIMDB(object):
                 if decimal.Decimal(good_ratings2) != decimal.Decimal(str(0.0)) and decimal.Decimal(preferred_rating2) >= decimal.Decimal(good_ratings2):
 
                         preferred_rating2 = decimal.Decimal(good_ratings2) - decimal.Decimal(str(0.1))
-                        config_parser.set("imdb", "preferred_rating", str(preferred_rating2))
+                        config_obj["imdb"]["preferred_rating"] = str(preferred_rating2)
 
                 else:
 
-                        config_parser.set("imdb", "preferred_rating", str(preferred_rating2))
+                        config_obj["imdb"]["preferred_rating"] = str(preferred_rating2)
 
                 #create empty list to store preferred genres
                 preferred_genre_list = []
@@ -5156,7 +5144,7 @@ class ConfigIMDB(object):
                         #if good genre or preferred genre not in select list then write blank for preferred genre
                         if "good_genre_item_selected2" not in kwargs or "preferred_genre_item_selected2" not in kwargs:
 
-                                config_parser.set("imdb", "preferred_genre", "")
+                                config_obj["imdb"]["preferred_genre"] = ""
 
                         #if genre in good genre select list and genre in preferred genre select list then write genre to preferred genre list
                         elif genre_item in kwargs["good_genre_item_selected2"] and genre_item in kwargs["preferred_genre_item_selected2"]:
@@ -5164,7 +5152,7 @@ class ConfigIMDB(object):
                                 preferred_genre_list.append(genre_item)
 
                 #convert list into comma seperated string - config parser cannot deal with lists
-                config_parser.set("imdb", "preferred_genre", ",".join(preferred_genre_list))
+                config_obj["imdb"]["preferred_genre"] = ",".join(preferred_genre_list)
 
                 #create empty list to store good genres
                 good_genre_list = []
@@ -5175,7 +5163,7 @@ class ConfigIMDB(object):
                         #if good genre not in select list then write blank for good genre
                         if "good_genre_item_selected2" not in kwargs:
 
-                                config_parser.set("imdb", "good_genre", "")
+                                config_obj["imdb"]["good_genre"] = ""
 
                         #if genre in good genre select list then write genre to good genre list
                         elif genre_item in kwargs["good_genre_item_selected2"]:
@@ -5183,7 +5171,7 @@ class ConfigIMDB(object):
                                 good_genre_list.append(genre_item)
 
                 #convert list into comma seperated string - config parser cannot deal with lists
-                config_parser.set("imdb", "good_genre", ",".join(good_genre_list))
+                config_obj["imdb"]["good_genre"] = ",".join(good_genre_list)
 
                 #create empty list to store queue genres
                 queue_genre_list = []
@@ -5194,7 +5182,7 @@ class ConfigIMDB(object):
                         #if good genre or queue genre not in select list then write blank for queue genre
                         if "good_genre_item_selected2" not in kwargs or "queue_genre_item_selected2" not in kwargs:
 
-                                config_parser.set("imdb", "queue_genre", "")
+                                config_obj["imdb"]["queue_genre"] = ""
 
                         #if genre in good genre select list and genre in queue genre select list then write genre to queue genre list
                         elif genre_item in kwargs["good_genre_item_selected2"] and genre_item in kwargs["queue_genre_item_selected2"]:
@@ -5202,12 +5190,9 @@ class ConfigIMDB(object):
                                 queue_genre_list.append(genre_item)
 
                 #convert list into comma seperated string - config parser cannot deal with lists
-                config_parser.set("imdb", "queue_genre", ",".join(queue_genre_list))
+                config_obj["imdb"]["queue_genre"] = ",".join(queue_genre_list)
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5225,28 +5210,28 @@ class ConfigGeneral(object):
                 template = Template(file = os.path.join(templates_dir, "config_general.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_obj["general"]["color_scheme"]
                 template.color_scheme_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
-                template.max_items_shown = config_parser.get("general", "max_items_shown")
+                template.max_items_shown = config_obj["general"]["max_items_shown"]
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
-                template.launch_browser = config_parser.get("general", "launch_browser")
-                template.address = config_parser.get("webconfig", "address")
-                template.port = config_parser.get("webconfig", "port")
-                template.username = config_parser.get("webconfig", "username")
-                template.password = config_parser.get("webconfig", "password")
-                template.enable_ssl = config_parser.get("webconfig", "enable_ssl")
-                template.log_level = config_parser.get("general", "log_level")
+                template.launch_browser = config_obj["general"]["launch_browser"]
+                template.address = config_obj["webconfig"]["address"]
+                template.port = config_obj["webconfig"]["port"]
+                template.username = config_obj["webconfig"]["username"]
+                template.password = config_obj["webconfig"]["password"]
+                template.enable_ssl = config_obj["webconfig"]["enable_ssl"]
+                template.log_level = config_obj["general"]["log_level"]
                 template.log_level_list = ["INFO", "WARNING", "exception"]
-                template.check_version = config_parser.get("general", "check_version")
+                template.check_version = config_obj["general"]["check_version"]
                 template.check_version_list = ["off", "daily", "weekly"]
-                template.movie_title_separator = config_parser.get("general", "movie_title_separator")
-                template.index_preferred_group = config_parser.get("general", "index_preferred_group")
-                template.index_special_cut = config_parser.get("general","index_special_cut")                                
-                template.index_bad_group = config_parser.get("general", "index_bad_group")
-                template.index_bad_report = config_parser.get("general", "index_bad_report")                
-                template.index_posts_to_process = config_parser.get("general", "index_posts_to_process")
-                template.min_seeds = config_parser.get("general", "min_seeds")
-                template.min_peers = config_parser.get("general", "min_peers")  
+                template.movie_title_separator = config_obj["general"]["movie_title_separator"]
+                template.index_preferred_group = config_obj["general"]["index_preferred_group"]
+                template.index_special_cut = config_obj["general","index_special_cut"]                           
+                template.index_bad_group = config_obj["general"]["index_bad_group"]
+                template.index_bad_report = config_obj["general"]["index_bad_report"]            
+                template.index_posts_to_process = config_obj["general"]["index_posts_to_process"]
+                template.min_seeds = config_obj["general"]["min_seeds"]
+                template.min_peers = config_obj["general"]["min_peers"]
                 
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
@@ -5278,18 +5263,18 @@ class ConfigGeneral(object):
         def save_config_general(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("general", "color_scheme", kwargs["color_scheme2"])
-                config_parser.set("general", "launch_browser", kwargs["launch_browser2"])
-                config_parser.set("general", "max_items_shown", kwargs["max_items_shown2"])
-                config_parser.set("webconfig", "username", uni_to_byte(kwargs["username2"]))
-                config_parser.set("webconfig", "password", uni_to_byte(kwargs["password2"]))
-                config_parser.set("webconfig", "enable_ssl", kwargs["enable_ssl2"])
-                config_parser.set("general", "index_preferred_group", uni_to_byte(kwargs["index_preferred_group2"]))
-                config_parser.set("general", "index_special_cut", uni_to_byte(kwargs["index_special_cut2"]))
-                config_parser.set("general", "index_bad_group", uni_to_byte(kwargs["index_bad_group2"]))
-                config_parser.set("general", "index_bad_report", uni_to_byte(kwargs["index_bad_report2"]))
-                config_parser.set("general", "log_level", kwargs["log_level2"])
-                config_parser.set("general", "check_version", kwargs["check_version2"])
+                config_obj["general"]["color_scheme"] = kwargs["color_scheme2"]
+                config_obj["general"]["launch_browser"] = kwargs["launch_browser2"]
+                config_obj["general"]["max_items_shown"] = kwargs["max_items_shown2"]
+                config_obj["webconfig"]["username"] = kwargs["username2"]
+                config_obj["webconfig"]["password"] = kwargs["password2"]
+                config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"])
+                config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"]
+                config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"]
+                config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"]
+                config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"]
+                config_obj["general"]["log_level"] = kwargs["log_level2"]
+                config_obj["general"]["check_version"] = kwargs["check_version2"]
 		
                 #contruct logger instance and new logging level
                 logging_level = getattr(logging, kwargs["log_level2"])
@@ -5303,34 +5288,34 @@ class ConfigGeneral(object):
                 #substitute friendly names for real values for movie separators
                 if kwargs["movie_title_separator2"] == "spaces":
 
-                        config_parser.set("general", "movie_title_separator", "<>")
+                        config_obj["general"]["movie_title_separator"] = "<>"
 
                 if kwargs["movie_title_separator2"] == "hyphens":
 
-                        config_parser.set("general", "movie_title_separator", "-")
+                        config_obj["general"]["movie_title_separator"] = "-"
 
                 if kwargs["movie_title_separator2"] == "dots":
 
-                        config_parser.set("general", "movie_title_separator", ".")
+                        config_obj["general"]["movie_title_separator"] = "."
 
                 if kwargs["movie_title_separator2"] == "underscores":
 
-                        config_parser.set("general", "movie_title_separator", "_")
+                        config_obj["general"]["movie_title_separator"] = "_"
 
                 if kwargs["address2"]:
 
-                        config_parser.set("webconfig", "address", kwargs["address2"])
+                        config_obj["webconfig"]["address"] = kwargs["address2"]
 
                 if kwargs["port2"]:
 
-                        config_parser.set("webconfig", "port", kwargs["port2"])
+                        config_obj["webconfig"]["port"] = kwargs["port2"]
 
                 if kwargs["index_posts_to_process2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["index_posts_to_process2"])
-                                config_parser.set("general", "index_posts_to_process", kwargs["index_posts_to_process2"])
+                                config_obj["general"]["index_posts_to_process"] = kwargs["index_posts_to_process2"]
 
                         except ValueError:
 
@@ -5338,14 +5323,14 @@ class ConfigGeneral(object):
 
                 else:
 
-                        config_parser.set("general", "index_posts_to_process", "50")
+                        config_obj["general"]["index_posts_to_process"] = "50"
 
                 if kwargs["min_seeds2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["min_seeds2"])
-                                config_parser.set("general", "min_seeds", kwargs["min_seeds2"])
+                                config_obj["general"]["min_seeds"] = kwargs["min_seeds2"]
 
                         except ValueError:
 
@@ -5353,14 +5338,14 @@ class ConfigGeneral(object):
 
                 else:
 
-                        config_parser.set("general", "min_seeds", "0")
+                        config_obj["general"]["min_seeds", "0")
 
                 if kwargs["min_peers2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["min_peers2"])
-                                config_parser.set("general", "min_peers", kwargs["min_peers2"])
+                                config_obj["general"]["min_peers"] = kwargs["min_peers2"]
 
                         except ValueError:
 
@@ -5368,12 +5353,9 @@ class ConfigGeneral(object):
                         
                 else:
 
-                        config_parser.set("general", "min_peers", "0")
+                        config_obj["general"]["min_peers"] = "0"
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5391,27 +5373,27 @@ class ConfigSwitches(object):
                 template = Template(file = os.path.join(templates_dir, "config_switches.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
-                template.movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
-                template.email_server = config_parser.get("email_settings", "email_server")
-                template.email_server_port = config_parser.get("email_settings", "email_server_port")
-                template.email_from = config_parser.get("email_settings", "email_from")
-                template.email_to = config_parser.get("email_settings", "email_to")
-                template.xbmc_host = config_parser.get("xbmc", "xbmc_host")
-                template.xbmc_port = config_parser.get("xbmc", "xbmc_port")
-                template.xbmc_username = config_parser.get("xbmc", "xbmc_username")
-                template.xbmc_password = config_parser.get("xbmc", "xbmc_password")
-                template.enable_downloaded = config_parser.get("switches", "enable_downloaded")
-                template.enable_replace = config_parser.get("switches", "enable_replace")
-                template.enable_favorites = config_parser.get("switches", "enable_favorites")
-                template.enable_preferred = config_parser.get("switches", "enable_preferred")
-                template.enable_queuing = config_parser.get("switches", "enable_queuing")
-                template.enable_email_notify = config_parser.get("switches", "enable_email_notify")
-                template.enable_append_year = config_parser.get("switches", "enable_append_year")
-                template.enable_posters = config_parser.get("switches", "enable_posters")
-                template.enable_group_filter = config_parser.get("switches", "enable_group_filter")
-                template.enable_post_processing = config_parser.get("switches", "enable_post_processing")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
+                template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
+                template.email_server = config_obj["email_settings"]["email_server"]
+                template.email_server_port = config_obj["email_settings"]["email_server_port"]
+                template.email_from = config_obj["email_settings"]["email_from"]
+                template.email_to = config_obj["email_settings"]["email_to"]
+                template.xbmc_host = config_obj["xbmc"]["xbmc_host"]
+                template.xbmc_port = config_obj["xbmc"]["xbmc_port"]
+                template.xbmc_username = config_obj["xbmc"]["xbmc_username"]
+                template.xbmc_password = config_obj["xbmc"]["xbmc_password"]
+                template.enable_downloaded = config_obj["switches"]["enable_downloaded"]
+                template.enable_replace = config_obj["switches"]["enable_replace"]
+                template.enable_favorites = config_obj["switches"]["enable_favorites"]
+                template.enable_preferred = config_obj["switches"]["enable_preferred"]
+                template.enable_queuing = config_obj["switches"]["enable_queuing"]
+                template.enable_email_notify = config_obj["switches"]["enable_email_notify"]
+                template.enable_append_year = config_obj["switches"]["enable_append_year"]
+                template.enable_posters = config_obj["switches"]["enable_posters"]
+                template.enable_group_filter = config_obj["switches"]["enable_group_filter"]
+                template.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
                 header()
 
@@ -5424,21 +5406,18 @@ class ConfigSwitches(object):
         def save_config_switches(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("switches", "enable_downloaded", kwargs["enable_downloaded2"])
-                config_parser.set("switches", "enable_replace", kwargs["enable_replace2"])
-                config_parser.set("switches", "enable_favorites", kwargs["enable_favorites2"])
-                config_parser.set("switches", "enable_preferred", kwargs["enable_preferred2"])
-                config_parser.set("switches", "enable_queuing", kwargs["enable_queuing2"])
-                config_parser.set("switches", "enable_email_notify", kwargs["enable_email_notify2"])
-                config_parser.set("switches", "enable_append_year", kwargs["enable_append_year2"])
-                config_parser.set("switches", "enable_posters", kwargs["enable_posters2"])
-                config_parser.set("switches", "enable_group_filter", kwargs["enable_group_filter2"])
-                config_parser.set("switches", "enable_post_processing", kwargs["enable_post_processing2"])
+                config_obj["switches"]["enable_downloaded"] = kwargs["enable_downloaded2"]
+                config_obj["switches"]["enable_replace"] = kwargs["enable_replace2"]
+                config_obj["switches"]["enable_favorites"] = kwargs["enable_favorites2"]
+                config_obj["switches"]["enable_preferred"] = kwargs["enable_preferred2"]
+                config_obj["switches"]["enable_queuing"] = kwargs["enable_queuing2"]
+                config_obj["switches"]["enable_email_notify"] = kwargs["enable_email_notify2"]
+                config_obj["switches"]["enable_append_year"] = kwargs["enable_append_year2"]
+                config_obj["switches"]["enable_posters"] = kwargs["enable_posters2"]
+                config_obj["switches"]["enable_group_filter"] = kwargs["enable_group_filter2"]
+                config_obj["switches"]["enable_post_processing"] = kwargs["enable_post_processing2"]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5456,20 +5435,20 @@ class ConfigPost(object):
                 template = Template(file = os.path.join(templates_dir, "config_post.tmpl"))
 
                 #create variable for templates to read config entries
-                template.config_parser = config_parser
+                template.config_obj = config_obj
 
-                template.post_rename_files = config_parser.get("general", "post_rename_files")
-                template.post_replace_existing = config_parser.get("general", "post_replace_existing")                                
-                template.post_cert_system = config_parser.get("general", "post_cert_system")
-                template.xbmc_library_update = config_parser.get("xbmc", "xbmc_library_update")                
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.post_rename_files = config_obj["general"]["post_rename_files"]
+                template.post_replace_existing = config_obj["general"]["post_replace_existing"]                               
+                template.post_cert_system = config_obj["general"]["post_cert_system"]
+                template.xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]               
+                template.color_scheme = config_obj["general"]["color_scheme"]
 
                 template.post_rename_files_list = ["existing", "imdb", "postname"]
                 template.dropdown1_list = ["select", "filename", "extension", "size", "genre", "certificate"]
                 template.dropdown2_list = ["select", "equal to", "not equal to", "greater than", "less than"]
                 template.dropdown3_list = ["select", "move", "delete"]
 
-                config_post_rule = config_parser.get("post_processing", "post_rule")
+                config_post_rule = config_obj["post_processing"]["post_rule"]
 
                 if config_post_rule:
 
@@ -5491,15 +5470,12 @@ class ConfigPost(object):
         def save_config_post(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("general", "post_cert_system", kwargs["post_cert_system2"])
-                config_parser.set("general", "post_rename_files", kwargs["post_rename_files2"])
-                config_parser.set("general", "post_replace_existing", kwargs["post_replace_existing2"])                
-		config_parser.set("xbmc", "xbmc_library_update", kwargs["xbmc_library_update2"])
+                config_obj["general"]["post_cert_system"] = kwargs["post_cert_system2"]
+                config_obj["general"]["post_rename_files"] = kwargs["post_rename_files2"]
+                config_obj["general"]["post_replace_existing"] = kwargs["post_replace_existing2"]            
+		config_obj["xbmc"]["xbmc_library_update"] = kwargs["xbmc_library_update2"]
 		
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5508,7 +5484,7 @@ class ConfigPost(object):
         def add_config_rule(self):
 
                 #get existing rule list
-                config_post_rule = config_parser.get("post_processing", "post_rule")
+                config_post_rule = config_obj["post_processing"]["post_rule"]
 
                 #set initial rule increment value
                 post_rule = 1
@@ -5539,24 +5515,21 @@ class ConfigPost(object):
 
                         #convert back to comma seperated list and set
                         config_post_rule = ",".join(config_post_rule_list)
-                        config_parser.set("post_processing", "post_rule", config_post_rule)
+                        config_obj["post_processing"]["post_rule"] = config_post_rule
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_parser.set("post_processing", "post_rule", add_post_rule)
+                        config_obj["post_processing"]["post_rule"] = add_post_rule
 
                 #write default values to config.ini
-                config_parser.set("post_processing", "%s_dropdown1" % (add_post_rule), "select")
-                config_parser.set("post_processing", "%s_dropdown2" % (add_post_rule), "select")
-                config_parser.set("post_processing", "%s_dropdown3" % (add_post_rule), "select")
-                config_parser.set("post_processing", "%s_textbox1" % (add_post_rule), "")
-                config_parser.set("post_processing", "%s_textbox2" % (add_post_rule), "")
+                config_obj["post_processing"]["%s_dropdown1" % (add_post_rule)] = "select"
+                config_obj["post_processing"]["%s_dropdown2" % (add_post_rule)] = "select"
+                config_obj["post_processing"]["%s_dropdown3" % (add_post_rule)] = "select"
+                config_obj["post_processing"]["%s_textbox1" % (add_post_rule)] = ""
+                config_obj["post_processing"]["%s_textbox2" % (add_post_rule)] = ""
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5569,33 +5542,30 @@ class ConfigPost(object):
                 edit_config_dropdown1 = kwargs["edit_config_dropdown1"]
                 edit_config_dropdown2 = kwargs["edit_config_dropdown2"]
                 edit_config_dropdown3 = kwargs["edit_config_dropdown3"]
-                edit_config_textbox1 = uni_to_byte(kwargs["edit_config_textbox1"])
-                edit_config_textbox2 = uni_to_byte(kwargs["edit_config_textbox2"])
+                edit_config_textbox1 = kwargs["edit_config_textbox1"]
+                edit_config_textbox2 = kwargs["edit_config_textbox2"]
 
                 #if dropdown3 set to delete then remove any entry in textbox2 (path)
                 if edit_config_dropdown3 == "delete":
 
                         #write values to config.ini
-                        config_parser.set("post_processing", "%s_dropdown1" % (edit_config_rule), edit_config_dropdown1)
-                        config_parser.set("post_processing", "%s_dropdown2" % (edit_config_rule), edit_config_dropdown2)
-                        config_parser.set("post_processing", "%s_dropdown3" % (edit_config_rule), edit_config_dropdown3)
-                        config_parser.set("post_processing", "%s_textbox1" % (edit_config_rule), edit_config_textbox1)
-                        config_parser.set("post_processing", "%s_textbox2" % (edit_config_rule), "")
+                        config_obj["post_processing"]["%s_dropdown1" % (edit_config_rule)] = edit_config_dropdown1
+                        config_obj["post_processing"]["%s_dropdown2" % (edit_config_rule)] = edit_config_dropdown2
+                        config_obj["post_processing"]["%s_dropdown3" % (edit_config_rule)] = edit_config_dropdown3
+                        config_obj["post_processing"]["%s_textbox1" % (edit_config_rule)] = edit_config_textbox1
+                        config_obj["post_processing"]["%s_textbox2" % (edit_config_rule)] = ""
 
                 #if dropdown3 set to move then check to make sure textbox2 (path) is not empty and path exists before saving
                 elif edit_config_dropdown3 == "move" and edit_config_textbox2 != "" and os.path.exists(edit_config_textbox2):
 
                         #write values to config.ini
-                        config_parser.set("post_processing", "%s_dropdown1" % (edit_config_rule), edit_config_dropdown1)
-                        config_parser.set("post_processing", "%s_dropdown2" % (edit_config_rule), edit_config_dropdown2)
-                        config_parser.set("post_processing", "%s_dropdown3" % (edit_config_rule), edit_config_dropdown3)
-                        config_parser.set("post_processing", "%s_textbox1" % (edit_config_rule), edit_config_textbox1)
-                        config_parser.set("post_processing", "%s_textbox2" % (edit_config_rule), edit_config_textbox2)
+                        config_obj["post_processing"]["%s_dropdown1" % (edit_config_rule)] = edit_config_dropdown1
+                        config_obj["post_processing"]["%s_dropdown2" % (edit_config_rule)] = edit_config_dropdown2
+                        config_obj["post_processing"]["%s_dropdown3" % (edit_config_rule)] = edit_config_dropdown3
+                        config_obj["post_processing"]["%s_textbox1" % (edit_config_rule)] = edit_config_textbox1
+                        config_obj["post_processing"]["%s_textbox2" % (edit_config_rule)] = edit_config_textbox2
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5604,7 +5574,7 @@ class ConfigPost(object):
         def delete_config_rule(self, **kwargs):
 
                 #get existing rule list
-                config_post_rule = config_parser.get("post_processing", "post_rule")
+                config_post_rule = config_obj["post_processing"]["post_rule"]
 
                 delete_config_rule = kwargs["delete_config_rule2"]
 
@@ -5627,19 +5597,16 @@ class ConfigPost(object):
 
                                 #convert back to comma seperated list and set
                                 config_post_rule_str = ",".join(config_post_rule_list)
-                                config_parser.set("post_processing", "post_rule", config_post_rule_str)
+                                config_obj["post_processing"]["post_rule", config_post_rule_str)
 
                                 #delete config entries for selected post processing rule
-                                config_parser.remove_option("post_processing", "%s_dropdown1" % (delete_config_rule))
-                                config_parser.remove_option("post_processing", "%s_dropdown2" % (delete_config_rule))
-                                config_parser.remove_option("post_processing", "%s_dropdown3" % (delete_config_rule))
-                                config_parser.remove_option("post_processing", "%s_textbox1" % (delete_config_rule))
-                                config_parser.remove_option("post_processing", "%s_textbox2" % (delete_config_rule))
+                                config_obj.remove_option("post_processing"]["%s_dropdown1" % (delete_config_rule)]
+                                config_obj.remove_option("post_processing"]["%s_dropdown2" % (delete_config_rule)]
+                                config_obj.remove_option("post_processing"]["%s_dropdown3" % (delete_config_rule)]
+                                config_obj.remove_option("post_processing"]["%s_textbox1" % (delete_config_rule)]
+                                config_obj.remove_option("post_processing"]["%s_textbox2" % (delete_config_rule)]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5657,11 +5624,11 @@ class ConfigScheduling(object):
                 template = Template(file = os.path.join(templates_dir, "config_scheduling.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                template.index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
-                template.post_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                template.post_schedule_minute = config_parser.getint("general", "post_schedule_minute")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
+                template.index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
+                template.post_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
+                template.post_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
 
                 header()
 
@@ -5679,15 +5646,12 @@ class ConfigScheduling(object):
                         kwargs["index_schedule_minute2"] = "30"
 
                 #write values to config.ini
-                config_parser.set("general", "index_schedule_hour", kwargs["index_schedule_hour2"])
-                config_parser.set("general", "index_schedule_minute", kwargs["index_schedule_minute2"])
-                config_parser.set("general", "post_schedule_hour", kwargs["post_schedule_hour2"])
-                config_parser.set("general", "post_schedule_minute", kwargs["post_schedule_minute2"])
+                config_obj["general"]["index_schedule_hour"] = kwargs["index_schedule_hour2"]
+                config_obj["general"]["index_schedule_minute"] = kwargs["index_schedule_minute2"]
+                config_obj["general"]["post_schedule_hour"] = kwargs["post_schedule_hour2"]
+                config_obj["general"]["post_schedule_minute"] = kwargs["post_schedule_minute2"]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5705,10 +5669,10 @@ class ConfigUsenet(object):
                 template = Template(file = os.path.join(templates_dir, "config_usenet.tmpl"))
 
                 #create variable for templates to read config entries
-                template.config_parser = config_parser
+                template.config_obj = config_obj
 
-                template.index_site = config_parser.get("usenet", "index_site")
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.index_site = config_obj["usenet"]["index_site"]
+                template.color_scheme = config_obj["general"]["color_scheme"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
                 if template.index_site:
@@ -5730,7 +5694,7 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def add_config_usenet(self, **kwargs):
 
-                config_index_site = config_parser.get("usenet", "index_site")
+                config_index_site = config_obj["usenet"]["index_site"]
                 add_newznab_site = kwargs["add_newznab_site2"]
 
                 site_index = 1
@@ -5759,90 +5723,87 @@ class ConfigUsenet(object):
 
                         #convert back to comma seperated list and set
                         config_newznab_site = ",".join(config_index_site_list)
-                        config_parser.set("usenet", "index_site", config_newznab_site)
+                        config_obj["usenet"]["index_site"] = config_newznab_site
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_parser.set("usenet", "index_site", add_newznab_site_index)
+                        config_obj["usenet"]["index_site"] = add_newznab_site_index
 
                 #set hostname, path, and port number for known index sites
                 if add_newznab_site == "nzbs_org":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbs.org")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbs.org"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzb_su":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://api.nzb.su")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://api.nzb.su"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "dognzb_cr":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://api.dognzb.cr")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://api.dognzb.cr"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzbs4u_net":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbs4u.net")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbs4u.net"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "usenet_crawler":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.usenet-crawler.com")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.usenet-crawler.com"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzb_ag":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzb.ag")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzb.ag"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nmatrix_co_za":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.nmatrix.co.za")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.nmatrix.co.za"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "newzb_net":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://newzb.net")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://newzb.net"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzbplanet_net":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://nzbplanet.net")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbplanet.net"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzbndx_com":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "https://www.nzbndx.com")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "443")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.nzbndx.com"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
                 elif add_newznab_site == "nzbid_org":
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "http://nzbid.org")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "80")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "http://nzbid.org"
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "80"
 
                 else:
 
-                        config_parser.set("usenet", "%s_hostname" % (add_newznab_site_index), "")
-                        config_parser.set("usenet", "%s_portnumber" % (add_newznab_site_index), "")
+                        config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = ""
+                        config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = ""
 
                 #write default values to config.ini
-                config_parser.set("usenet", "%s_path" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_key" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_cat" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_search_and" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_search_or" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_search_not" % (add_newznab_site_index), "")
-                config_parser.set("usenet", "%s_minsize" % (add_newznab_site_index), "0")
-                config_parser.set("usenet", "%s_maxsize" % (add_newznab_site_index), "0")
-                config_parser.set("usenet", "%s_spotweb_support" % (add_newznab_site_index), "no")
-                config_parser.set("usenet", "%s_enabled" % (add_newznab_site_index), "yes")
+                config_obj["usenet"]["%s_path" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_key" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_cat" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_and" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_or" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_not" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_minsize" % (add_newznab_site_index)] = "0"
+                config_obj["usenet"]["%s_maxsize" % (add_newznab_site_index)] = "0"
+                config_obj["usenet"]["%s_spotweb_support" % (add_newznab_site_index)] = "no"
+                config_obj["usenet"]["%s_enabled" % (add_newznab_site_index)] = "yes"
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5853,23 +5814,23 @@ class ConfigUsenet(object):
                 edit_newznab_site_index = kwargs["edit_newznab_site2"]
 
                 #write values to config.ini
-                config_parser.set("usenet", "%s_hostname" % (edit_newznab_site_index), kwargs["newznab_hostname2"])
-                config_parser.set("usenet", "%s_path" % (edit_newznab_site_index), kwargs["newznab_path2"])
-                config_parser.set("usenet", "%s_portnumber" % (edit_newznab_site_index), kwargs["newznab_portnumber2"])
-                config_parser.set("usenet", "%s_key" % (edit_newznab_site_index), kwargs["newznab_key2"])
-                config_parser.set("usenet", "%s_cat" % (edit_newznab_site_index), kwargs["newznab_cat2"])
-                config_parser.set("usenet", "%s_search_and" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_and2"]))
-                config_parser.set("usenet", "%s_search_or" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_or2"]))
-                config_parser.set("usenet", "%s_search_not" % (edit_newznab_site_index), uni_to_byte(kwargs["newznab_search_not2"]))
-                config_parser.set("usenet", "%s_spotweb_support" % (edit_newznab_site_index), kwargs["spotweb_support2"])
-                config_parser.set("usenet", "%s_enabled" % (edit_newznab_site_index), kwargs["newznab_enabled2"])
+                config_obj["usenet"]["%s_hostname" % (edit_newznab_site_index)] = kwargs["newznab_hostname2"]
+                config_obj["usenet"]["%s_path" % (edit_newznab_site_index)] = kwargs["newznab_path2"]
+                config_obj["usenet"]["%s_portnumber" % (edit_newznab_site_index)] = kwargs["newznab_portnumber2"]
+                config_obj["usenet"]["%s_key" % (edit_newznab_site_index)] = kwargs["newznab_key2"]
+                config_obj["usenet"]["%s_cat" % (edit_newznab_site_index)] = kwargs["newznab_cat2"]
+                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"]
+                config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"]
+                config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"]
+                config_obj["usenet"]["%s_spotweb_support" % (edit_newznab_site_index)] = kwargs["spotweb_support2"]
+                config_obj["usenet"]["%s_enabled" % (edit_newznab_site_index)] = kwargs["newznab_enabled2"]
 
                 if kwargs["newznab_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_minsize2"])
-                                config_parser.set("usenet", "%s_minsize" % (edit_newznab_site_index),kwargs["newznab_minsize2"])
+                                config_obj["usenet"]["%s_minsize" % (edit_newznab_site_index)] = kwargs["newznab_minsize2"]
 
                         except ValueError:
 
@@ -5877,14 +5838,14 @@ class ConfigUsenet(object):
 
                 else:
 
-                        config_parser.set("usenet", "%s_minsize" % (edit_newznab_site_index),"0")
+                        config_obj["usenet"]["%s_minsize" % (edit_newznab_site_index)] = "0"
 
                 if kwargs["newznab_maxsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["newznab_maxsize2"])
-                                config_parser.set("usenet", "%s_maxsize" % (edit_newznab_site_index), kwargs["newznab_maxsize2"])
+                                config_obj["usenet"]["%s_maxsize" % (edit_newznab_site_index)] = kwargs["newznab_maxsize2"]
 
                         except ValueError:
 
@@ -5892,12 +5853,9 @@ class ConfigUsenet(object):
 
                 else:
 
-                        config_parser.set("usenet", "%s_maxsize" % (edit_newznab_site_index),"0")
+                        config_obj["usenet"]["%s_maxsize" % (edit_newznab_site_index)] = "0"
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5905,7 +5863,7 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def delete_config_usenet(self, **kwargs):
 
-                config_index_site = config_parser.get("usenet", "index_site")
+                config_index_site = config_obj["usenet"]["index_site"]
                 delete_newznab_site_index = kwargs["delete_newznab_site2"]
 
                 if config_index_site:
@@ -5918,26 +5876,23 @@ class ConfigUsenet(object):
                                 #delete selected index site from list
                                 config_index_site_list.remove(delete_newznab_site_index)
                                 delete_newznab_site = ",".join(config_index_site_list)
-                                config_parser.set("usenet", "index_site", delete_newznab_site)
+                                config_obj["usenet"]["index_site"] = delete_newznab_site
 
                                 #delete config entries for selected index site
-                                config_parser.remove_option("usenet", "%s_hostname" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_path" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_portnumber" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_key" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_cat" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_search_and" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_search_or" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_search_not" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_minsize" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_maxsize" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_spotweb_support" % (delete_newznab_site_index))
-                                config_parser.remove_option("usenet", "%s_enabled" % (delete_newznab_site_index))
+                                config_obj.remove_option("usenet"]["%s_hostname" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_path" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_portnumber" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_key" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_cat" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_search_and" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_search_or" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_search_not" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_minsize" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_maxsize" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_spotweb_support" % (delete_newznab_site_index)]
+                                config_obj.remove_option("usenet"]["%s_enabled" % (delete_newznab_site_index)]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -5955,10 +5910,10 @@ class ConfigTorrent(object):
                 template = Template(file = os.path.join(templates_dir, "config_torrent.tmpl"))
 
                 #create variable for templates to read config entries
-                template.config_parser = config_parser
+                template.config_obj = config_obj
 
-                template.index_site = config_parser.get("torrent", "index_site")
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.index_site = config_obj["torrent"]["index_site"]
+                template.color_scheme = config_obj["general"]["color_scheme"]
 
                 if template.index_site:
 
@@ -5979,7 +5934,7 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def add_config_torrent(self, **kwargs):
 
-                config_index_site = config_parser.get("torrent", "index_site")
+                config_index_site = config_obj["torrent"]["index_site"]
                 add_torrent_site = kwargs["add_torrent_site2"]
 
                 site_index = 1
@@ -6008,51 +5963,48 @@ class ConfigTorrent(object):
 
                         #convert back to comma seperated list and set
                         config_torrent_site = ",".join(config_index_site_list)
-                        config_parser.set("torrent", "index_site", config_torrent_site)
+                        config_obj["torrent"]["index_site"] = config_torrent_site
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_parser.set("torrent", "index_site", add_torrent_site_index)
+                        config_obj["torrent"]["index_site"] = add_torrent_site_index
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "kat":
 
-                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "https://kickass.to")
-                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "443")
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://kickass.to"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "443"
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "piratebay":
 
-                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://rss.thepiratebay.se")
-                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://rss.thepiratebay.se"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "bitsnoop":
 
-                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://bitsnoop.com")
-                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://bitsnoop.com"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "extratorrent":
 
-                        config_parser.set("torrent", "%s_hostname" % (add_torrent_site_index), "http://extratorrent.cc")
-                        config_parser.set("torrent", "%s_portnumber" % (add_torrent_site_index), "80")
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://extratorrent.cc"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #write default values to config.ini
-                config_parser.set("torrent", "%s_cat" % (add_torrent_site_index), "")
-                config_parser.set("torrent", "%s_lang" % (add_torrent_site_index), "")
-                config_parser.set("torrent", "%s_search_and" % (add_torrent_site_index), "")
-                config_parser.set("torrent", "%s_search_or" % (add_torrent_site_index), "")
-                config_parser.set("torrent", "%s_search_not" % (add_torrent_site_index), "")
-                config_parser.set("torrent", "%s_minsize" % (add_torrent_site_index), "0")
-                config_parser.set("torrent", "%s_maxsize" % (add_torrent_site_index), "0")
-                config_parser.set("torrent", "%s_enabled" % (add_torrent_site_index), "yes")
+                config_obj["torrent"]["%s_cat" % (add_torrent_site_index)] = ""
+                config_obj["torrent"]["%s_lang" % (add_torrent_site_index)] = ""
+                config_obj["torrent"]["%s_search_and" % (add_torrent_site_index)] = ""
+                config_obj["torrent"]["%s_search_or" % (add_torrent_site_index)] = ""
+                config_obj["torrent"]["%s_search_not" % (add_torrent_site_index)] = ""
+                config_obj["torrent"]["%s_minsize" % (add_torrent_site_index)] = "0"
+                config_obj["torrent"]["%s_maxsize" % (add_torrent_site_index)] = "0"
+                config_obj["torrent"]["%s_enabled" % (add_torrent_site_index)] = "yes"
                 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -6063,21 +6015,21 @@ class ConfigTorrent(object):
                 edit_torrent_site_index = kwargs["edit_torrent_site2"]
 
                 #write values to config.ini
-                config_parser.set("torrent", "%s_hostname" % (edit_torrent_site_index), kwargs["torrent_hostname2"])
-                config_parser.set("torrent", "%s_portnumber" % (edit_torrent_site_index), kwargs["torrent_portnumber2"])
-                config_parser.set("torrent", "%s_cat" % (edit_torrent_site_index), kwargs["torrent_cat2"])
-                config_parser.set("torrent", "%s_lang" % (edit_torrent_site_index), kwargs["torrent_lang2"])
-                config_parser.set("torrent", "%s_search_and" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_and2"]))
-                config_parser.set("torrent", "%s_search_or" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_or2"]))
-                config_parser.set("torrent", "%s_search_not" % (edit_torrent_site_index), uni_to_byte(kwargs["torrent_search_not2"]))
-                config_parser.set("torrent", "%s_enabled" % (edit_torrent_site_index), kwargs["torrent_enabled2"])
+                config_obj["torrent"]["%s_hostname" % (edit_torrent_site_index)] = kwargs["torrent_hostname2"]
+                config_obj["torrent"]["%s_portnumber" % (edit_torrent_site_index)] = kwargs["torrent_portnumber2"]
+                config_obj["torrent"]["%s_cat" % (edit_torrent_site_index)] = kwargs["torrent_cat2"]
+                config_obj["torrent"]["%s_lang" % (edit_torrent_site_index)] = kwargs["torrent_lang2"]
+                config_obj["torrent"]["%s_search_and" % (edit_torrent_site_index)] = kwargs["torrent_search_and2"]
+                config_obj["torrent"]["%s_search_or" % (edit_torrent_site_index)] = kwargs["torrent_search_or2"]
+                config_obj["torrent"]["%s_search_not" % (edit_torrent_site_index)] = kwargs["torrent_search_not2"]
+                config_obj["torrent"]["%s_enabled" % (edit_torrent_site_index)] = kwargs["torrent_enabled2"]
 
                 if kwargs["torrent_minsize2"]:
 
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_minsize2"])
-                                config_parser.set("torrent", "%s_minsize" % (edit_torrent_site_index),kwargs["torrent_minsize2"])
+                                config_obj["torrent"]["%s_minsize" % (edit_torrent_site_index)] = kwargs["torrent_minsize2"]
 
                         except ValueError:
 
@@ -6088,16 +6040,13 @@ class ConfigTorrent(object):
                         #check value is an integer, if not do not save
                         try:
                                 int(kwargs["torrent_maxsize2"])
-                                config_parser.set("torrent", "%s_maxsize" % (edit_torrent_site_index), kwargs["torrent_maxsize2"])
+                                config_obj["torrent"]["%s_maxsize" % (edit_torrent_site_index)] = kwargs["torrent_maxsize2"]
 
                         except ValueError:
 
                                 pass
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -6105,7 +6054,7 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def delete_config_torrent(self, **kwargs):
 
-                config_index_site = config_parser.get("torrent", "index_site")
+                config_index_site = config_obj["torrent"]["index_site"]
                 delete_torrent_site_index = kwargs["delete_torrent_site2"]
 
                 if config_index_site:
@@ -6118,24 +6067,21 @@ class ConfigTorrent(object):
                                 #delete selected index site from list
                                 config_index_site_list.remove(delete_torrent_site_index)
                                 delete_torrent_site = ",".join(config_index_site_list)
-                                config_parser.set("torrent", "index_site", delete_torrent_site)
+                                config_obj["torrent"]["index_site"] = delete_torrent_site
 
                                 #delete config entries for selected index site
-                                config_parser.remove_option("torrent", "%s_hostname" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_portnumber" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_cat" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_lang" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_search_and" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_search_or" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_search_not" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_minsize" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_maxsize" % (delete_torrent_site_index))
-                                config_parser.remove_option("torrent", "%s_enabled" % (delete_torrent_site_index))
+                                config_obj.remove_option("torrent"]["%s_hostname" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_portnumber" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_cat" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_lang" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_search_and" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_search_or" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_search_not" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_minsize" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_maxsize" % (delete_torrent_site_index)]
+                                config_obj.remove_option("torrent"]["%s_enabled" % (delete_torrent_site_index)]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -6153,16 +6099,16 @@ class ConfigDirectories(object):
                 template = Template(file = os.path.join(templates_dir, "config_directories.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.movies_downloaded_dir = config_parser.get("folders", "movies_downloaded_dir")
-                template.movies_replace_dir = config_parser.get("folders", "movies_replace_dir")
-                template.usenet_watch_dir = config_parser.get("folders", "usenet_watch_dir")
-                template.usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")
-                template.usenet_completed_dir = config_parser.get("folders", "usenet_completed_dir")
-                template.torrent_watch_dir = config_parser.get("folders", "torrent_watch_dir")
-                template.torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
-                template.torrent_completed_dir = config_parser.get("folders", "torrent_completed_dir")
-                template.logs_dir = config_parser.get("folders", "logs_dir")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
+                template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
+                template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
+                template.usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
+                template.usenet_completed_dir = config_obj["folders"]["usenet_completed_dir"]
+                template.torrent_watch_dir = config_obj["folders"]["torrent_watch_dir"]
+                template.torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
+                template.torrent_completed_dir = config_obj["folders"]["torrent_completed_dir"]
+                template.logs_dir = config_obj["folders"]["logs_dir"]
                 header()
 
                 footer()
@@ -6176,31 +6122,31 @@ class ConfigDirectories(object):
                 #write values to config.ini - check to see if folders exist and check folder logic
                 if os.path.exists(kwargs["usenet_watch_dir2"]) and kwargs["usenet_watch_dir2"] != kwargs["usenet_archive_dir2"] or kwargs["usenet_watch_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_watch_dir", del_inv_chars(kwargs["usenet_watch_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["usenet_watch_dir"] = del_inv_chars(kwargs["usenet_watch_dir2"])
 
                 if os.path.exists(kwargs["usenet_archive_dir2"]) and kwargs["usenet_archive_dir2"] != kwargs["usenet_watch_dir2"] or kwargs["usenet_archive_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_archive_dir", del_inv_chars(kwargs["usenet_archive_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["usenet_archive_dir"] = del_inv_chars(kwargs["usenet_archive_dir2"])
 
                 if os.path.exists(kwargs["usenet_completed_dir2"]) or kwargs["usenet_completed_dir2"] == "":
 
-                        config_parser.set("folders", "usenet_completed_dir", del_inv_chars(kwargs["usenet_completed_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["usenet_completed_dir"] = del_inv_chars(kwargs["usenet_completed_dir2"])
 
                 if os.path.exists(kwargs["torrent_watch_dir2"]) and kwargs["torrent_watch_dir2"] != kwargs["torrent_archive_dir2"] or kwargs["torrent_watch_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_watch_dir", del_inv_chars(kwargs["torrent_watch_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["torrent_watch_dir"] = del_inv_chars(kwargs["torrent_watch_dir2"])
 
                 if os.path.exists(kwargs["torrent_archive_dir2"]) and kwargs["torrent_archive_dir2"] != kwargs["torrent_watch_dir2"] or kwargs["torrent_archive_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_archive_dir", del_inv_chars(kwargs["torrent_archive_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["torrent_archive_dir"] = del_inv_chars(kwargs["torrent_archive_dir2"])
 
                 if os.path.exists(kwargs["torrent_completed_dir2"]) or kwargs["torrent_completed_dir2"] == "":
 
-                        config_parser.set("folders", "torrent_completed_dir", del_inv_chars(kwargs["torrent_completed_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["torrent_completed_dir"] = del_inv_chars(kwargs["torrent_completed_dir2"])
 
                 if os.path.exists(kwargs["logs_dir2"]) and kwargs["logs_dir2"]:
 
-                        config_parser.set("folders", "logs_dir", del_inv_chars(kwargs["logs_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["logs_dir"] = del_inv_chars(kwargs["logs_dir2"])
 
                 #create list of movies to replace
                 movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
@@ -6223,7 +6169,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_replace_dir2"] == "":
 
-                        config_parser.set("folders", "movies_replace_dir", del_inv_chars(kwargs["movies_replace_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["movies_replace_dir"] = del_inv_chars(kwargs["movies_replace_dir2"])
 
                 #create list of movies already downloaded
                 movies_downloaded_list = (kwargs["movies_downloaded_dir2"]).split(",")
@@ -6246,12 +6192,9 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_downloaded_dir2"] == "":
 
-                        config_parser.set("folders", "movies_downloaded_dir", del_inv_chars(kwargs["movies_downloaded_dir2"]).encode("utf-8"))
+                        config_obj["folders"]["movies_downloaded_dir"] = del_inv_chars(kwargs["movies_downloaded_dir2"])
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -6269,19 +6212,19 @@ class ConfigNotification(object):
                 template = Template(file = os.path.join(templates_dir, "config_notification.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.email_server = config_parser.get("email_settings", "email_server")
-                template.email_server_port = config_parser.get("email_settings", "email_server_port")
-                template.email_server_ssl = config_parser.get("email_settings", "email_server_ssl")
-                template.email_username = config_parser.get("email_settings", "email_username")
-                template.email_password = config_parser.get("email_settings", "email_password")
-                template.email_from = config_parser.get("email_settings", "email_from")
-                template.email_to = config_parser.get("email_settings", "email_to")
-                template.xbmc_host = config_parser.get("xbmc", "xbmc_host")
-                template.xbmc_port = config_parser.get("xbmc", "xbmc_port")
-                template.xbmc_username = config_parser.get("xbmc", "xbmc_username")
-                template.xbmc_password = config_parser.get("xbmc", "xbmc_password")
-                template.xbmc_notification = config_parser.get("xbmc", "xbmc_notification")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.email_server = config_obj["email_settings"]["email_server"]
+                template.email_server_port = config_obj["email_settings"]["email_server_port"]
+                template.email_server_ssl = config_obj["email_settings"]["email_server_ssl"]
+                template.email_username = config_obj["email_settings"]["email_username"]
+                template.email_password = config_obj["email_settings"]["email_password"]
+                template.email_from = config_obj["email_settings"]["email_from"]
+                template.email_to = config_obj["email_settings"]["email_to"]
+                template.xbmc_host = config_obj["xbmc"]["xbmc_host"]
+                template.xbmc_port = config_obj["xbmc"]["xbmc_port"]
+                template.xbmc_username = config_obj["xbmc"]["xbmc_username"]
+                template.xbmc_password = config_obj["xbmc"]["xbmc_password"]
+                template.xbmc_notification = config_obj["xbmc"]["xbmc_notification"]
 
                 header()
 
@@ -6294,23 +6237,20 @@ class ConfigNotification(object):
         def save_config_notification(self, **kwargs):
 
                 #write values to config.ini
-                config_parser.set("email_settings", "email_server", kwargs["email_server2"])
-                config_parser.set("email_settings", "email_server_port", kwargs["email_server_port2"])
-                config_parser.set("email_settings", "email_server_ssl", kwargs["email_server_ssl2"])
-                config_parser.set("email_settings", "email_username", kwargs["email_username2"])
-                config_parser.set("email_settings", "email_password", kwargs["email_password2"])
-                config_parser.set("email_settings", "email_from", kwargs["email_from2"])
-                config_parser.set("email_settings", "email_to", kwargs["email_to2"])
-                config_parser.set("xbmc", "xbmc_host", kwargs["xbmc_host2"])
-                config_parser.set("xbmc", "xbmc_port", kwargs["xbmc_port2"])
-                config_parser.set("xbmc", "xbmc_username", kwargs["xbmc_username2"])
-                config_parser.set("xbmc", "xbmc_password", kwargs["xbmc_password2"])
-                config_parser.set("xbmc", "xbmc_notification", kwargs["xbmc_notification2"])
+                config_obj["email_settings"]["email_server"] = kwargs["email_server2"]
+                config_obj["email_settings"]["email_server_port"] = kwargs["email_server_port2"]
+                config_obj["email_settings"]["email_server_ssl"] = kwargs["email_server_ssl2"]
+                config_obj["email_settings"]["email_username"] = kwargs["email_username2"]
+                config_obj["email_settings"]["email_password"] = kwargs["email_password2"]
+                config_obj["email_settings"]["email_from"] = kwargs["email_from2"]
+                config_obj["email_settings"]["email_to"] = kwargs["email_to2"]
+                config_obj["xbmc"]["xbmc_host"] = kwargs["xbmc_host2"]
+                config_obj["xbmc"]["xbmc_port"] = kwargs["xbmc_port2"]
+                config_obj["xbmc"]["xbmc_username"] = kwargs["xbmc_username2"]
+                config_obj["xbmc"]["xbmc_password"] = kwargs["xbmc_password2"]
+                config_obj["xbmc"]["xbmc_notification"] = kwargs["xbmc_notification2"]
 
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
 
@@ -6343,7 +6283,7 @@ class ConfigRoot(object):
                 template = Template(file = os.path.join(templates_dir, "config.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
+                template.color_scheme = config_obj["general"]["color_scheme"]
 
                 header()
 
@@ -6367,9 +6307,9 @@ class HistoryRoot(object):
                 template = Template(file = os.path.join(templates_dir, "history.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.enable_posters = config_parser.get("switches", "enable_posters")
-                template.history_sort_order = config_parser.get("general", "history_sort_order")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.enable_posters = config_obj["switches"]["enable_posters"]
+                template.history_sort_order = config_obj["general"]["history_sort_order"]
 
                 header()
 
@@ -6384,8 +6324,8 @@ class HistoryRoot(object):
 
                 else:
 
-                        history_sort_order = config_parser.get("general", "history_sort_order")
-                        max_items_shown = config_parser.get("general", "max_items_shown")
+                        history_sort_order = config_obj["general"]["history_sort_order"]
+                        max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #select all rows from history table
                         template.sqlite_history_count = sql_session.query(ResultsDBHistory).count()
@@ -6441,13 +6381,10 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_parser.set("general", "history_sort_order", kwargs["sort_order"])
+                config_obj["general"]["history_sort_order"] = kwargs["sort_order"]
 
                 #write settings to config.ini
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write(configini)
-                        configini.close()
+                config_obj.write()
 
                 return HistoryRoot().index()
 
@@ -6669,9 +6606,9 @@ class QueueRoot(object):
                 template = Template(file = os.path.join(templates_dir, "queue.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.enable_posters = config_parser.get("switches", "enable_posters")
-                template.queued_sort_order = config_parser.get("general", "queued_sort_order")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.enable_posters = config_obj["switches"]["enable_posters"]
+                template.queued_sort_order = config_obj["general"]["queued_sort_order"]
 
                 header()
 
@@ -6686,8 +6623,8 @@ class QueueRoot(object):
 
                 else:
 
-                        queued_sort_order = config_parser.get("general", "queued_sort_order")
-                        max_items_shown = config_parser.get("general", "max_items_shown")
+                        queued_sort_order = config_obj["general"]["queued_sort_order"]
+                        max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #remove limit if max items shown is string all
                         if max_items_shown == "all":
@@ -6748,13 +6685,10 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_parser.set("general", "queued_sort_order", kwargs["sort_order"])
+                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"]
 
                 #write settings to config.ini
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write(configini)
-                        configini.close()
+                config_obj.write()
 
                 return QueueRoot().index()
 
@@ -6987,20 +6921,20 @@ class HomeRoot(object):
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
 
                 #read config.ini - required due to issue with configparser seeing entries as lists
-                config_parser.read(config_ini)
+                config_obj.read(config_ini)
 
                 #read values from config.ini
-                template.color_scheme = config_parser.get("general", "color_scheme")
-                template.usenet_index_site = config_parser.get("usenet", "index_site")
-                template.usenet_watch_dir = config_parser.get("folders", "usenet_watch_dir")
-                template.usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")
-                template.usenet_completed_dir = config_parser.get("folders", "usenet_completed_dir")
-                template.torrent_index_site = config_parser.get("torrent", "index_site")
-                template.torrent_watch_dir = config_parser.get("folders", "torrent_watch_dir")
-                template.torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
-                template.torrent_completed_dir = config_parser.get("folders", "torrent_completed_dir")
-                template.good_rating = config_parser.get("imdb", "good_rating")
-                template.good_votes = config_parser.get("imdb", "good_votes")
+                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.usenet_index_site = config_obj["usenet"]["index_site"]
+                template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
+                template.usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
+                template.usenet_completed_dir = config_obj["folders"]["usenet_completed_dir"]
+                template.torrent_index_site = config_obj["torrent"]["index_site"]
+                template.torrent_watch_dir = config_obj["folders"]["torrent_watch_dir"]
+                template.torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
+                template.torrent_completed_dir = config_obj["folders"]["torrent_completed_dir"]
+                template.good_rating = config_obj["imdb"]["good_rating"]
+                template.good_votes = config_obj["imdb"]["good_votes"]
 
                 header()
 
@@ -7011,7 +6945,7 @@ class HomeRoot(object):
 def start_webgui():
 
         #check if webui username and password specified, if exist enable authentication for webconfig_settings
-        if (config_parser.get("webconfig", "username")) and (config_parser.get("webconfig", "password")):
+        if config_obj["webconfig"]["username"] and config_obj["webconfig"]["password"]:
 
                 auth_basic = True
 
@@ -7021,7 +6955,7 @@ def start_webgui():
                 auth_basic = False
 
         #create credentials store in dictionary for cherrypy
-        userpassdict = {config_parser.get("webconfig", "username") : config_parser.get("webconfig", "password")}
+        userpassdict = config_obj["webconfig"]["username"] : config_obj["webconfig"]["password"]
 
         checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userpassdict)
 
@@ -7032,8 +6966,8 @@ def start_webgui():
                         'server.environment' : "production",
                         'engine.autoreload.on' : False,
                         'engine.timeout_monitor.on' : False,
-                        'server.socket_host' : (config_parser.get("webconfig", "address").encode("utf-8")),
-                        'server.socket_port' : int(config_parser.get("webconfig", "port")),
+                        'server.socket_host' : config_obj["webconfig"]["address"].encode("utf-8")),
+                        'server.socket_port' : int(config_obj["webconfig"]["port"]),
                         'tools.staticdir.root' : os.path.dirname(os.path.abspath(sys.argv[0]))
                 },
 
@@ -7073,12 +7007,12 @@ def start_webgui():
 
         try:
                 #check cherrypy port to see if its available
-                cherrypy.process.servers.check_port(config_parser.get("webconfig", "address"), int(config_parser.get("webconfig", "port")), timeout=1.0)
+                cherrypy.process.servers.check_port(config_obj["webconfig"]["address"], int(config_obj["webconfig"]["port"]), timeout=1.0)
 
         except IOError, e:
 
                 #if port not available print and log message and exit
-                mg_log.warning(u"CherryPy failed to start on port %i, port already in use" % (int(config_parser.get("webconfig", "port"))))
+                mg_log.warning(u"CherryPy failed to start on port %i, port already in use" % (int(config_obj["webconfig"]["port"])))
 
                 #assume moviegrabber already running, start clients default browser
                 launch_default_browser()
@@ -7102,8 +7036,8 @@ class PostProcessingThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_parser.read(config_ini)
-                self.enable_post_processing = config_parser.get("switches", "enable_post_processing")
+                config_obj.read(config_ini)
+                self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
                 if self.enable_post_processing == "yes":
 
@@ -7116,8 +7050,8 @@ class PostProcessingThread(object):
                                 self.run()
                                 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                post_processing_schedule_minute = config_parser.getint("general", "post_schedule_minute")
+                post_processing_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
+                post_processing_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing plugin as scheduled background task daemonized (non blocking)
@@ -7137,25 +7071,25 @@ class SearchIndexThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_parser.read(config_ini)
+                config_obj.read(config_ini)
 
                 #get list of index sites defined in config,ini
-                usenet_index_site = config_parser.get("usenet", "index_site")
-                torrent_index_site = config_parser.get("torrent", "index_site")
+                usenet_index_site = config_obj["usenet"]["index_site"]
+                torrent_index_site = config_obj["torrent"]["index_site"]
 
                 if usenet_index_site != "":
 
                         #convert comma seperated string into list - config parser cannot deal with lists
                         usenet_index_site_list = usenet_index_site.split(",")
 
-                        usenet_watch_dir = config_parser.get("folders", "usenet_watch_dir")
-                        usenet_archive_dir = config_parser.get("folders", "usenet_archive_dir")
-                        usenet_completed_dir = config_parser.get("folders", "usenet_completed_dir")
+                        usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
+                        usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
+                        usenet_completed_dir = config_obj["folders"]["usenet_completed_dir"]
 
                         #loop over list of usenet index sites
                         for usenet_index_site_item in usenet_index_site_list:
 
-                                config_index_enabled = config_parser.get("usenet", "%s_enabled" % (usenet_index_site_item))
+                                config_index_enabled = config_obj["usenet"]["%s_enabled" % (usenet_index_site_item)]
 
                                 if config_index_enabled == "yes":
 
@@ -7163,9 +7097,9 @@ class SearchIndexThread(object):
                                         self.search_index_function = "newznab_index"
                                         self.download_type = "usenet"
 
-                                        config_hostname = config_parser.get("usenet", "%s_hostname" % (usenet_index_site_item))
-                                        config_portnumber = config_parser.get("usenet", "%s_portnumber" % (usenet_index_site_item))
-                                        config_apikey = config_parser.get("usenet", "%s_key" % (usenet_index_site_item))
+                                        config_hostname = config_obj["usenet"]["%s_hostname" % (usenet_index_site_item)]
+                                        config_portnumber = config_obj["usenet"]["%s_portnumber" % (usenet_index_site_item)]
+                                        config_apikey = config_obj["usenet"]["%s_key" % (usenet_index_site_item)]
 
                                         #check all required details are complete for selected index sites
                                         if config_hostname and config_portnumber and config_apikey and usenet_watch_dir and usenet_archive_dir and usenet_completed_dir:
@@ -7177,14 +7111,14 @@ class SearchIndexThread(object):
                         #convert comma seperated string into list - config parser cannot deal with lists
                         torrent_index_site_list = torrent_index_site.split(",")
 
-                        torrent_watch_dir = config_parser.get("folders", "torrent_watch_dir")
-                        torrent_archive_dir = config_parser.get("folders", "torrent_archive_dir")
-                        torrent_completed_dir = config_parser.get("folders", "torrent_completed_dir")
+                        torrent_watch_dir = config_obj["folders"]["torrent_watch_dir"]
+                        torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
+                        torrent_completed_dir = config_obj["folders"]["torrent_completed_dir"]
 
                         #loop over list of torrent index sites
                         for torrent_index_site_item in torrent_index_site_list:
 
-                                config_index_enabled = config_parser.get("torrent", "%s_enabled" % (torrent_index_site_item))
+                                config_index_enabled = config_obj["torrent"]["%s_enabled" % (torrent_index_site_item)]
 
                                 if config_index_enabled == "yes":
 
@@ -7229,8 +7163,8 @@ class SearchIndexThread(object):
                                                         self.run()
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                search_index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
+                search_index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
+                search_index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index plugin as scheduled background task daemonized (non blocking)
@@ -7252,13 +7186,10 @@ class SearchIndexThread(object):
                 current_date_time_str = time.strftime(time_format, time.localtime())
 
                 #set current date time for last run
-                config_parser.set("general", "last_run", current_date_time_str)
+                config_obj["general"]["last_run"] = current_date_time_str
 
                 #write settings to config.ini
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
 #version check thread class
 class VersionCheckThread(object):
@@ -7266,7 +7197,7 @@ class VersionCheckThread(object):
         #check current version
         def checks(self):
 
-                check_version = config_parser.get("general", "check_version")
+                check_version = config_obj["general"]["check_version"]
 
                 if check_version != "off":
 
@@ -7275,7 +7206,7 @@ class VersionCheckThread(object):
 
                         #construct time format string
                         current_date_time_str = time.strftime(time_format, time.localtime())
-                        last_version_check_str = config_parser.get("general", "last_version_check")
+                        last_version_check_str = config_obj["general"]["last_version_check"]
 
                         #if version check never run then start check
                         if last_version_check_str == "":
@@ -7357,21 +7288,18 @@ class VersionCheckThread(object):
                         return
 
                 #set remote version
-                config_parser.set("general", "remote_version", remote_version)
+                config_obj["general"]["remote_version"] = remote_version
 
                 #set remote download url
-                config_parser.set("general", "remote_download", remote_download)
+                config_obj["general"]["remote_download"] = remote_download
 
                 #set last version check
-                config_parser.set("general", "last_version_check", current_date_time_str)
+                config_obj["general"]["last_version_check"] = current_date_time_str
 
                 mg_log.info(u"Version check succeeded")
 
                 #write settings to config.ini
-                with open(config_ini, 'w') as configini:
-
-                        config_parser.write
-                        config_parser.write(configini)
+                config_obj.write()
 
                 mg_log.info(u"Version check stopped")
 
@@ -7430,8 +7358,8 @@ class CherrypyPostPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_parser.getint("general", "post_schedule_hour")
-                post_processing_schedule_minute = config_parser.getint("general", "post_schedule_minute")
+                post_processing_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
+                post_processing_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing timer daemonized (non blocking)
@@ -7469,8 +7397,8 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_parser.getint("general", "index_schedule_hour")
-                search_index_schedule_minute = config_parser.getint("general", "index_schedule_minute")
+                search_index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
+                search_index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index timer daemonized (non blocking)
@@ -7507,9 +7435,9 @@ def launch_default_browser():
 
         mg_log.info(u"Launching browser")
 
-        config_webconfig_address = config_parser.get("webconfig", "address")
-        config_webconfig_port = config_parser.get("webconfig", "port")
-        config_webconfig_enable_ssl = config_parser.get("webconfig", "enable_ssl")
+        config_webconfig_address = config_obj["webconfig"]["address"]
+        config_webconfig_port = config_obj["webconfig"]["port"]
+        config_webconfig_enable_ssl = config_obj["webconfig"]["enable_ssl"]
 
         #check if ssl is enabled
         if config_webconfig_enable_ssl == "yes":
@@ -7575,7 +7503,7 @@ if __name__ == '__main__':
         version_check_plugin.subscribe()
 
         #check if ssl is enabled
-        webui_ssl = config_parser.get("webconfig", "enable_ssl")
+        webui_ssl = config_obj["webconfig"]["enable_ssl"]
         
         if webui_ssl == "yes":
 
@@ -7591,13 +7519,10 @@ if __name__ == '__main__':
                 except Exception:
 
                         #disable ssl self signed certs
-                        config_parser.set("webconfig", "enable_ssl", "no")
+                        config_obj["webconfig"]["enable_ssl"] = "no"
 
                         #write settings to config.ini
-                        with open(config_ini, 'w') as configini:
-
-                                config_parser.write(configini)
-                                configini.close()
+                        config_obj.write()
 
                         sys.stderr.write(u"SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS")
 
@@ -7621,7 +7546,7 @@ if __name__ == '__main__':
         config_ip()
 
         #check if launch browser on startup is enabled
-        launch_browser = config_parser.get("general", "launch_browser")
+        launch_browser = config_obj["general"]["launch_browser"]
 
         if launch_browser == "yes":
 
