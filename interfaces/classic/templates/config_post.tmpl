@@ -131,11 +131,11 @@ EDIT/DELETE RULES
 	
 			<div class="post_processing_div_td">	
 
-				<!--#set $post_config_dropdown1 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown1")#-->	
-				<!--#set $post_config_dropdown2 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown2")#-->			
-				<!--#set $post_config_dropdown3 = $config_parser.get("post_processing", $post_config_rule_item + "_dropdown3")#-->			
-				<!--#set $post_config_textbox1 = $config_parser.get("post_processing", $post_config_rule_item + "_textbox1")#-->			
-				<!--#set $post_config_textbox2 = $config_parser.get("post_processing", $post_config_rule_item + "_textbox2")#-->							
+				<!--#set $post_config_dropdown1 = $config_obj["post_processing"] $post_config_rule_item + "_dropdown1")#-->	
+				<!--#set $post_config_dropdown2 = $config_obj["post_processing"] $post_config_rule_item + "_dropdown2")#-->			
+				<!--#set $post_config_dropdown3 = $config_obj["post_processing"] $post_config_rule_item + "_dropdown3")#-->			
+				<!--#set $post_config_textbox1 = $config_obj["post_processing"] $post_config_rule_item + "_textbox1")#-->			
+				<!--#set $post_config_textbox2 = $config_obj["post_processing"] $post_config_rule_item + "_textbox2")#-->							
 				
 				<!--#set $edit_config_rule = "edit_config_rule_" + str($post_config_rule_item)#-->		
 				<!--#set $delete_config_rule = "delete_config_rule_" + str($post_config_rule_item)#-->

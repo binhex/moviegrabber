@@ -52,6 +52,13 @@ else:
                 #append full path to sys path
                 sys.path.insert(1, sitepackages_modules_full_path)
 
+                #create full path to validate module
+                sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/validate")
+                sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+                #append full path to sys path
+                sys.path.insert(1, sitepackages_modules_full_path)
+
                 #create full path to argparse module
                 sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
                 sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
@@ -144,11 +151,6 @@ socket.setdefaulttimeout(240)
 user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)"
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
-
-##config_obj = configobj.ConfigObj(config_ini)
-##config_obj["imdb"].scalars.remove("good_genre")
-##os._exit(1)
-#self.sections.remove(key)                        
 
 def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
@@ -548,33 +550,6 @@ def cli_arguments():
 #save returned value
 config_ini = cli_arguments()
 
-###test configobj - create empty file
-##config_obj = configobj.ConfigObj(r"c:\temp\config2.ini")
-##config_obj.write()
-##
-###test configobj - read
-##value1 = config_obj['imdb']['fav_title']
-##print value1.encode("utf-8")
-##
-###test configobj - write section
-##config_obj['imdb'] = {}
-##config_obj.write()
-##
-###test configobj - write value
-##config_obj['imdb']['fav_title'] = u"cheese"
-##config_obj.write()
-##print config['imdb']['fav_title']
-##
-###test configobj for sections
-##print 'foo' in config_obj.sections
-##print 'imdb' in config_obj.sections
-##
-###test configobj for values
-##test = config_obj['imdb']
-##
-##print 'foo' in test.scalars
-##print 'fav_dir' in test.scalars
-
 #enable config parser
 config_obj = configobj.ConfigObj(config_ini)
 
@@ -743,6 +718,7 @@ theme = config_obj["general"]["theme"]
 templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
 templates_dir = os.path.normpath(templates_dir)
 
+#encode templates directory - required for cherrypy
 templates_dir = templates_dir.encode("utf-8")
 
 #define path to history thumbnail images
@@ -1547,12 +1523,12 @@ class SearchIndex(object):
                 self.config_fav_writer = config_obj["imdb"]["fav_writer"]
                 self.config_fav_dir = config_obj["imdb"]["fav_dir"]
                 self.config_queue_genre = config_obj["imdb"]["queue_genre"]
-                self.config_queue_date = config_obj.getint["imdb"]["queue_date"]
+                self.config_queue_date = int(config_obj["imdb"]["queue_date"])
                 self.config_good_genre = config_obj["imdb"]["good_genre"]
-                self.config_good_date = config_obj.getint["imdb"]["good_date"]
-                self.config_good_votes = config_obj.getint["imdb"]["good_votes"]
-                self.config_good_rating = config_obj.getfloat["imdb"]["good_rating"]
-                self.config_preferred_rating = config_obj.getfloat["imdb"]["preferred_rating"]
+                self.config_good_date = int(config_obj["imdb"]["good_date"])
+                self.config_good_votes = int(config_obj["imdb"]["good_votes"])
+                self.config_good_rating = float(config_obj["imdb"]["good_rating"])
+                self.config_preferred_rating = float(config_obj["imdb"]["preferred_rating"])
                 self.config_preferred_genre = config_obj["imdb"]["preferred_genre"]
 
                 #read switches from config.ini
@@ -1572,8 +1548,8 @@ class SearchIndex(object):
                 self.config_search_or = config_obj[download_type]["%s_search_or" % (index_site_item)]
                 self.config_search_not = config_obj[download_type]["%s_search_not" % (index_site_item)]
                 self.config_cat = config_obj[download_type]["%s_cat" % (index_site_item)]
-                self.config_minsize = config_obj.getint[download_type]["%s_minsize" % (index_site_item)]
-                self.config_maxsize = config_obj.getint[download_type]["%s_maxsize" % (index_site_item)]
+                self.config_minsize = int(config_obj[download_type]["%s_minsize" % (index_site_item)])
+                self.config_maxsize = int(config_obj[download_type]["%s_maxsize" % (index_site_item)])
                 self.config_hostname = config_obj[download_type]["%s_hostname" % (index_site_item)]
                 self.config_portnumber = config_obj[download_type]["%s_portnumber" % (index_site_item)]
 
@@ -1589,7 +1565,7 @@ class SearchIndex(object):
                 self.config_preferred_group = config_obj["general"]["index_preferred_group"]        
                 self.config_bad_group = config_obj["general"]["index_bad_group"]
                 self.config_bad_report = config_obj["general"]["index_bad_report"]    
-                self.config_posts_to_process = config_obj.getint["general"]["index_posts_to_process"]
+                self.config_posts_to_process = int(config_obj["general"]["index_posts_to_process"])
 
                 if self.download_type == "usenet":
 
@@ -2919,7 +2895,7 @@ class SearchIndex(object):
                 if self.config_enable_email_notify == "yes":
 
                         config_email_server = config_obj["email_settings"]["email_server"]
-                        config_email_server_port = config_obj.getint["email_settings"]["email_server_port"]
+                        config_email_server_port = int(config_obj["email_settings"]["email_server_port"])
                         config_email_server_ssl = config_obj["email_settings"]["email_server_ssl"]
                         config_email_username = config_obj["email_settings"]["email_username"]
                         config_email_password = config_obj["email_settings"]["email_password"]
@@ -5058,13 +5034,13 @@ class ConfigIMDB(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.good_rating = config_obj.getfloat["imdb"]["good_rating"]
-                template.good_date = config_obj.getint["imdb"]["good_date"]
+                template.good_rating = float(config_obj["imdb"]["good_rating"])
+                template.good_date = int(config_obj["imdb"]["good_date"])
                 template.good_votes = config_obj["imdb"]["good_votes"]
                 template.good_genre = config_obj["imdb"]["good_genre"]
-                template.preferred_rating = config_obj.getfloat["imdb"]["preferred_rating"]
+                template.preferred_rating = float(config_obj["imdb"]["preferred_rating"])
                 template.preferred_genre = config_obj["imdb"]["preferred_genre"]
-                template.queue_date = config_obj.getint["imdb"]["queue_date"]
+                template.queue_date = int(config_obj["imdb"]["queue_date"])
                 template.queue_genre = config_obj["imdb"]["queue_genre"]
                 template.bad_title = config_obj["imdb"]["bad_title"]
                 template.fav_dir = config_obj["imdb"]["fav_dir"]
@@ -5226,7 +5202,7 @@ class ConfigGeneral(object):
                 template.check_version_list = ["off", "daily", "weekly"]
                 template.movie_title_separator = config_obj["general"]["movie_title_separator"]
                 template.index_preferred_group = config_obj["general"]["index_preferred_group"]
-                template.index_special_cut = config_obj["general","index_special_cut"]                           
+                template.index_special_cut = config_obj["general"]["index_special_cut"]                           
                 template.index_bad_group = config_obj["general"]["index_bad_group"]
                 template.index_bad_report = config_obj["general"]["index_bad_report"]            
                 template.index_posts_to_process = config_obj["general"]["index_posts_to_process"]
@@ -5625,10 +5601,10 @@ class ConfigScheduling(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
-                template.index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
-                template.post_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
-                template.post_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
+                template.index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
+                template.index_schedule_minute = int(config_obj["general"]["index_schedule_minute"])
+                template.post_schedule_hour = int(config_obj["general"]["post_schedule_hour"])
+                template.post_schedule_minute = int(config_obj["general"]["post_schedule_minute"])
 
                 header()
 
@@ -6921,7 +6897,7 @@ class HomeRoot(object):
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
 
                 #read config.ini - required due to issue with configparser seeing entries as lists
-                config_obj.read(config_ini)
+                #config_obj.read(config_ini)
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
@@ -7050,8 +7026,8 @@ class PostProcessingThread(object):
                                 self.run()
                                 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
-                post_processing_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
+                post_processing_schedule_hour = int(config_obj["general"]["post_schedule_hour"])
+                post_processing_schedule_minute = int(config_obj["general"]["post_schedule_minute"])
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing plugin as scheduled background task daemonized (non blocking)
@@ -7163,8 +7139,8 @@ class SearchIndexThread(object):
                                                         self.run()
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
-                search_index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
+                search_index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
+                search_index_schedule_minute = int(config_obj["general"]["index_schedule_minute"])
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index plugin as scheduled background task daemonized (non blocking)
@@ -7358,8 +7334,8 @@ class CherrypyPostPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
-                post_processing_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
+                post_processing_schedule_hour = int(config_obj["general"]["post_schedule_hour"])
+                post_processing_schedule_minute = int(config_obj["general"]["post_schedule_minute"])
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing timer daemonized (non blocking)
@@ -7397,8 +7373,8 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
-                search_index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
+                search_index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
+                search_index_schedule_minute = int(config_obj["general"]["index_schedule_minute"])
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index timer daemonized (non blocking)
