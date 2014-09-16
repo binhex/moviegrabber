@@ -1626,7 +1626,7 @@ class SearchIndex(object):
         def decode_html_entities(self,text):
 
                 #search for entity value to replace
-                entity = re.compile("&#?\w+;", re.IGNORECASE).search(text)
+                entity = re.compile(ur"&#?\w+;", re.IGNORECASE).search(text)
 
                 if entity != None:
 
@@ -1927,7 +1927,7 @@ class SearchIndex(object):
                         self.config_special_cut = re.sub(ur"[,\s?]+","|",self.config_special_cut)
                                                 
                         #search for special cut in post title
-                        index_post_title_special_cut_search = re.compile("(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(self.index_post_title)
+                        index_post_title_special_cut_search = re.compile(ur"(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(self.index_post_title)
                         
                         if index_post_title_special_cut_search != None:
 
@@ -1945,7 +1945,7 @@ class SearchIndex(object):
                                         if movies_downloaded_extension in movies_valid_extensions:
 
                                                 #search for special cut in downloaded filename
-                                                movies_downloaded_special_cut_search = re.compile("(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(movies_downloaded_filename)
+                                                movies_downloaded_special_cut_search = re.compile(ur"(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(movies_downloaded_filename)
 
                                                 #if search matches then assume we already have downloaded special cut
                                                 if movies_downloaded_special_cut_search != None:
@@ -1980,7 +1980,7 @@ class SearchIndex(object):
                                 if movies_downloaded_extension in movies_valid_extensions:
 
                                         #generate group name from end (first) or start (second) of filename using hyphen as marker
-                                        movies_downloaded_group_search = re.compile("(?<=-)[^\s\-\.]+$|^[^\s\-\.]+(?=-)").search(movies_downloaded_filename)
+                                        movies_downloaded_group_search = re.compile(ur"(?<=-)[^\s\-\.]+$|^[^\s\-\.]+(?=-)").search(movies_downloaded_filename)
 
                                         if movies_downloaded_group_search != None:
 
@@ -3191,16 +3191,16 @@ class SearchIndex(object):
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                 #add http:// to hostname if hostname not prefixed with either http or https
-                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #add start and end slashes to pathname if not present
-                if not re.compile("^/", re.IGNORECASE).search(self.config_path):
+                if not re.compile(ur"^/", re.IGNORECASE).search(self.config_path):
 
                         self.config_path = "/%s" % (self.config_path)
 
-                if not re.compile("/$", re.IGNORECASE).search(self.config_path):
+                if not re.compile(ur"/$", re.IGNORECASE).search(self.config_path):
 
                         self.config_path = "%s/" % (self.config_path)
 
@@ -3301,7 +3301,7 @@ class SearchIndex(object):
                                         mg_log.info(u"Newznab Index - Post title is %s" % (self.index_post_title))
 
                                         #search end of post title stopping at period, underscore or space as seperator
-                                        index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                        index_post_group_search = re.compile(ur"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
                                         if index_post_group_search != None:
 
@@ -3412,7 +3412,7 @@ class SearchIndex(object):
                                         index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                         #generate year excluding numbers from start of post title
-                                        index_post_movie_year_search = re.compile(r"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
+                                        index_post_movie_year_search = re.compile(ur"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                         if index_post_movie_year_search != None:
 
@@ -3577,7 +3577,7 @@ class SearchIndex(object):
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                 #add http:// to hostname if hostname not prefixed with either http or https
-                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
@@ -3646,7 +3646,7 @@ class SearchIndex(object):
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                 #add http:// to hostname if hostname not prefixed with either http or https
-                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
@@ -3676,7 +3676,7 @@ class SearchIndex(object):
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                 #add http:// to hostname if hostname not prefixed with either http or https
-                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
@@ -3728,7 +3728,7 @@ class SearchIndex(object):
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
                 #add http:// to hostname if hostname not prefixed with either http or https
-                if not re.compile("^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile("^https://", re.IGNORECASE).search(self.config_hostname):
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
@@ -3829,7 +3829,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
 
                                 #search end of post title stopping at period, underscore or space as seperator
-                                index_post_group_search = re.compile(r"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                index_post_group_search = re.compile(ur"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
 
                                 if index_post_group_search != None:
 
@@ -3971,7 +3971,7 @@ class SearchIndex(object):
 
                         if post_description != None:
                                 
-                                imdb_tt_number_search = re.compile("(?<=/title/)tt[0-9]{6,7}").search(post_description)
+                                imdb_tt_number_search = re.compile(ur"(?<=/title/)tt[0-9]{6,7}").search(post_description)
 
                                 if imdb_tt_number_search != None:
 
@@ -4007,7 +4007,7 @@ class SearchIndex(object):
                                 index_post_movie_title = re.sub(ur"[\.\-\_]", " ", index_post_movie_title)
 
                                 #generate year excluding numbers from start of post title
-                                index_post_movie_year_search = re.compile(r"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
+                                index_post_movie_year_search = re.compile(ur"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
 
                                 if index_post_movie_year_search != None:
 
