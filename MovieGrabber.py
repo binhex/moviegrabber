@@ -6955,7 +6955,7 @@ def start_webgui():
                 auth_basic = False
 
         #create credentials store in dictionary for cherrypy
-        userpassdict = config_obj["webconfig"]["username"] : config_obj["webconfig"]["password"]
+        userpassdict = {config_obj["webconfig"]["username"] : config_obj["webconfig"]["password"]}
 
         checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userpassdict)
 
@@ -6966,7 +6966,7 @@ def start_webgui():
                         'server.environment' : "production",
                         'engine.autoreload.on' : False,
                         'engine.timeout_monitor.on' : False,
-                        'server.socket_host' : config_obj["webconfig"]["address"].encode("utf-8")),
+                        'server.socket_host' : config_obj["webconfig"]["address"].encode("utf-8"),
                         'server.socket_port' : int(config_obj["webconfig"]["port"]),
                         'tools.staticdir.root' : os.path.dirname(os.path.abspath(sys.argv[0]))
                 },
@@ -7050,8 +7050,8 @@ class PostProcessingThread(object):
                                 self.run()
                                 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
-                post_processing_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
+                post_processing_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
+                post_processing_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing plugin as scheduled background task daemonized (non blocking)
@@ -7163,8 +7163,8 @@ class SearchIndexThread(object):
                                                         self.run()
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
-                search_index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
+                search_index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
+                search_index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index plugin as scheduled background task daemonized (non blocking)
@@ -7358,8 +7358,8 @@ class CherrypyPostPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for post processing and convert to seconds
-                post_processing_schedule_hour = config_obj.getint("general"]["post_schedule_hour"]
-                post_processing_schedule_minute = config_obj.getint("general"]["post_schedule_minute"]
+                post_processing_schedule_hour = config_obj.getint["general"]["post_schedule_hour"]
+                post_processing_schedule_minute = config_obj.getint["general"]["post_schedule_minute"]
                 post_processing_schedule_time = (post_processing_schedule_hour * 60) * 60 + (post_processing_schedule_minute * 60)
 
                 #run post processing timer daemonized (non blocking)
@@ -7397,8 +7397,8 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
         def start(self):
 
                 #read scheduler from config.ini for search index and convert to seconds
-                search_index_schedule_hour = config_obj.getint("general"]["index_schedule_hour"]
-                search_index_schedule_minute = config_obj.getint("general"]["index_schedule_minute"]
+                search_index_schedule_hour = config_obj.getint["general"]["index_schedule_hour"]
+                search_index_schedule_minute = config_obj.getint["general"]["index_schedule_minute"]
                 search_index_schedule_time = (search_index_schedule_hour * 60) * 60 + (search_index_schedule_minute * 60)
 
                 #run search index timer daemonized (non blocking)
