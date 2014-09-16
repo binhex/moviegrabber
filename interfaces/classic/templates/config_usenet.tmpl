@@ -70,7 +70,7 @@ EDIT/DELETE INDEX
 
 		<a title="Allows you to enable/disable selected index site."><strong>(?)</strong></a><strong>Enabled:</strong>	
 		
-		<!--#set $newznab_enabled = $config_obj["usenet"] $index_site_item + "_enabled")#-->		
+		<!--#set $newznab_enabled = $config_obj["usenet"][$index_site_item + "_enabled"]#-->		
 		
 		<select name="newznab_enabled2" form="$edit_config_usenet">
 		<!--#if $newznab_enabled == "yes"#-->
@@ -88,7 +88,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the hostname of the newznab server. This can be a local server or a external hostname, this can specified as an ip address or hostname e.g. https://nzb.su."><strong>(?)</strong></a><strong>Hostname:</strong><br>
 		Define hostname.<br/>
 		
-		<!--#set $newznab_hostname = $config_obj["usenet"] $index_site_item + "_hostname")#-->
+		<!--#set $newznab_hostname = $config_obj["usenet"][$index_site_item + "_hostname"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_hostname2" value="$newznab_hostname" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. https://nzb.su" required/>
 		<br>
@@ -97,7 +97,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the path of the newznab server. This setting is optional and is not required for newznab servers running from root, an example path is as follows e.g. /website/newznab/"><strong>(?)</strong></a><strong>Path:</strong><br>
 		Define path. - optional<br/>
 		
-		<!--#set $newznab_path = $config_obj["usenet"] $index_site_item + "_path")#-->
+		<!--#set $newznab_path = $config_obj["usenet"][$index_site_item + "_path"]#-->
 
 		<!--#if "custom" in $index_site_item#-->			
 			<input type="text" class="form_textbox_padding" name="newznab_path2" value="$newznab_path" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. website/newznab"/>
@@ -111,7 +111,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the port number of the newznab server e.g. 443."><strong>(?)</strong></a><strong>Port:</strong><br>
 		Define port number.<br/>
 
-		<!--#set $newznab_portnumber = $config_obj["usenet"] $index_site_item + "_portnumber")#-->
+		<!--#set $newznab_portnumber = $config_obj["usenet"][$index_site_item + "_portnumber"]#-->
 		
 		<!--#if "custom" in $index_site_item#-->
 			<input type="text" class="form_textbox_padding" name="newznab_portnumber2" value="$newznab_portnumber" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 80 or 443" required/>
@@ -126,7 +126,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the api/rss key for the newznab server - can be found at https://<hostname>/profile."><strong>(?)</strong></a><strong>API/RSS Key:</strong><br>
 		Define API/RSS Key.<br/>
 
-		<!--#set $newznab_key = $config_obj["usenet"] $index_site_item + "_key")#-->
+		<!--#set $newznab_key = $config_obj["usenet"][$index_site_item + "_key"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_key2" value="$newznab_key" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 11aa22bb33cc44" required/>
 		<br>
@@ -135,7 +135,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify whether server is running spotweb."><strong>(?)</strong></a><strong>Spotweb Support:</strong><br>
 		Switch spotweb support on/off.<br/>
 		
-		<!--#set $spotweb_support = $config_obj["usenet"] $index_site_item + "_spotweb_support")#-->
+		<!--#set $spotweb_support = $config_obj["usenet"][$index_site_item + "_spotweb_support"]#-->
 		
 		<select name="spotweb_support2" form="$edit_config_usenet">
 		<!--#if $spotweb_support == "yes"#-->
@@ -153,7 +153,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the category you wish to search - note you can only choose one category at present."><strong>(?)</strong></a><strong>Category:</strong><br>
 		Select categories to search.<br/>
 		
-		<!--#set $newznab_cat = $config_obj["usenet"] $index_site_item + "_cat")#-->
+		<!--#set $newznab_cat = $config_obj["usenet"][$index_site_item + "_cat"]#-->
 		
 		<select name="newznab_cat2" form="$edit_config_usenet">
 			<!--#for $newznab_cat_item in $newznab_cat_list#-->
@@ -171,7 +171,7 @@ EDIT/DELETE INDEX
 		<strong>Search Criteria:</strong><br>
 		<a title="Allows you to specify what you want to search for within the choosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
 
-		<!--#set $newznab_search_and = $config_obj["usenet"] $index_site_item + "_search_and")#-->
+		<!--#set $newznab_search_and = $config_obj["usenet"][$index_site_item + "_search_and"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_and2" value="$newznab_search_and" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 1080p,bluray"/>
 		<br>
@@ -179,7 +179,7 @@ EDIT/DELETE INDEX
 
 		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
 
-		<!--#set $newznab_search_or = $config_obj["usenet"] $index_site_item + "_search_or")#-->
+		<!--#set $newznab_search_or = $config_obj["usenet"][$index_site_item + "_search_or"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_or2" value="$newznab_search_or" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 720p,1080p"/>
 		<br>
@@ -187,7 +187,7 @@ EDIT/DELETE INDEX
 
 		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
 		
-		<!--#set $newznab_search_not = $config_obj["usenet"] $index_site_item + "_search_not")#-->
+		<!--#set $newznab_search_not = $config_obj["usenet"][$index_site_item + "_search_not"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_not2" value="$newznab_search_not" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. cam,telesync"/>
 		<br>
@@ -196,7 +196,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the minimum post size in megabytes. If you wish to have an unlimited minimum size then enter a value of 0."><strong>(?)</strong></a><strong>Minimum Size:</strong><br>
 		Define minimum size (MB).<br/>
 
-		<!--#set $newznab_minsize = $config_obj["usenet"] $index_site_item + "_minsize")#-->
+		<!--#set $newznab_minsize = $config_obj["usenet"][$index_site_item + "_minsize"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_minsize2" value="$newznab_minsize" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 2000"/>
 		<br>
@@ -205,7 +205,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify the maximum post size in megabytes. If you wish to have an unlimited maximum size then enter a value of 0."><strong>(?)</strong></a><strong>Maximum Size:</strong><br>
 		Define maximum size (MB).<br/>
 		
-		<!--#set $newznab_maxsize = $config_obj["usenet"] $index_site_item + "_maxsize")#-->
+		<!--#set $newznab_maxsize = $config_obj["usenet"][$index_site_item + "_maxsize"]#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_maxsize2" value="$newznab_maxsize" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 25000"/>
 		<br>

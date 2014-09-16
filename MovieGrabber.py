@@ -1310,13 +1310,6 @@ class DownloadWatched():
 
                 mg_log.info(u"Download nzb/torrent to watched folder finished")
 
-                if not download_poison_queue.empty():
-
-                        #send task done and exit function
-                        download_poison_queue.task_done()
-                        mg_log.info(u"Shutting down downloader")
-                        return
-
         def download_write(self):
                 
                 #check if index site is torrent or nzb
@@ -4585,12 +4578,12 @@ class PostProcessing(object):
                                                 #if post rename set to imdb then set destination filename to imdb name
                                                 if self.config_post_rename_files == "imdb":
 
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, "%s%s" % (self.sqlite_history_downloaded_dlname,os_movie_files_ext))
+                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, u"%s%s" % (self.sqlite_history_downloaded_dlname,os_movie_files_ext))
 
                                                 #if post rename set to postname then set destination filename to post title
                                                 elif self.config_post_rename_files == "postname":
                                                         
-                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, "%s%s" % (self.sqlite_history_downloaded_postname,os_movie_files_ext))
+                                                        dest_path_with_filename = os.path.join(self.os_movie_path_folder, u"%s%s" % (self.sqlite_history_downloaded_postname,os_movie_files_ext))
 
                                                 if not os.path.exists(dest_path_with_filename):
 
@@ -6897,7 +6890,7 @@ class HomeRoot(object):
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
 
                 #read config.ini - required due to issue with configparser seeing entries as lists
-                #config_obj.read(config_ini)
+                #config_obj = configobj.ConfigObj(config_ini)
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
@@ -7012,7 +7005,8 @@ class PostProcessingThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_obj.read(config_ini)
+                config_obj = configobj.ConfigObj(config_ini)
+                
                 self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
                 if self.enable_post_processing == "yes":
@@ -7047,7 +7041,7 @@ class SearchIndexThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_obj.read(config_ini)
+                config_obj = configobj.ConfigObj(config_ini)
 
                 #get list of index sites defined in config,ini
                 usenet_index_site = config_obj["usenet"]["index_site"]
