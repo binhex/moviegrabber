@@ -155,7 +155,7 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
         #enable config parser
-        config_obj = configobj.ConfigObj(config_ini)
+        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
         
         #create config.ini file with default sections
         def config_write_section(section_name):
@@ -348,7 +348,7 @@ def cli_arguments():
                 if not os.path.exists(config_ini):
 
                         #create empty config.ini
-                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
                         config_obj.write()
 
                         logs_dir = None
@@ -359,7 +359,7 @@ def cli_arguments():
                 else:
 
                         #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
                         
                         try:
                                 
@@ -491,7 +491,7 @@ def cli_arguments():
                 if not os.path.exists(config_ini):
 
                         #create empty config.ini
-                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
                         config_obj.write()
 
                         logs_dir = None
@@ -502,7 +502,7 @@ def cli_arguments():
                 else:
 
                         #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini)
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
                         
                         try:
                                 
@@ -551,7 +551,7 @@ def cli_arguments():
 config_ini = cli_arguments()
 
 #enable config parser
-config_obj = configobj.ConfigObj(config_ini)
+config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
 
 #read values for logs and results db
 logs_dir = config_obj["folders"]["logs_dir"]
@@ -5569,11 +5569,11 @@ class ConfigPost(object):
                                 config_obj["post_processing"]["post_rule"] = config_post_rule_str
 
                                 #delete config entries for selected post processing rule
-                                config_obj.remove_option["post_processing"]["%s_dropdown1" % (delete_config_rule)]
-                                config_obj.remove_option["post_processing"]["%s_dropdown2" % (delete_config_rule)]
-                                config_obj.remove_option["post_processing"]["%s_dropdown3" % (delete_config_rule)]
-                                config_obj.remove_option["post_processing"]["%s_textbox1" % (delete_config_rule)]
-                                config_obj.remove_option["post_processing"]["%s_textbox2" % (delete_config_rule)]
+                                del config_obj["post_processing"]["%s_dropdown1" % (delete_config_rule)]
+                                del config_obj["post_processing"]["%s_dropdown2" % (delete_config_rule)]
+                                del config_obj["post_processing"]["%s_dropdown3" % (delete_config_rule)]
+                                del config_obj["post_processing"]["%s_textbox1" % (delete_config_rule)]
+                                del config_obj["post_processing"]["%s_textbox2" % (delete_config_rule)]
 
                 config_obj.write()
 
@@ -5848,18 +5848,18 @@ class ConfigUsenet(object):
                                 config_obj["usenet"]["index_site"] = delete_newznab_site
 
                                 #delete config entries for selected index site
-                                config_obj.remove_option["usenet"]["%s_hostname" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_path" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_portnumber" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_key" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_cat" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_search_and" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_search_or" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_search_not" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_minsize" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_maxsize" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_spotweb_support" % (delete_newznab_site_index)]
-                                config_obj.remove_option["usenet"]["%s_enabled" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_hostname" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_path" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_portnumber" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_key" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_cat" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_search_and" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_search_or" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_search_not" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_minsize" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_maxsize" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_spotweb_support" % (delete_newznab_site_index)]
+                                del config_obj["usenet"]["%s_enabled" % (delete_newznab_site_index)]
 
                 config_obj.write()
 
@@ -6039,16 +6039,16 @@ class ConfigTorrent(object):
                                 config_obj["torrent"]["index_site"] = delete_torrent_site
 
                                 #delete config entries for selected index site
-                                config_obj.remove_option["torrent"]["%s_hostname" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_portnumber" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_cat" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_lang" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_search_and" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_search_or" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_search_not" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_minsize" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_maxsize" % (delete_torrent_site_index)]
-                                config_obj.remove_option["torrent"]["%s_enabled" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_hostname" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_portnumber" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_cat" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_lang" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_search_and" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_search_or" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_search_not" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_minsize" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_maxsize" % (delete_torrent_site_index)]
+                                del config_obj["torrent"]["%s_enabled" % (delete_torrent_site_index)]
 
                 config_obj.write()
 
@@ -6890,7 +6890,7 @@ class HomeRoot(object):
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
 
                 #read config.ini - required due to issue with configparser seeing entries as lists
-                #config_obj = configobj.ConfigObj(config_ini)
+                #config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
@@ -7005,7 +7005,7 @@ class PostProcessingThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_obj = configobj.ConfigObj(config_ini)
+                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
                 
                 self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
@@ -7041,7 +7041,7 @@ class SearchIndexThread(object):
         def checks(self):
 
                 #read config.ini - required to re-read any changes to config.ini
-                config_obj = configobj.ConfigObj(config_ini)
+                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
 
                 #get list of index sites defined in config,ini
                 usenet_index_site = config_obj["usenet"]["index_site"]

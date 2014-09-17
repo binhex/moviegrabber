@@ -125,6 +125,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#FF6666;
+	width: 140px;
 	margin-right: 3px;	
 	vertical-align:middle;		
 	border-radius:5px;
@@ -137,6 +138,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#4D944D;
+	width: 140px;
 	margin-right: 3px;
 	vertical-align:middle;	
 	border-radius:5px;
@@ -149,6 +151,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#000000;
+	width: 140px;
 	margin-right: 7px;	
 	vertical-align:middle;		
 	border-radius:5px;
@@ -160,6 +163,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#ff0000;
+	width: 140px;
 	margin-right: 7px;	
 	vertical-align:middle;		
 	border-radius:5px;
@@ -171,6 +175,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#E56717;
+	width: 140px;
 	margin-right: 7px;
 	vertical-align:middle;
 	border-radius:5px;
@@ -182,6 +187,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#458B00;
+	width: 140px;
 	margin-right: 7px;
 	vertical-align:middle;	
 	border-radius:5px;
@@ -193,6 +199,7 @@ fieldset.EntryFieldSet {
 	border:1px solid #ffffff;
 	padding:2px 4px; 
 	background:#000066;
+	width: 190px;
 	margin-right: 7px;
 	vertical-align:middle;	
 	border-radius:5px;
