@@ -1,8 +1,8 @@
 #set global $statpath="../.."
 #set global $topmenu="config"
 #set global $submenu="notification"
-#include $templates_dir + "/inc_top.tmpl"
-#include $templates_dir + "/inc_cmenu.tmpl"
+#include "%s/inc_top.tmpl" % ($templates_dir)
+#include "%s/inc_cmenu.tmpl" % ($templates_dir)
 
 <form action="save_config_notification" method="post">
 
@@ -138,4 +138,4 @@
 
 </form>
 
-#include $templates_dir + "/inc_bottom.tmpl"
+#include "%s/inc_bottom.tmpl" % ($templates_dir)

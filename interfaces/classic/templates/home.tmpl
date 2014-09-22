@@ -1,7 +1,7 @@
 #set global $topmenu=""
 #set global $submenu=""
 #set global $statpath="."
-#include $templates_dir + "/inc_top.tmpl"
+#include "%s/inc_top.tmpl" % ($templates_dir)
 
 #set global $usenet_config_complete="no"
 #set global $torrent_config_complete="no"
@@ -104,4 +104,4 @@
 	
 </div>		
 
-#include $templates_dir + "/inc_bottom.tmpl"
+#include "%s/inc_bottom.tmpl" % ($templates_dir)

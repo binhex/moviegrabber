@@ -2,7 +2,7 @@
 #set global $topmenu="history"
 #set global $submenu=""
 
-#include $templates_dir + "/inc_top.tmpl"
+#include "%s/inc_top.tmpl" % ($templates_dir)
 
 <!--#import urllib#-->
 
@@ -325,4 +325,4 @@
 
 <!--#end if#-->
 
-#include $templates_dir + "/inc_bottom.tmpl"
+#include "%s/inc_bottom.tmpl" % ($templates_dir)

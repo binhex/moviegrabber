@@ -1,8 +1,8 @@
 #set global $statpath="../.."
 #set global $topmenu="config"
 #set global $submenu="post"
-#include $templates_dir + "/inc_top.tmpl"
-#include $templates_dir + "/inc_cmenu.tmpl"
+#include "%s/inc_top.tmpl" % ($templates_dir)
+#include "%s/inc_cmenu.tmpl" % ($templates_dir)
 
 <form action="save_config_post" method="post">
 
@@ -131,14 +131,14 @@ EDIT/DELETE RULES
 	
 			<div class="post_processing_div_td">	
 
-				<!--#set $post_config_dropdown1 = $config_obj["post_processing"][$post_config_rule_item + "_dropdown1"]#-->	
-				<!--#set $post_config_dropdown2 = $config_obj["post_processing"][$post_config_rule_item + "_dropdown2"]#-->			
-				<!--#set $post_config_dropdown3 = $config_obj["post_processing"][$post_config_rule_item + "_dropdown3"]#-->			
-				<!--#set $post_config_textbox1 = $config_obj["post_processing"][$post_config_rule_item + "_textbox1"]#-->			
-				<!--#set $post_config_textbox2 = $config_obj["post_processing"][$post_config_rule_item + "_textbox2"]#-->							
+				<!--#set $post_config_dropdown1 = $config_obj["post_processing"]["%s_dropdown1" % ($post_config_rule_item)]#-->	
+				<!--#set $post_config_dropdown2 = $config_obj["post_processing"]["%s_dropdown2" % ($post_config_rule_item)]#-->			
+				<!--#set $post_config_dropdown3 = $config_obj["post_processing"]["%s_dropdown3" % ($post_config_rule_item)]#-->			
+				<!--#set $post_config_textbox1 = $config_obj["post_processing"]["%s_textbox1" % ($post_config_rule_item)]#-->
+				<!--#set $post_config_textbox2 = $config_obj["post_processing"]["%s_textbox2" % ($post_config_rule_item)]#-->
 				
-				<!--#set $edit_config_rule = "edit_config_rule_" + str($post_config_rule_item)#-->		
-				<!--#set $delete_config_rule = "delete_config_rule_" + str($post_config_rule_item)#-->
+				<!--#set $edit_config_rule = "edit_config_rule_%s" % (str($post_config_rule_item))#-->		
+				<!--#set $delete_config_rule = "delete_config_rule_%s" % (str($post_config_rule_item))#-->
 																
 				<form action="edit_config_rule" method="post" id="$edit_config_rule">
 				</form>
@@ -213,4 +213,4 @@ EDIT/DELETE RULES
 	
 <!--#end for#-->		
 
-#include $templates_dir + "/inc_bottom.tmpl"
+#include "%s/inc_bottom.tmpl" % ($templates_dir)
