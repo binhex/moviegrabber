@@ -6,9 +6,9 @@
 
 <!--#import urllib#-->
 
-<!--#set $purge_selected_msg = "'" + "Are you sure you want to purge the selected movies?" + "'" #-->
-<!--#set $purge_all_msg = "'" + "Are you sure you want to purge all movies?" + "'" #-->
-<!--#set $release_all_msg = "'" + "Are you sure you want to release all movies? !!WARNING!! This could result in a large number of nzb/torrent downloads" + "'" #-->
+<!--#set $purge_selected_msg = "'Are you sure you want to purge the selected movies?'" #-->
+<!--#set $purge_all_msg = "'Are you sure you want to purge all movies?'"#-->
+<!--#set $release_all_msg = "'Are you sure you want to release all movies? !!WARNING!! This could result in a large number of nzb/torrent downloads'" #-->
 
 <span class="SubMenu">
 </span>	
@@ -180,10 +180,10 @@
 			<!--#set $odd = not $odd#-->
 	
 				<!--#note - create variables for checkboxes and image buttons#-->				
-				<!--#set $history_release_button_id = "history_release_button_" + str($line.id)#-->			
-				<!--#set $history_release_checkbox_id = "history_release_checkbox_" + str($line.id)#-->			
-				<!--#set $history_purge_button_id = "history_purge_button_" + str($line.id)#-->											
-				<!--#set $history_purge_checkbox_id = "history_purge_checkbox_" + str($line.id)#-->											
+				<!--#set $history_release_button_id = "history_release_button_%s" % (str($line.id))#-->			
+				<!--#set $history_release_checkbox_id = "history_release_checkbox_%s" % (str($line.id))#-->			
+				<!--#set $history_purge_button_id = "history_purge_button_%s" % (str($line.id))#-->											
+				<!--#set $history_purge_checkbox_id = "history_purge_checkbox_%s" % (str($line.id))#-->											
 			
 				<form action="./history_release" method="post" id="$history_release_button_id">
 				</form>
@@ -200,18 +200,18 @@
 					<div class="history_queue_details_no_poster">					
 				<!--#end if#-->
 				
-						<!--#set global $dltype=$line.dltype + ".gif"#-->
+						<!--#set global $dltype="%s.gif" % ($line.dltype)#-->
 						
 						<!--#if $line.imdbyear == 1900#-->
 							<!--#set $imdbyear = ""#-->
 						<!--#else#-->
-							<!--#set $imdbyear = "(" + str($line.imdbyear) + ")"#-->					
+							<!--#set $imdbyear = "(%s)" % (str($line.imdbyear))#-->					
 						<!--#end if#-->		
 
 						<!--#if $line.imdbrating == "-"#-->
 							<!--#set $imdbrating = ""#-->
 						<!--#else#-->
-							<!--#set $imdbrating = str($line.imdbrating) + "/10"#-->					
+							<!--#set $imdbrating = "%s/10" % (str($line.imdbrating))#-->					
 						<!--#end if#-->		
 						
 						<!--#if $line.dlstatus == "Failed"#-->
