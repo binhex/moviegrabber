@@ -2929,7 +2929,7 @@ class SearchIndex(object):
                         </p>
 
                         <p>
-                        <b>Post:</b> <a href=%s>%s""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8")) + """
+                        <b>Post:</b> <a href=%s>%s</a> (%s)""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"),self.download_type) + """
                         </p>
 
                         <p>
