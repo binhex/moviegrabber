@@ -5626,9 +5626,10 @@ class ConfigUsenet(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_usenet.tmpl"))
 
-                #create variable for templates to read config entries
-                template.config_obj = config_obj
-
+                #set config obj to disable automatic convertion of comma seperated values to list, and set encode of config.ini to utf-8
+                template.config_obj = configobj.ConfigObj(config_ini, list_values=False, encoding='UTF-8')
+                #template.config_obj = config_obj
+                
                 template.index_site = config_obj["usenet"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
@@ -5751,9 +5752,9 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_path" % (add_newznab_site_index)] = ""
                 config_obj["usenet"]["%s_key" % (add_newznab_site_index)] = ""
                 config_obj["usenet"]["%s_cat" % (add_newznab_site_index)] = ""
-                config_obj["usenet"]["%s_search_and" % (add_newznab_site_index)] = ""
-                config_obj["usenet"]["%s_search_or" % (add_newznab_site_index)] = ""
-                config_obj["usenet"]["%s_search_not" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_and" % (add_newznab_site_index)] = []
+                config_obj["usenet"]["%s_search_or" % (add_newznab_site_index)] = []
+                config_obj["usenet"]["%s_search_not" % (add_newznab_site_index)] = []
                 config_obj["usenet"]["%s_minsize" % (add_newznab_site_index)] = "0"
                 config_obj["usenet"]["%s_maxsize" % (add_newznab_site_index)] = "0"
                 config_obj["usenet"]["%s_spotweb_support" % (add_newznab_site_index)] = "no"
@@ -5775,7 +5776,7 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_portnumber" % (edit_newznab_site_index)] = kwargs["newznab_portnumber2"]
                 config_obj["usenet"]["%s_key" % (edit_newznab_site_index)] = kwargs["newznab_key2"]
                 config_obj["usenet"]["%s_cat" % (edit_newznab_site_index)] = kwargs["newznab_cat2"]
-                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"]
+                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = [kwargs["newznab_search_and2"]]
                 config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"]
                 config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"]
                 config_obj["usenet"]["%s_spotweb_support" % (edit_newznab_site_index)] = kwargs["spotweb_support2"]
