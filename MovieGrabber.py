@@ -1578,7 +1578,8 @@ class SearchIndex(object):
                         #convert from unicode to byte string for root folders string, used for for os.walk
                         self.config_movies_downloaded_dir = uni_to_byte(self.config_movies_downloaded_dir)
 
-                        movies_downloaded_dir_list = self.config_movies_downloaded_dir
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
                         try:
                                 
@@ -1596,7 +1597,8 @@ class SearchIndex(object):
                         #convert from unicode to byte string for root folders string, used for for os.walk
                         self.config_movies_replace_dir = uni_to_byte(self.config_movies_replace_dir)
                         
-                        movies_replace_dir_list = self.config_movies_replace_dir
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        movies_replace_dir_list = self.config_movies_replace_dir.split(",")
                         
                         try:
 
@@ -1843,8 +1845,8 @@ class SearchIndex(object):
                 
                 if self.config_bad_report and self.index_post_id:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_bad_report_list = [item.strip().lower() for item in self.config_bad_report]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_bad_report_list = [item.strip().lower() for item in self.config_bad_report.split(',')]
 
                         #look for matching item in list
                         if self.index_post_id.lower() in config_bad_report_list:
@@ -1977,8 +1979,8 @@ class SearchIndex(object):
 
                                                 movies_downloaded_group = movies_downloaded_group_search.group()                                        
 
-                                                #remove spaces from comma seperated values using list comprehension
-                                                config_preferred_group_list = [x.strip() for x in self.config_preferred_group]
+                                                #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                                                config_preferred_group_list = [x.strip() for x in self.config_preferred_group.split(',')]
 
                                                 #use regex to escape characters
                                                 regex = re.escape(movies_downloaded_group)
@@ -2018,8 +2020,8 @@ class SearchIndex(object):
                 #check bad group is enabled in switches and config bad group and index post group are not empty
                 if self.config_enable_group_filter == "yes" and (self.config_bad_group and self.index_post_group):
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_bad_group_list = [x.strip().lower() for x in self.config_bad_group]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_bad_group_list = [x.strip().lower() for x in self.config_bad_group.split(',')]
 
                         #look for matching item in list
                         if self.index_post_group.lower() in config_bad_group_list:
@@ -2041,8 +2043,8 @@ class SearchIndex(object):
                 
                 if self.config_search_and:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_search_and_list = [x.strip() for x in self.config_search_and]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
 
                         for config_search_and_item in config_search_and_list:
 
@@ -2069,8 +2071,8 @@ class SearchIndex(object):
             
                 if self.config_search_or:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_search_or_list = [x.strip() for x in self.config_search_or]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_search_or_list = [x.strip() for x in self.config_search_or.split(',')]
 
                         for config_search_or_item in config_search_or_list:
 
@@ -2097,8 +2099,8 @@ class SearchIndex(object):
                 
                 if self.config_search_not:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_search_not_list = [x.strip() for x in self.config_search_not]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_search_not_list = [x.strip() for x in self.config_search_not.split(',')]
 
                         for config_search_not_item in config_search_not_list:
 
@@ -2191,8 +2193,8 @@ class SearchIndex(object):
                 
                 if self.config_good_genre:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_good_genre_list = [item.strip().lower() for item in self.config_good_genre]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_good_genre_list = [item.strip().lower() for item in self.config_good_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
@@ -2222,8 +2224,8 @@ class SearchIndex(object):
              
                 if self.config_enable_favorites == "yes" and self.config_fav_dir:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        fav_dir_list = [x.strip().lower() for x in self.config_fav_dir]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        fav_dir_list = [x.strip().lower() for x in self.config_fav_dir.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_directors = [item.lower() for item in self.imdb_movie_directors]
@@ -2251,8 +2253,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_favorites == "yes" and self.config_fav_writer:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        fav_writer_list = [x.strip().lower() for x in self.config_fav_writer]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        fav_writer_list = [x.strip().lower() for x in self.config_fav_writer.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_writers = [item.lower() for item in self.imdb_movie_writers]
@@ -2280,8 +2282,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_favorites == "yes" and self.config_fav_actor:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        fav_actor_list = [x.strip().lower for x in self.config_fav_actor]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        fav_actor_list = [x.strip().lower for x in self.config_fav_actor.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_actors = [item.lower() for item in self.imdb_movie_actors]
@@ -2309,8 +2311,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_favorites == "yes" and self.config_fav_char:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        fav_char_list = [x.strip().lower() for x in self.config_fav_char]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        fav_char_list = [x.strip().lower() for x in self.config_fav_char.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_chars = [item.lower() for item in self.imdb_movie_chars]
@@ -2338,8 +2340,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_favorites == "yes" and self.config_fav_title:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        fav_title_list = [x.strip().lower() for x in self.config_fav_title]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        fav_title_list = [x.strip().lower() for x in self.config_fav_title.split(',')]
 
                         #look for case insensitive string in list using list comprehension
                         if self.imdb_movie_title_year.lower() in fav_title_list:
@@ -2361,8 +2363,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_favorites == "yes" and self.config_bad_title:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        config_bad_title_list = [x.strip().lower() for x in self.config_bad_title]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        config_bad_title_list = [x.strip().lower() for x in self.config_bad_title.split(',')]
 
                         #look for case insensitive string in list using list comprehension
                         if self.imdb_movie_title_year.lower() in config_bad_title_list:
@@ -2384,8 +2386,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_preferred == "yes" and self.config_preferred_genre:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        preferred_genre_list = [x.strip().lower() for x in self.config_preferred_genre]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        preferred_genre_list = [x.strip().lower() for x in self.config_preferred_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
@@ -2427,8 +2429,8 @@ class SearchIndex(object):
                 
                 if self.config_enable_queuing == "yes" and self.config_queue_genre:
 
-                        #remove spaces from comma seperated values using list comprehension
-                        queue_genre_list = [x.strip().lower() for x in self.config_queue_genre]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        queue_genre_list = [x.strip().lower() for x in self.config_queue_genre.split(',')]
 
                         #convert lists to lowercase using list comprehension
                         imdb_movie_genres = [item.lower() for item in self.imdb_movie_genres]
@@ -3205,8 +3207,8 @@ class SearchIndex(object):
 
                         else:
 
-                                #remove spaces from comma seperated values using list comprehension
-                                config_search_and_list = [x.strip() for x in self.config_search_and]
+                                #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                                config_search_and_list = [x.strip() for x in self.config_search_and.split(',')]
 
                                 #convert list back to string
                                 config_search_and = ','.join(config_search_and_list)
@@ -3587,8 +3589,8 @@ class SearchIndex(object):
 
                 if search_term != "":
                         
-                        #remove spaces from comma seperated values using list comprehension
-                        search_term = [x.strip() for x in search_term]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
 
                         #convert list back to string
                         search_term = ','.join(search_term)
@@ -3686,8 +3688,8 @@ class SearchIndex(object):
 
                 if search_term != "":
 
-                        #remove spaces from comma seperated values using list comprehension
-                        search_term = [x.strip() for x in search_term]
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
 
                         #convert list back to string
                         search_term = ','.join(search_term)
@@ -4599,7 +4601,8 @@ class PostProcessing(object):
                         #this is set to check the completed folder for movie downloaded exists
                         if os.path.exists(self.os_movie_path_folder):
 
-                                config_post_rule_list = self.config_post_rule
+                                #convert comma seperated string into list - config parser cannot deal with lists
+                                config_post_rule_list = self.config_post_rule.split(",")
 
                                 for config_post_rule_item in config_post_rule_list:
 
@@ -5040,9 +5043,14 @@ class ConfigIMDB(object):
                 template.fav_title = config_obj["imdb"]["fav_title"]
                 template.genre_list_all = ["action", "adventure", "animation", "biography", "comedy", "crime", "documentary", "drama", "family", "fantasy", "film-Noir", "game-show", "history", "horror", "music", "musical", "mystery", "news", "reality-tv", "romance", "sci-fi", "short", "sport", "talk-show", "thriller", "war", "western"]
 
-                template.good_genre_list_selected = template.good_genre
-                template.preferred_genre_list_selected = template.preferred_genre
-                template.queue_genre_list_selected = template.queue_genre
+                #convert comma seperated string into list - config parser cannot deal with lists
+                template.good_genre_list_selected = template.good_genre.split(",")
+
+                #convert comma seperated string into list - config parser cannot deal with lists
+                template.preferred_genre_list_selected = template.preferred_genre.split(",")
+
+                #convert comma seperated string into list - config parser cannot deal with lists
+                template.queue_genre_list_selected = template.queue_genre.split(",")
 
                 header()
 
@@ -5413,7 +5421,8 @@ class ConfigPost(object):
 
                 if config_post_rule:
 
-                        template.post_config_rule_list = config_post_rule
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        template.post_config_rule_list = config_post_rule.split(",")
 
                 else:
 
@@ -5454,7 +5463,8 @@ class ConfigPost(object):
 
                 if config_post_rule:
 
-                        config_post_rule_list = config_post_rule
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_post_rule_list = config_post_rule.split(",")
 
                         #if new site name exists in config list then increment number
                         while add_post_rule in config_post_rule_list:
@@ -5539,7 +5549,8 @@ class ConfigPost(object):
 
                 if config_post_rule:
 
-                        config_post_rule_list = config_post_rule
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_post_rule_list = config_post_rule.split(",")
 
                         if delete_config_rule:
 
@@ -5626,17 +5637,17 @@ class ConfigUsenet(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_usenet.tmpl"))
 
-                #set config obj to disable automatic convertion of comma seperated values to list, and set encode of config.ini to utf-8
-                template.config_obj = configobj.ConfigObj(config_ini, list_values=False, encoding='UTF-8')
-                #template.config_obj = config_obj
-                
+                #create variable for templates to read config entries
+                template.config_obj = config_obj
+
                 template.index_site = config_obj["usenet"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
                 if template.index_site:
 
-                        template.index_site_list = template.index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        template.index_site_list = template.index_site.split(",")
 
                 else:
 
@@ -5660,7 +5671,8 @@ class ConfigUsenet(object):
 
                 if config_index_site:
 
-                        config_index_site_list = config_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         #if new site name exists in config list then increment number
                         while add_newznab_site_index in config_index_site_list:
@@ -5752,9 +5764,9 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_path" % (add_newznab_site_index)] = ""
                 config_obj["usenet"]["%s_key" % (add_newznab_site_index)] = ""
                 config_obj["usenet"]["%s_cat" % (add_newznab_site_index)] = ""
-                config_obj["usenet"]["%s_search_and" % (add_newznab_site_index)] = []
-                config_obj["usenet"]["%s_search_or" % (add_newznab_site_index)] = []
-                config_obj["usenet"]["%s_search_not" % (add_newznab_site_index)] = []
+                config_obj["usenet"]["%s_search_and" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_or" % (add_newznab_site_index)] = ""
+                config_obj["usenet"]["%s_search_not" % (add_newznab_site_index)] = ""
                 config_obj["usenet"]["%s_minsize" % (add_newznab_site_index)] = "0"
                 config_obj["usenet"]["%s_maxsize" % (add_newznab_site_index)] = "0"
                 config_obj["usenet"]["%s_spotweb_support" % (add_newznab_site_index)] = "no"
@@ -5776,7 +5788,7 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_portnumber" % (edit_newznab_site_index)] = kwargs["newznab_portnumber2"]
                 config_obj["usenet"]["%s_key" % (edit_newznab_site_index)] = kwargs["newznab_key2"]
                 config_obj["usenet"]["%s_cat" % (edit_newznab_site_index)] = kwargs["newznab_cat2"]
-                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = [kwargs["newznab_search_and2"]]
+                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"]
                 config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"]
                 config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"]
                 config_obj["usenet"]["%s_spotweb_support" % (edit_newznab_site_index)] = kwargs["spotweb_support2"]
@@ -5825,7 +5837,8 @@ class ConfigUsenet(object):
 
                 if config_index_site:
 
-                        config_index_site_list = config_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         if delete_newznab_site_index:
 
@@ -5873,7 +5886,8 @@ class ConfigTorrent(object):
 
                 if template.index_site:
 
-                        template.index_site_list = template.index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        template.index_site_list = template.index_site.split(",")
                                                 
                 else:
 
@@ -5897,7 +5911,8 @@ class ConfigTorrent(object):
 
                 if config_index_site:
 
-                        config_index_site_list = config_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         #if new site name exists in config list then increment number
                         while add_torrent_site_index in config_index_site_list:
@@ -6013,7 +6028,8 @@ class ConfigTorrent(object):
 
                 if config_index_site:
 
-                        config_index_site_list = config_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         if delete_torrent_site_index:
 
@@ -7033,7 +7049,8 @@ class SearchIndexThread(object):
 
                 if usenet_index_site != "":
 
-                        usenet_index_site_list = usenet_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        usenet_index_site_list = usenet_index_site.split(",")
 
                         usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
                         usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
@@ -7061,7 +7078,8 @@ class SearchIndexThread(object):
 
                 if torrent_index_site != "":
 
-                        torrent_index_site_list = torrent_index_site
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        torrent_index_site_list = torrent_index_site.split(",")
 
                         torrent_watch_dir = config_obj["folders"]["torrent_watch_dir"]
                         torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
