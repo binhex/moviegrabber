@@ -301,16 +301,16 @@ def cli_arguments():
                 commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
-                commandline_parser.add_argument("--ip",  metavar="<ipaddress>", help="specify ip e.g. --ip 192.168.1.2")
-                commandline_parser.add_argument("--port", metavar="<port>", help="specify port e.g. --port 9191")
-                commandline_parser.add_argument("--config", metavar="<path>", help="specify path for config file e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument("--logs", metavar="<path>", help="specify path for log files e.g. --logs /opt/moviegrabber/logs/")
-                commandline_parser.add_argument("--db", metavar="<path>", help="specify path for database e.g. --db /opt/moviegrabber/db/")
-                commandline_parser.add_argument("--pidfile", metavar="<path>", help="specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
-                commandline_parser.add_argument("--daemon", action="store_true", help="run as daemonized process")
-                commandline_parser.add_argument("--reset-config", action="store_true", help="reset config to default")
-                commandline_parser.add_argument("--reset-db", action="store_true", help="reset database to default")
-                commandline_parser.add_argument("--version", action="version", version=latest_mg_version)
+                commandline_parser.add_argument(u"--ip",  metavar=u"<ipaddress>", help=u"specify ip e.g. --ip 192.168.1.2")
+                commandline_parser.add_argument(u"--port", metavar=u"<port>", help=u"specify port e.g. --port 9191")
+                commandline_parser.add_argument(u"--config", metavar=u"<path>", help=u"specify path for config file e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument(u"--logs", metavar=u"<path>", help=u"specify path for log files e.g. --logs /opt/moviegrabber/logs/")
+                commandline_parser.add_argument(u"--db", metavar=u"<path>", help=u"specify path for database e.g. --db /opt/moviegrabber/db/")
+                commandline_parser.add_argument(u"--pidfile", metavar=u"<path>", help=u"specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument(u"--daemon", action=u"store_true", help=u"run as daemonized process")
+                commandline_parser.add_argument(u"--reset-config", action=u"store_true", help=u"reset config to default")
+                commandline_parser.add_argument(u"--reset-db", action=u"store_true", help=u"reset database to default")
+                commandline_parser.add_argument(u"--version", action=u"version", version=latest_mg_version)
 
                 #save arguments in dictionary
                 args = vars(commandline_parser.parse_args())
