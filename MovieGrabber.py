@@ -758,7 +758,7 @@ def cherrypy_logging():
 
         #create a new rotating log for error logging
         fname = getattr(log, "rot_error_file", cherrypy_log)
-        h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
+        h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount, encoding = "utf-8")
         h.setLevel(logging.DEBUG)
         h.setFormatter(cherrypy._cplogging.logfmt)
         log.error_log.addHandler(h)
@@ -778,7 +778,7 @@ def moviegrabber_logging():
         moviegrabber_logger = logging.getLogger("moviegrabber")
 
         #setup logging to file for moviegrabber
-        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a")
+        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a", encoding = "UTF-8")
 
         #set formatter for moviegrabber
         moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
@@ -838,7 +838,7 @@ def sqlite_logging():
         sqlite_logger = logging.getLogger("sqlalchemy.engine")
 
         #setup logging to file for sqlite
-        sqlite_filehandler = logging.FileHandler(sqlite_log, "a")
+        sqlite_filehandler = logging.FileHandler(sqlite_log, "a", encoding = "UTF-8")
 
         #set formatter for sqlite
         sqlite_filehandler.setFormatter(sqlite_formatter)
