@@ -3579,10 +3579,6 @@ class SearchIndex(object):
 
                         search_term = self.config_search_and
 
-                elif self.config_search_or != "":
-
-                        search_term = self.config_search_or
-
                 else:
 
                         search_term = ""
@@ -3677,10 +3673,6 @@ class SearchIndex(object):
                 if self.config_search_and != "":
 
                         search_term = self.config_search_and
-
-                elif self.config_search_or != "":
-
-                        search_term = self.config_search_or
 
                 else:
 
@@ -6888,9 +6880,6 @@ class HomeRoot(object):
                 section_name = "Home"
 
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
-
-                #read config.ini - required due to issue with configparser seeing entries as lists
-                #config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
