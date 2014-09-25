@@ -3594,15 +3594,11 @@ class SearchIndex(object):
                         #replace comma with spaces to seperate search terms
                         search_term = re.sub(ur","," ", search_term)
                         
-                #construct site rss feed
-                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)
-                site_feed_details = "/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (search_term, self.config_cat, self.config_lang)
-
-                #encode rss feed details to uri
-                site_feed_details = urllib.quote(site_feed_details.encode('utf-8'))
-
-                self.site_feed = "%s%s" % (site_feed_host,site_feed_details)
-                
+                #generate url for site with must exist search criteria
+                site_feed = "%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
+                        
+                #convert to url for feed
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'))
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3689,16 +3685,17 @@ class SearchIndex(object):
                         #replace comma with spaces to seperate search terms
                         search_term = re.sub(ur","," ", search_term)
 
-                        #convert to uri for feed
-                        search_term = urllib.quote(search_term.encode('utf-8'))
-
+                        #generate url for site with must exist search criteria
+                        site_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
+                        
                 else:
 
-                        mg_log.warning(u"%s Index - No required search terms found" % (site_name))
-                        return
-                        
-                self.site_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
-                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
+                        #generate url for site with default new videos section
+                        site_feed = "%s:%s/new_video.html?fmt=rss" % (self.config_hostname, self.config_portnumber)
+
+                #convert to uri for feed
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'))
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))                
 
                 #generate feed details
                 self.feed_details(site_name)
