@@ -125,7 +125,6 @@ import base64
 #-------------------- 3rd party -----------------------------
 
 import configobj
-import validate
 import feedparser
 import cherrypy
 from Cheetah.Template import Template
@@ -487,7 +486,6 @@ def cli_arguments():
                 config_dir = os.path.join(moviegrabber_root_dir, u"configs")
                 config_dir = os.path.normpath(config_dir)                
                 config_ini = os.path.join(config_dir, u"config.ini")
-                configspec_ini = os.path.join(config_dir, u"configspec.ini")
 
                 #if config.ini does not exist then create
                 if not os.path.exists(config_ini):
@@ -552,13 +550,8 @@ def cli_arguments():
 #save returned value
 config_ini = cli_arguments()
 
-#enable config obj
+#enable config parser
 config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-
-#enable config obj validator
-#config_validate = validate.Validator()
-#result = config_obj.validate(config_validate, copy=True)
-
 
 #read values for logs and results db
 logs_dir = config_obj["folders"]["logs_dir"]
