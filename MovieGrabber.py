@@ -5629,16 +5629,11 @@ class ConfigUsenet(object):
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
-                template.index_site = config_obj["usenet"]["index_site"]
+                template.index_site_list = config_obj["usenet"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
-                if template.index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        template.index_site_list = template.index_site.split(",")
-
-                else:
+                if not template.index_site_list:
 
                         template.index_site_list = []
 
@@ -5652,16 +5647,13 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def add_config_usenet(self, **kwargs):
 
-                config_index_site = config_obj["usenet"]["index_site"]
+                config_index_site_list = config_obj["usenet"]["index_site"]
                 add_newznab_site = kwargs["add_newznab_site2"]
 
                 site_index = 1
                 add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
 
-                if config_index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        config_index_site_list = config_index_site.split(",")
+                if config_index_site_list:
 
                         #if new site name exists in config list then increment number
                         while add_newznab_site_index in config_index_site_list:
@@ -5679,9 +5671,8 @@ class ConfigUsenet(object):
 
                                 return ConfigUsenet().index()
 
-                        #convert back to comma seperated list and set
-                        config_newznab_site = ",".join(config_index_site_list)
-                        config_obj["usenet"]["index_site"] = config_newznab_site
+                        #save new list
+                        config_obj["usenet"]["index_site"] = config_index_site_list
 
                 else:
 
@@ -5821,20 +5812,18 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def delete_config_usenet(self, **kwargs):
 
-                config_index_site = config_obj["usenet"]["index_site"]
+                config_index_site_list = config_obj["usenet"]["index_site"]
                 delete_newznab_site_index = kwargs["delete_newznab_site2"]
 
-                if config_index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        config_index_site_list = config_index_site.split(",")
+                if config_index_site_list:
 
                         if delete_newznab_site_index:
 
                                 #delete selected index site from list
                                 config_index_site_list.remove(delete_newznab_site_index)
-                                delete_newznab_site = ",".join(config_index_site_list)
-                                config_obj["usenet"]["index_site"] = delete_newznab_site
+
+                                #save new list
+                                config_obj["usenet"]["index_site"] = config_index_site_list
 
                                 #delete config entries for selected index site
                                 del config_obj["usenet"]["%s_hostname" % (delete_newznab_site_index)]
