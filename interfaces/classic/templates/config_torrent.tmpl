@@ -174,6 +174,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify what you want to search for within the chosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
 
 		<!--#set $torrent_search_and = $config_obj["torrent"]["%s_search_and" % ($index_site_item)]#-->
+		<!--#set $torrent_search_and = ",".join($torrent_search_and)#-->					
 		
 		<input type="text" class="form_textbox_padding" name="torrent_search_and2" value="$torrent_search_and" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 1080p,bluray"/>
 		<br>
@@ -182,6 +183,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify what you want to search for within the chosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
 
 		<!--#set $torrent_search_or = $config_obj["torrent"]["%s_search_or" % ($index_site_item)]#-->
+		<!--#set $torrent_search_or = ",".join($torrent_search_or)#-->							
 		
 		<input type="text" class="form_textbox_padding" name="torrent_search_or2" value="$torrent_search_or" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. 720p,1080p"/>
 		<br>
@@ -190,6 +192,7 @@ EDIT/DELETE INDEX
 		<a title="Allows you to specify what you want to search for within the chosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
 		
 		<!--#set $torrent_search_not = $config_obj["torrent"]["%s_search_not" % ($index_site_item)]#-->
+		<!--#set $torrent_search_not = ",".join($torrent_search_not)#-->									
 		
 		<input type="text" class="form_textbox_padding" name="torrent_search_not2" value="$torrent_search_not" maxlength="1000" form="$edit_config_torrent" placeholder="e.g. cam,telesync"/>
 		<br>

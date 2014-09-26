@@ -5677,7 +5677,7 @@ class ConfigUsenet(object):
                 else:
 
                         #if config entry is empty then create first entry
-                        config_obj["usenet"]["index_site"] = add_newznab_site_index
+                        config_obj["usenet"]["index_site"] = [add_newznab_site_index]
 
                 #set hostname, path, and port number for known index sites
                 if add_newznab_site == "nzbs_org":
@@ -5768,9 +5768,9 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_portnumber" % (edit_newznab_site_index)] = kwargs["newznab_portnumber2"]
                 config_obj["usenet"]["%s_key" % (edit_newznab_site_index)] = kwargs["newznab_key2"]
                 config_obj["usenet"]["%s_cat" % (edit_newznab_site_index)] = kwargs["newznab_cat2"]
-                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"]
-                config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"]
-                config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"]
+                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"].split(u",")
+                config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"].split(u",")
+                config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"].split(u",")
                 config_obj["usenet"]["%s_spotweb_support" % (edit_newznab_site_index)] = kwargs["spotweb_support2"]
                 config_obj["usenet"]["%s_enabled" % (edit_newznab_site_index)] = kwargs["newznab_enabled2"]
 
@@ -5859,15 +5859,10 @@ class ConfigTorrent(object):
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
-                template.index_site = config_obj["torrent"]["index_site"]
+                template.index_site_list = config_obj["torrent"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
 
-                if template.index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        template.index_site_list = template.index_site.split(",")
-                                                
-                else:
+                if not template.index_site_list:
 
                         template.index_site_list = []
 
@@ -5881,16 +5876,13 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def add_config_torrent(self, **kwargs):
 
-                config_index_site = config_obj["torrent"]["index_site"]
+                config_index_site_list = config_obj["torrent"]["index_site"]
                 add_torrent_site = kwargs["add_torrent_site2"]
 
                 site_index = 1
                 add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
 
-                if config_index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        config_index_site_list = config_index_site.split(",")
+                if config_index_site_list:
 
                         #if new site name exists in config list then increment number
                         while add_torrent_site_index in config_index_site_list:
@@ -5908,14 +5900,13 @@ class ConfigTorrent(object):
 
                                 return ConfigTorrent().index()
 
-                        #convert back to comma seperated list and set
-                        config_torrent_site = ",".join(config_index_site_list)
-                        config_obj["torrent"]["index_site"] = config_torrent_site
+                        #save new list
+                        config_obj["torrent"]["index_site"] = config_index_site_list
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_obj["torrent"]["index_site"] = add_torrent_site_index
+                        config_obj["torrent"]["index_site"] = [add_torrent_site_index]
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "kat":
@@ -5966,9 +5957,9 @@ class ConfigTorrent(object):
                 config_obj["torrent"]["%s_portnumber" % (edit_torrent_site_index)] = kwargs["torrent_portnumber2"]
                 config_obj["torrent"]["%s_cat" % (edit_torrent_site_index)] = kwargs["torrent_cat2"]
                 config_obj["torrent"]["%s_lang" % (edit_torrent_site_index)] = kwargs["torrent_lang2"]
-                config_obj["torrent"]["%s_search_and" % (edit_torrent_site_index)] = kwargs["torrent_search_and2"]
-                config_obj["torrent"]["%s_search_or" % (edit_torrent_site_index)] = kwargs["torrent_search_or2"]
-                config_obj["torrent"]["%s_search_not" % (edit_torrent_site_index)] = kwargs["torrent_search_not2"]
+                config_obj["torrent"]["%s_search_and" % (edit_torrent_site_index)] = kwargs["torrent_search_and2"].split(u",")
+                config_obj["torrent"]["%s_search_or" % (edit_torrent_site_index)] = kwargs["torrent_search_or2"].split(u",")
+                config_obj["torrent"]["%s_search_not" % (edit_torrent_site_index)] = kwargs["torrent_search_not2"].split(u",")
                 config_obj["torrent"]["%s_enabled" % (edit_torrent_site_index)] = kwargs["torrent_enabled2"]
 
                 if kwargs["torrent_minsize2"]:
@@ -6001,20 +5992,18 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def delete_config_torrent(self, **kwargs):
 
-                config_index_site = config_obj["torrent"]["index_site"]
+                config_index_site_list = config_obj["torrent"]["index_site"]
                 delete_torrent_site_index = kwargs["delete_torrent_site2"]
 
-                if config_index_site:
-
-                        #convert comma seperated string into list - config parser cannot deal with lists
-                        config_index_site_list = config_index_site.split(",")
+                if config_index_site_list:
 
                         if delete_torrent_site_index:
 
-                                #delete selected index site from list
+                                #remove selected index site from list
                                 config_index_site_list.remove(delete_torrent_site_index)
-                                delete_torrent_site = ",".join(config_index_site_list)
-                                config_obj["torrent"]["index_site"] = delete_torrent_site
+
+                                #save new list
+                                config_obj["torrent"]["index_site"] = config_index_site_list
 
                                 #delete config entries for selected index site
                                 del config_obj["torrent"]["%s_hostname" % (delete_torrent_site_index)]
