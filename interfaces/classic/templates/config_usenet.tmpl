@@ -171,7 +171,7 @@ EDIT/DELETE INDEX
 		<strong>Search Criteria:</strong><br>
 		<a title="Allows you to specify what you want to search for within the choosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
 
-		<!--#set $newznab_search_and = ",".join($config_obj["usenet"]["%s_search_and" % ($index_site_item)])#-->
+		<!--#set $newznab_search_and = u",".join($config_obj["usenet"]["%s_search_and" % ($index_site_item)])#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_and2" value="$newznab_search_and" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 1080p,bluray"/>
 		<br>
@@ -179,7 +179,7 @@ EDIT/DELETE INDEX
 
 		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MAY be present in the post title to produce a match e.g. 720p,1080p - match if either 720p or 1080p in the post title."><strong>(?)</strong></a>MAY exist in the post title.<br/>		
 
-		<!--#set $newznab_search_or = ",".join($config_obj["usenet"]["%s_search_or" % ($index_site_item)])#-->
+		<!--#set $newznab_search_or = u",".join($config_obj["usenet"]["%s_search_or" % ($index_site_item)])#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_or2" value="$newznab_search_or" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. 720p,1080p"/>
 		<br>
@@ -187,7 +187,7 @@ EDIT/DELETE INDEX
 
 		<a title="Allows you to specify what you want to search for within the choosen category, ANY search terms entered in this field MUST NOT be present in the post title to produce a match e.g. telesync,cam - do not match if telesync or cam in the post title."><strong>(?)</strong></a>MUST NOT exist in the post title.<br/>
 		
-		<!--#set $newznab_search_not = ",".join($config_obj["usenet"]["%s_search_not" % ($index_site_item)])#-->
+		<!--#set $newznab_search_not = u",".join($config_obj["usenet"]["%s_search_not" % ($index_site_item)])#-->
 		
 		<input type="text" class="form_textbox_padding" name="newznab_search_not2" value="$newznab_search_not" maxlength="1000" form="$edit_config_usenet" placeholder="e.g. cam,telesync"/>
 		<br>
