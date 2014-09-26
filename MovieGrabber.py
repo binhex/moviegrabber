@@ -5183,14 +5183,14 @@ class ConfigGeneral(object):
                 template.check_version = config_obj["general"]["check_version"]
                 template.check_version_list = ["off", "daily", "weekly"]
                 template.movie_title_separator = config_obj["general"]["movie_title_separator"]
-                template.index_preferred_group = config_obj["general"]["index_preferred_group"]
-                template.index_special_cut = config_obj["general"]["index_special_cut"]                           
-                template.index_bad_group = config_obj["general"]["index_bad_group"]
-                template.index_bad_report = config_obj["general"]["index_bad_report"]            
+                template.index_preferred_group = u",".join(config_obj["general"]["index_preferred_group"])
+                template.index_special_cut = u",".join(config_obj["general"]["index_special_cut"])                          
+                template.index_bad_group = u",".join(config_obj["general"]["index_bad_group"])
+                template.index_bad_report = u",".join(config_obj["general"]["index_bad_report"])
                 template.index_posts_to_process = config_obj["general"]["index_posts_to_process"]
                 template.min_seeds = config_obj["general"]["min_seeds"]
                 template.min_peers = config_obj["general"]["min_peers"]
-                
+
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
 
@@ -5227,10 +5227,10 @@ class ConfigGeneral(object):
                 config_obj["webconfig"]["username"] = kwargs["username2"]
                 config_obj["webconfig"]["password"] = kwargs["password2"]
                 config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"]
-                config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"]
-                config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"]
-                config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"]
-                config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"]
+                config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"].split(u",")
+                config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"].split(u",")
+                config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"].split(u",")
+                config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"].split(u",")
                 config_obj["general"]["log_level"] = kwargs["log_level2"]
                 config_obj["general"]["check_version"] = kwargs["check_version2"]
 		
@@ -6245,7 +6245,7 @@ class HistoryRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.history_sort_order = config_obj["general"]["history_sort_order"]
+                template.history_sort_order = u",".join(config_obj["general"]["history_sort_order"])
 
                 header()
 
@@ -6260,7 +6260,7 @@ class HistoryRoot(object):
 
                 else:
 
-                        history_sort_order = config_obj["general"]["history_sort_order"]
+                        history_sort_order_list = config_obj["general"]["history_sort_order"]
                         max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #select all rows from history table
@@ -6268,9 +6268,6 @@ class HistoryRoot(object):
 
                         #remove scoped session
                         sql_session.remove()
-
-                        #convert comma seperated sort order to list
-                        history_sort_order_list = history_sort_order.split(',')
 
                         history_sort_order_scale = history_sort_order_list[0]
                         history_sort_order_column = history_sort_order_list[1]
@@ -6317,7 +6314,7 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_obj["general"]["history_sort_order"] = kwargs["sort_order"]
+                config_obj["general"]["history_sort_order"] = kwargs["sort_order"].split(u",")
 
                 #write settings to config.ini
                 config_obj.write()
@@ -6544,7 +6541,7 @@ class QueueRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.queued_sort_order = config_obj["general"]["queued_sort_order"]
+                template.queued_sort_order = u",".join(config_obj["general"]["queued_sort_order"])
 
                 header()
 
@@ -6558,8 +6555,8 @@ class QueueRoot(object):
                         template.sqlite_queue_count = queue_search_query[1]
 
                 else:
-
-                        queued_sort_order = config_obj["general"]["queued_sort_order"]
+                        
+                        queued_sort_order_list = config_obj["general"]["queued_sort_order"]
                         max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #remove limit if max items shown is string all
@@ -6572,9 +6569,6 @@ class QueueRoot(object):
 
                         #remove scoped session
                         sql_session.remove()
-
-                        #convert comma seperated sort order to list
-                        queued_sort_order_list = queued_sort_order.split(',')
 
                         queued_sort_order_scale = queued_sort_order_list[0]
                         queued_sort_order_column = queued_sort_order_list[1]
@@ -6621,7 +6615,7 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"]
+                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"].split(u",")
 
                 #write settings to config.ini
                 config_obj.write()
