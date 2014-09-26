@@ -6036,8 +6036,8 @@ class ConfigDirectories(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
-                template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
+                template.movies_downloaded_dir = u",".join(config_obj["folders"]["movies_downloaded_dir"])
+                template.movies_replace_dir = u",".join(config_obj["folders"]["movies_replace_dir"])
                 template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
                 template.usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
                 template.usenet_completed_dir = config_obj["folders"]["usenet_completed_dir"]
@@ -6085,7 +6085,7 @@ class ConfigDirectories(object):
                         config_obj["folders"]["logs_dir"] = del_inv_chars(kwargs["logs_dir2"])
 
                 #create list of movies to replace
-                movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
+                movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(u",")
 
                 for movies_to_replace_item in movies_to_replace_list:
 
@@ -6105,7 +6105,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_replace_dir2"] == "":
 
-                        config_obj["folders"]["movies_replace_dir"] = del_inv_chars(kwargs["movies_replace_dir2"])
+                        config_obj["folders"]["movies_replace_dir"] = del_inv_chars(kwargs["movies_replace_dir2"]).split(u",")
 
                 #create list of movies already downloaded
                 movies_downloaded_list = (kwargs["movies_downloaded_dir2"]).split(",")
@@ -6128,7 +6128,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_downloaded_dir2"] == "":
 
-                        config_obj["folders"]["movies_downloaded_dir"] = del_inv_chars(kwargs["movies_downloaded_dir2"])
+                        config_obj["folders"]["movies_downloaded_dir"] = del_inv_chars(kwargs["movies_downloaded_dir2"]).split(u",")
 
                 config_obj.write()
 
