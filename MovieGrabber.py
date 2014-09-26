@@ -5183,14 +5183,14 @@ class ConfigGeneral(object):
                 template.check_version = config_obj["general"]["check_version"]
                 template.check_version_list = ["off", "daily", "weekly"]
                 template.movie_title_separator = config_obj["general"]["movie_title_separator"]
-                template.index_preferred_group = u",".join(config_obj["general"]["index_preferred_group"])
-                template.index_special_cut = u",".join(config_obj["general"]["index_special_cut"])                          
-                template.index_bad_group = u",".join(config_obj["general"]["index_bad_group"])
-                template.index_bad_report = u",".join(config_obj["general"]["index_bad_report"])
+                template.index_preferred_group = config_obj["general"]["index_preferred_group"]
+                template.index_special_cut = config_obj["general"]["index_special_cut"]                           
+                template.index_bad_group = config_obj["general"]["index_bad_group"]
+                template.index_bad_report = config_obj["general"]["index_bad_report"]            
                 template.index_posts_to_process = config_obj["general"]["index_posts_to_process"]
                 template.min_seeds = config_obj["general"]["min_seeds"]
                 template.min_peers = config_obj["general"]["min_peers"]
-
+                
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
 
@@ -5227,10 +5227,10 @@ class ConfigGeneral(object):
                 config_obj["webconfig"]["username"] = kwargs["username2"]
                 config_obj["webconfig"]["password"] = kwargs["password2"]
                 config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"]
-                config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"].split(u",")
-                config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"].split(u",")
-                config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"].split(u",")
-                config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"].split(u",")
+                config_obj["general"]["index_preferred_group"] = kwargs["index_preferred_group2"]
+                config_obj["general"]["index_special_cut"] = kwargs["index_special_cut2"]
+                config_obj["general"]["index_bad_group"] = kwargs["index_bad_group2"]
+                config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"]
                 config_obj["general"]["log_level"] = kwargs["log_level2"]
                 config_obj["general"]["check_version"] = kwargs["check_version2"]
 		
@@ -5629,11 +5629,16 @@ class ConfigUsenet(object):
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
-                template.index_site_list = config_obj["usenet"]["index_site"]
+                template.index_site = config_obj["usenet"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
-                if not template.index_site_list:
+                if template.index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        template.index_site_list = template.index_site.split(",")
+
+                else:
 
                         template.index_site_list = []
 
@@ -5647,13 +5652,16 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def add_config_usenet(self, **kwargs):
 
-                config_index_site_list = config_obj["usenet"]["index_site"]
+                config_index_site = config_obj["usenet"]["index_site"]
                 add_newznab_site = kwargs["add_newznab_site2"]
 
                 site_index = 1
                 add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
 
-                if config_index_site_list:
+                if config_index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         #if new site name exists in config list then increment number
                         while add_newznab_site_index in config_index_site_list:
@@ -5671,13 +5679,14 @@ class ConfigUsenet(object):
 
                                 return ConfigUsenet().index()
 
-                        #save new list
-                        config_obj["usenet"]["index_site"] = config_index_site_list
+                        #convert back to comma seperated list and set
+                        config_newznab_site = ",".join(config_index_site_list)
+                        config_obj["usenet"]["index_site"] = config_newznab_site
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_obj["usenet"]["index_site"] = [add_newznab_site_index]
+                        config_obj["usenet"]["index_site"] = add_newznab_site_index
 
                 #set hostname, path, and port number for known index sites
                 if add_newznab_site == "nzbs_org":
@@ -5768,9 +5777,9 @@ class ConfigUsenet(object):
                 config_obj["usenet"]["%s_portnumber" % (edit_newznab_site_index)] = kwargs["newznab_portnumber2"]
                 config_obj["usenet"]["%s_key" % (edit_newznab_site_index)] = kwargs["newznab_key2"]
                 config_obj["usenet"]["%s_cat" % (edit_newznab_site_index)] = kwargs["newznab_cat2"]
-                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"].split(u",")
-                config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"].split(u",")
-                config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"].split(u",")
+                config_obj["usenet"]["%s_search_and" % (edit_newznab_site_index)] = kwargs["newznab_search_and2"]
+                config_obj["usenet"]["%s_search_or" % (edit_newznab_site_index)] = kwargs["newznab_search_or2"]
+                config_obj["usenet"]["%s_search_not" % (edit_newznab_site_index)] = kwargs["newznab_search_not2"]
                 config_obj["usenet"]["%s_spotweb_support" % (edit_newznab_site_index)] = kwargs["spotweb_support2"]
                 config_obj["usenet"]["%s_enabled" % (edit_newznab_site_index)] = kwargs["newznab_enabled2"]
 
@@ -5812,18 +5821,20 @@ class ConfigUsenet(object):
         @cherrypy.expose
         def delete_config_usenet(self, **kwargs):
 
-                config_index_site_list = config_obj["usenet"]["index_site"]
+                config_index_site = config_obj["usenet"]["index_site"]
                 delete_newznab_site_index = kwargs["delete_newznab_site2"]
 
-                if config_index_site_list:
+                if config_index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         if delete_newznab_site_index:
 
                                 #delete selected index site from list
                                 config_index_site_list.remove(delete_newznab_site_index)
-
-                                #save new list
-                                config_obj["usenet"]["index_site"] = config_index_site_list
+                                delete_newznab_site = ",".join(config_index_site_list)
+                                config_obj["usenet"]["index_site"] = delete_newznab_site
 
                                 #delete config entries for selected index site
                                 del config_obj["usenet"]["%s_hostname" % (delete_newznab_site_index)]
@@ -5859,10 +5870,15 @@ class ConfigTorrent(object):
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
-                template.index_site_list = config_obj["torrent"]["index_site"]
+                template.index_site = config_obj["torrent"]["index_site"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
 
-                if not template.index_site_list:
+                if template.index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        template.index_site_list = template.index_site.split(",")
+                                                
+                else:
 
                         template.index_site_list = []
 
@@ -5876,13 +5892,16 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def add_config_torrent(self, **kwargs):
 
-                config_index_site_list = config_obj["torrent"]["index_site"]
+                config_index_site = config_obj["torrent"]["index_site"]
                 add_torrent_site = kwargs["add_torrent_site2"]
 
                 site_index = 1
                 add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
 
-                if config_index_site_list:
+                if config_index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         #if new site name exists in config list then increment number
                         while add_torrent_site_index in config_index_site_list:
@@ -5900,13 +5919,14 @@ class ConfigTorrent(object):
 
                                 return ConfigTorrent().index()
 
-                        #save new list
-                        config_obj["torrent"]["index_site"] = config_index_site_list
+                        #convert back to comma seperated list and set
+                        config_torrent_site = ",".join(config_index_site_list)
+                        config_obj["torrent"]["index_site"] = config_torrent_site
 
                 else:
 
                         #if config entry is empty then create first entry
-                        config_obj["torrent"]["index_site"] = [add_torrent_site_index]
+                        config_obj["torrent"]["index_site"] = add_torrent_site_index
 
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "kat":
@@ -5957,9 +5977,9 @@ class ConfigTorrent(object):
                 config_obj["torrent"]["%s_portnumber" % (edit_torrent_site_index)] = kwargs["torrent_portnumber2"]
                 config_obj["torrent"]["%s_cat" % (edit_torrent_site_index)] = kwargs["torrent_cat2"]
                 config_obj["torrent"]["%s_lang" % (edit_torrent_site_index)] = kwargs["torrent_lang2"]
-                config_obj["torrent"]["%s_search_and" % (edit_torrent_site_index)] = kwargs["torrent_search_and2"].split(u",")
-                config_obj["torrent"]["%s_search_or" % (edit_torrent_site_index)] = kwargs["torrent_search_or2"].split(u",")
-                config_obj["torrent"]["%s_search_not" % (edit_torrent_site_index)] = kwargs["torrent_search_not2"].split(u",")
+                config_obj["torrent"]["%s_search_and" % (edit_torrent_site_index)] = kwargs["torrent_search_and2"]
+                config_obj["torrent"]["%s_search_or" % (edit_torrent_site_index)] = kwargs["torrent_search_or2"]
+                config_obj["torrent"]["%s_search_not" % (edit_torrent_site_index)] = kwargs["torrent_search_not2"]
                 config_obj["torrent"]["%s_enabled" % (edit_torrent_site_index)] = kwargs["torrent_enabled2"]
 
                 if kwargs["torrent_minsize2"]:
@@ -5992,18 +6012,20 @@ class ConfigTorrent(object):
         @cherrypy.expose
         def delete_config_torrent(self, **kwargs):
 
-                config_index_site_list = config_obj["torrent"]["index_site"]
+                config_index_site = config_obj["torrent"]["index_site"]
                 delete_torrent_site_index = kwargs["delete_torrent_site2"]
 
-                if config_index_site_list:
+                if config_index_site:
+
+                        #convert comma seperated string into list - config parser cannot deal with lists
+                        config_index_site_list = config_index_site.split(",")
 
                         if delete_torrent_site_index:
 
-                                #remove selected index site from list
+                                #delete selected index site from list
                                 config_index_site_list.remove(delete_torrent_site_index)
-
-                                #save new list
-                                config_obj["torrent"]["index_site"] = config_index_site_list
+                                delete_torrent_site = ",".join(config_index_site_list)
+                                config_obj["torrent"]["index_site"] = delete_torrent_site
 
                                 #delete config entries for selected index site
                                 del config_obj["torrent"]["%s_hostname" % (delete_torrent_site_index)]
@@ -6036,8 +6058,8 @@ class ConfigDirectories(object):
 
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
-                template.movies_downloaded_dir = u",".join(config_obj["folders"]["movies_downloaded_dir"])
-                template.movies_replace_dir = u",".join(config_obj["folders"]["movies_replace_dir"])
+                template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
+                template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
                 template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
                 template.usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
                 template.usenet_completed_dir = config_obj["folders"]["usenet_completed_dir"]
@@ -6085,7 +6107,7 @@ class ConfigDirectories(object):
                         config_obj["folders"]["logs_dir"] = del_inv_chars(kwargs["logs_dir2"])
 
                 #create list of movies to replace
-                movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(u",")
+                movies_to_replace_list = (kwargs["movies_replace_dir2"]).split(",")
 
                 for movies_to_replace_item in movies_to_replace_list:
 
@@ -6105,7 +6127,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_replace_dir2"] == "":
 
-                        config_obj["folders"]["movies_replace_dir"] = del_inv_chars(kwargs["movies_replace_dir2"]).split(u",")
+                        config_obj["folders"]["movies_replace_dir"] = del_inv_chars(kwargs["movies_replace_dir2"])
 
                 #create list of movies already downloaded
                 movies_downloaded_list = (kwargs["movies_downloaded_dir2"]).split(",")
@@ -6128,7 +6150,7 @@ class ConfigDirectories(object):
                 #check exit codes and if positive then save changes
                 if exitcode == 1 or kwargs["movies_downloaded_dir2"] == "":
 
-                        config_obj["folders"]["movies_downloaded_dir"] = del_inv_chars(kwargs["movies_downloaded_dir2"]).split(u",")
+                        config_obj["folders"]["movies_downloaded_dir"] = del_inv_chars(kwargs["movies_downloaded_dir2"])
 
                 config_obj.write()
 
@@ -6245,7 +6267,7 @@ class HistoryRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.history_sort_order = u",".join(config_obj["general"]["history_sort_order"])
+                template.history_sort_order = config_obj["general"]["history_sort_order"]
 
                 header()
 
@@ -6260,7 +6282,7 @@ class HistoryRoot(object):
 
                 else:
 
-                        history_sort_order_list = config_obj["general"]["history_sort_order"]
+                        history_sort_order = config_obj["general"]["history_sort_order"]
                         max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #select all rows from history table
@@ -6268,6 +6290,9 @@ class HistoryRoot(object):
 
                         #remove scoped session
                         sql_session.remove()
+
+                        #convert comma seperated sort order to list
+                        history_sort_order_list = history_sort_order.split(',')
 
                         history_sort_order_scale = history_sort_order_list[0]
                         history_sort_order_column = history_sort_order_list[1]
@@ -6314,7 +6339,7 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_obj["general"]["history_sort_order"] = kwargs["sort_order"].split(u",")
+                config_obj["general"]["history_sort_order"] = kwargs["sort_order"]
 
                 #write settings to config.ini
                 config_obj.write()
@@ -6541,7 +6566,7 @@ class QueueRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.queued_sort_order = u",".join(config_obj["general"]["queued_sort_order"])
+                template.queued_sort_order = config_obj["general"]["queued_sort_order"]
 
                 header()
 
@@ -6555,8 +6580,8 @@ class QueueRoot(object):
                         template.sqlite_queue_count = queue_search_query[1]
 
                 else:
-                        
-                        queued_sort_order_list = config_obj["general"]["queued_sort_order"]
+
+                        queued_sort_order = config_obj["general"]["queued_sort_order"]
                         max_items_shown = config_obj["general"]["max_items_shown"]
 
                         #remove limit if max items shown is string all
@@ -6569,6 +6594,9 @@ class QueueRoot(object):
 
                         #remove scoped session
                         sql_session.remove()
+
+                        #convert comma seperated sort order to list
+                        queued_sort_order_list = queued_sort_order.split(',')
 
                         queued_sort_order_scale = queued_sort_order_list[0]
                         queued_sort_order_column = queued_sort_order_list[1]
@@ -6615,7 +6643,7 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"].split(u",")
+                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"]
 
                 #write settings to config.ini
                 config_obj.write()
