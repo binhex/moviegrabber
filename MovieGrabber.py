@@ -125,6 +125,7 @@ import base64
 #-------------------- 3rd party -----------------------------
 
 import configobj
+import validate
 import feedparser
 import cherrypy
 from Cheetah.Template import Template
@@ -152,127 +153,17 @@ user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0;
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
 
-def config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
+def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
-        #enable config parser
-        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+        #create configobj instance, set config.ini file, set encoding and set configspec.ini file
+        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
+
+        #create validator instance
+        val = validate.Validator()
+
+        #pass validator to configobj instance, copy required to write missing values out to config.ini
+        config_obj.validate(val, copy=True)
         
-        #create config.ini file with default sections
-        def config_write_section(section_name):
-
-                if (section_name in config_obj.sections) == False:
-
-                        config_obj[section_name] = {}
-                        config_obj.write()
-
-        #create config.ini file with default options
-        def config_write_option(section_name,option_name,option_value):
-
-                if (option_name in config_obj[section_name].scalars) == False:
-
-                        config_obj[section_name][option_name] = option_value
-                        config_obj.write()
-
-        #create config sections
-        config_write_section("folders")
-        config_write_section("switches")
-        config_write_section("imdb")
-        config_write_section("email_settings")
-        config_write_section("xbmc")
-        config_write_section("usenet")
-        config_write_section("torrent")
-        config_write_section("post_processing")
-        config_write_section("webconfig")
-        config_write_section("general")
-
-        #create config options
-        config_write_option("folders","movies_downloaded_dir","")
-        config_write_option("folders","movies_replace_dir","")
-        config_write_option("folders","usenet_watch_dir","")
-        config_write_option("folders","usenet_archive_dir","")
-        config_write_option("folders","usenet_completed_dir","")
-        config_write_option("folders","torrent_watch_dir","")
-        config_write_option("folders","torrent_archive_dir","")
-        config_write_option("folders","torrent_completed_dir","")
-
-        config_write_option("switches","enable_downloaded","no")
-        config_write_option("switches","enable_replace","no")
-        config_write_option("switches","enable_favorites","no")
-        config_write_option("switches","enable_preferred","no")
-        config_write_option("switches","enable_queuing","no")
-        config_write_option("switches","enable_group_filter","no")
-        config_write_option("switches","enable_email_notify","no")
-        config_write_option("switches","enable_append_year","yes")
-        config_write_option("switches","enable_posters","yes")
-        config_write_option("switches","enable_post_processing","no")
-        config_write_option("switches","enable_xbmc","no")
-
-        config_write_option("imdb","good_genre","action,adventure,animation,biography,comedy,crime,documentary,drama,family,fantasy,film-Noir,game-show,history,horror,music,musical,mystery,news,reality-tv,romance,sci-fi,short,sport,talk-show,thriller,war,western")
-        config_write_option("imdb","good_rating","0.0")
-        config_write_option("imdb","good_votes","0")
-        config_write_option("imdb","good_date","1900")
-        config_write_option("imdb","preferred_genre","")
-        config_write_option("imdb","preferred_rating","0.0")
-        config_write_option("imdb","queue_genre","")
-        config_write_option("imdb","queue_date","1900")
-        config_write_option("imdb","bad_title","")
-        config_write_option("imdb","fav_dir","")
-        config_write_option("imdb","fav_writer","")
-        config_write_option("imdb","fav_actor","")
-        config_write_option("imdb","fav_char","")
-        config_write_option("imdb","fav_title","")
-
-        config_write_option("email_settings","email_server","")
-        config_write_option("email_settings","email_server_port","587")
-        config_write_option("email_settings","email_server_ssl","")
-        config_write_option("email_settings","email_username","")
-        config_write_option("email_settings","email_password","")
-        config_write_option("email_settings","email_from","")
-        config_write_option("email_settings","email_to","")
-
-        config_write_option("xbmc","xbmc_host","")
-        config_write_option("xbmc","xbmc_port","80")
-        config_write_option("xbmc","xbmc_username","xbmc")
-        config_write_option("xbmc","xbmc_password","")
-        config_write_option("xbmc","xbmc_notification","no")
-        config_write_option("xbmc","xbmc_library_update","no")
-
-        config_write_option("webconfig","username","")
-        config_write_option("webconfig","password","")
-        config_write_option("webconfig","enable_ssl","no")
-
-        config_write_option("general","post_schedule_hour","1")
-        config_write_option("general","post_schedule_minute","0")
-        config_write_option("general","post_rename_files","no")
-        config_write_option("general","post_replace_existing","no")        
-        config_write_option("general","post_cert_system","us")
-        config_write_option("general","index_preferred_group","")
-        config_write_option("general","index_special_cut","")        
-        config_write_option("general","index_bad_group","")
-        config_write_option("general","index_bad_report","")
-        config_write_option("general","index_posts_to_process","50")
-        config_write_option("general","min_seeds","0")
-        config_write_option("general","min_peers","0")        
-        config_write_option("general","color_scheme","darkblue")
-        config_write_option("general","theme","classic")
-        config_write_option("general","index_schedule_hour","1")
-        config_write_option("general","index_schedule_minute","0")
-        config_write_option("general","max_items_shown","all")
-        config_write_option("general","history_sort_order","desc,postdatesort")
-        config_write_option("general","queued_sort_order","desc,postdatesort")
-        config_write_option("general","movie_title_separator","<>")
-        config_write_option("general","launch_browser","yes")
-        config_write_option("general","log_level","WARNING")
-        config_write_option("general","last_run","")
-        config_write_option("general","check_version","daily")
-        config_write_option("general","last_version_check","")
-        config_write_option("general","remote_version","")
-        config_write_option("general","remote_download","")
-
-        config_write_option("usenet","index_site","")
-        config_write_option("torrent","index_site","")
-        config_write_option("post_processing","post_rule","")
-
         #force write of version to config.ini
         config_obj["general"]["local_version"] = latest_mg_version
         config_obj["webconfig"]["address"] = webconfig_address
@@ -343,13 +234,10 @@ def cli_arguments():
                         config_dir = os.path.normpath(config_dir)
 
                 config_ini = os.path.join(config_dir, u"config.ini")
+                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
 
-                #if config.ini does not exist then create
+                #if config.ini does not exist then create empty values
                 if not os.path.exists(config_ini):
-
-                        #create empty config.ini
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        config_obj.write()
 
                         logs_dir = None
                         results_dir = None
@@ -477,7 +365,7 @@ def cli_arguments():
                         os.remove(results_db)
                         
                 #send values to config write function
-                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
+                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
 
         #windows compiled binary cannot define config, logs, or db using argparse
         else:
@@ -486,13 +374,10 @@ def cli_arguments():
                 config_dir = os.path.join(moviegrabber_root_dir, u"configs")
                 config_dir = os.path.normpath(config_dir)                
                 config_ini = os.path.join(config_dir, u"config.ini")
+                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
 
-                #if config.ini does not exist then create
+                #if config.ini does not exist then create empty values
                 if not os.path.exists(config_ini):
-
-                        #create empty config.ini
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        config_obj.write()
 
                         logs_dir = None
                         results_dir = None
@@ -542,16 +427,19 @@ def cli_arguments():
                         webconfig_port = "9191"                
 
                 #send values to config write function
-                config_write(config_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
+                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
                                         
-        #return config.ini path - used to read logs and results values from ini file
-        return config_ini
+        #return config file paths - used to read logs and results values from ini file
+        return config_ini, configspec_ini
 
 #save returned value
-config_ini = cli_arguments()
+config_files = cli_arguments()
 
-#enable config parser
-config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+config_ini = config_files[0]
+configspec_ini = config_files[1]
+
+#create configobj global instance
+config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
 
 #read values for logs and results db
 logs_dir = config_obj["folders"]["logs_dir"]
@@ -6990,8 +6878,8 @@ class PostProcessingThread(object):
 
         def checks(self):
 
-                #read config.ini - required to re-read any changes to config.ini
-                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+                #create configobj global instance
+                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
                 
                 self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
@@ -7026,8 +6914,8 @@ class SearchIndexThread(object):
 
         def checks(self):
 
-                #read config.ini - required to re-read any changes to config.ini
-                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+                #create configobj global instance
+                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
 
                 #get list of index sites defined in config,ini
                 usenet_index_site = config_obj["usenet"]["index_site"]
