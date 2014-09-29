@@ -156,7 +156,7 @@ user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/mov
 def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
 
         #create configobj instance, set config.ini file, set encoding and set configspec.ini file
-        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
+        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
 
         #create validator instance
         val = validate.Validator()
@@ -328,7 +328,7 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif webconfig_address == None:
                         
-                        webconfig_address = "0.0.0.0"
+                        webconfig_address = u"0.0.0.0"
 
                 #if argument specified then use                        
                 if args["port"] != None:
@@ -338,7 +338,7 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 elif webconfig_port == None:
 
-                        webconfig_port = "9191"
+                        webconfig_port = u"9191"
 
                 #check os is not windows and then create pidfile for cherrypy forked process
                 if args["pidfile"] != None and os.name != "nt":
@@ -419,12 +419,12 @@ def cli_arguments():
                 #if not specified in config.ini then set to defaults
                 if webconfig_address == None:
 
-                        webconfig_address = "0.0.0.0"
+                        webconfig_address = u"0.0.0.0"
                         
                 #if not specified in config.ini then set to defaults
                 if webconfig_port == None:
 
-                        webconfig_port = "9191"                
+                        webconfig_port = u"9191"                
 
                 #send values to config write function
                 config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
@@ -3486,7 +3486,7 @@ class SearchIndex(object):
                 site_feed = "%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
                         
                 #convert to url for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'))
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3523,8 +3523,11 @@ class SearchIndex(object):
 
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
-                #site rss feed
-                self.site_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                #construct site rss feed
+                site_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+
+                #convert to uri for feed
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3582,7 +3585,7 @@ class SearchIndex(object):
                         site_feed = "%s:%s/new_video.html?fmt=rss" % (self.config_hostname, self.config_portnumber)
 
                 #convert to uri for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'))
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))                
 
                 #generate feed details
@@ -3603,14 +3606,10 @@ class SearchIndex(object):
                         self.config_hostname = "http://%s" % (self.config_hostname)
 
                 #construct site rss feed
-                site_feed_host = "%s:%s" % (self.config_hostname, self.config_portnumber)                
-                site_feed_details = "/rss.xml?cid=4&type=last"
+                site_feed = "%s:%s/rss.xml?cid=4&type=last" % (self.config_hostname, self.config_portnumber)
 
-                #encode rss feed details to uri
-                site_feed_details = urllib.quote(site_feed_details.encode('utf-8'))
-
-                #combine host and search criteria
-                self.site_feed = "%s%s" % (site_feed_host,site_feed_details)                
+                #convert to uri for feed
+                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -4870,21 +4869,29 @@ def footer():
         remote_version = config_obj["general"]["remote_version"]
         remote_download = config_obj["general"]["remote_download"]
 
-        #strip non numeric characters from version number
-        local_version_int = int(re.sub(ur"[^0-9]+","" ,local_version))
-        remote_version_int = int(re.sub(ur"[^0-9]+","" ,remote_version))
+        #if remove version and remote download url are not empty then check local vs remote
+        if remote_version and remote_download:
+                
+                #strip non numeric characters from version number
+                local_version_int = int(re.sub(ur"[^0-9]+","" ,local_version))
+                remote_version_int = int(re.sub(ur"[^0-9]+","" ,remote_version))
 
-        #if local version less than remote version or remove version and remote download url are not empty then flag as update available
-        if (local_version < remote_version) and (remote_version and remote_download):
+                #if local version less than remote version then flag as update available
+                if local_version < remote_version:
 
-                template.update_available = "yes"
-                template.update_url = remote_download
+                        template.update_available = "yes"
+                        template.update_url = remote_download
 
+                else:
+
+                        template.update_available = "no"
+                        template.update_url = ""
+                        
         else:
 
                 template.update_available = "no"
                 template.update_url = ""
-
+                
 #####################
 # webgui subfolders #
 #####################
@@ -7109,6 +7116,12 @@ class VersionCheckThread(object):
 
                 except Exception:
 
+                        #set remote version to None
+                        config_obj["general"]["remote_version"] = None
+
+                        #write settings to config.ini
+                        config_obj.write()
+
                         mg_log.warning(u"Version check failed, could not download sourceforge webpage")
                         return
 
@@ -7127,6 +7140,12 @@ class VersionCheckThread(object):
                                 remote_download = sourceforge_webpage.splitlines()[2]
 
                 except IndexError:
+
+                        #set remote download to None
+                        config_obj["general"]["remote_download"] = None
+
+                        #write settings to config.ini
+                        config_obj.write()
 
                         mg_log.warning(u"Version check failed, no string present in sourceforge webpage")
                         return
