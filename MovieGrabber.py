@@ -1381,14 +1381,14 @@ class XBMC(object):
 class SearchIndex(object):
 
         #create instance variables to pass between search index methods
-        def __init__(self,download_type,index_site_item):
+        def __init__(self,download_method,index_site_item):
 
-                self.download_type = download_type
+                self.download_method = download_method
                 self.index_site_item = index_site_item
 
                 #read folder paths from config.ini
-                self.config_watch_dir = config_obj["folders"]["%s_watch_dir" % (download_type)]
-                self.config_completed_dir = config_obj["folders"]["%s_completed_dir" % (download_type)]
+                self.config_watch_dir = config_obj["folders"]["%s_watch_dir" % (download_method)]
+                self.config_completed_dir = config_obj["folders"]["%s_completed_dir" % (download_method)]
                 self.config_torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
                 self.config_usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]            
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
@@ -1425,14 +1425,14 @@ class SearchIndex(object):
                 self.config_enable_email_notify = config_obj["switches"]["enable_email_notify"]
 
                 #read search criteria from config.ini
-                self.config_search_and = config_obj[download_type]["%s_search_and" % (index_site_item)]
-                self.config_search_or = config_obj[download_type]["%s_search_or" % (index_site_item)]
-                self.config_search_not = config_obj[download_type]["%s_search_not" % (index_site_item)]
-                self.config_cat = config_obj[download_type]["%s_cat" % (index_site_item)]
-                self.config_minsize = int(config_obj[download_type]["%s_minsize" % (index_site_item)])
-                self.config_maxsize = int(config_obj[download_type]["%s_maxsize" % (index_site_item)])
-                self.config_hostname = config_obj[download_type]["%s_hostname" % (index_site_item)]
-                self.config_portnumber = config_obj[download_type]["%s_portnumber" % (index_site_item)]
+                self.config_search_and = config_obj[download_method]["%s_search_and" % (index_site_item)]
+                self.config_search_or = config_obj[download_method]["%s_search_or" % (index_site_item)]
+                self.config_search_not = config_obj[download_method]["%s_search_not" % (index_site_item)]
+                self.config_cat = config_obj[download_method]["%s_cat" % (index_site_item)]
+                self.config_minsize = int(config_obj[download_method]["%s_minsize" % (index_site_item)])
+                self.config_maxsize = int(config_obj[download_method]["%s_maxsize" % (index_site_item)])
+                self.config_hostname = config_obj[download_method]["%s_hostname" % (index_site_item)]
+                self.config_portnumber = config_obj[download_method]["%s_portnumber" % (index_site_item)]
 
                 #get movies downloaded and movies to replace root directory lists, do not decode leave as byte string for os.walk
                 self.config_movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
@@ -1448,16 +1448,16 @@ class SearchIndex(object):
                 self.config_bad_report = config_obj["general"]["index_bad_report"]    
                 self.config_posts_to_process = int(config_obj["general"]["index_posts_to_process"])
 
-                if self.download_type == "usenet":
+                if self.download_method == "usenet":
 
                         #read usenet specific settings from config.ini
-                        self.config_path = config_obj[download_type]["%s_path" % (index_site_item)]
-                        self.config_apikey = config_obj[download_type]["%s_key" % (index_site_item)]
-                        self.config_spotweb_support = config_obj[download_type]["%s_spotweb_support" % (index_site_item)]
+                        self.config_path = config_obj[download_method]["%s_path" % (index_site_item)]
+                        self.config_apikey = config_obj[download_method]["%s_key" % (index_site_item)]
+                        self.config_spotweb_support = config_obj[download_method]["%s_spotweb_support" % (index_site_item)]
 
                 else:
                         #read torrent specific settings from config.ini
-                        self.config_lang = config_obj[download_type]["%s_lang" % (index_site_item)]
+                        self.config_lang = config_obj[download_method]["%s_lang" % (index_site_item)]
                         self.config_min_seeds = config_obj["general"]["min_seeds"]
                         self.config_min_peers = config_obj["general"]["min_peers"]
                         
@@ -1692,7 +1692,7 @@ class SearchIndex(object):
         def filter_index_min_seeds(self):
 
                 #if download type not torrent or index min seeds not found or config min seeds not defined then return 1
-                if self.download_type == "usenet" or self.index_min_seeds == "" or self.config_min_seeds == 0:
+                if self.download_method == "usenet" or self.index_min_seeds == "" or self.config_min_seeds == 0:
 
                         mg_log.info(u"Filter Index - Seed count not defined, proceed")
                         return 1
@@ -1712,7 +1712,7 @@ class SearchIndex(object):
         def filter_index_min_peers(self):
 
                 #if download type not torrent or index min peers not found or config min peers not defined then return 1
-                if self.download_type == "usenet" or self.index_min_peers == "" or self.config_min_peers == 0:
+                if self.download_method == "usenet" or self.index_min_peers == "" or self.config_min_peers == 0:
 
                         mg_log.info(u"Filter Index - Peer count not defined, proceed")
                         return 1
@@ -2817,7 +2817,7 @@ class SearchIndex(object):
                         </p>
 
                         <p>
-                        <b>Post:</b> <a href=%s>%s</a> (%s)""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"),self.download_type) + """
+                        <b>Post:</b> <a href=%s>%s</a> (%s)""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"),self.download_method) + """
                         </p>
 
                         <p>
@@ -2950,8 +2950,13 @@ class SearchIndex(object):
                 
                 self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))                
 
+                #skip commit to db if method is torrent and peer/seed count not met, seed/peer count may increase over time and reach required values
+                if self.download_method == "torrent" and (self.filter_index_min_seeds_result == 0 or self.filter_index_min_peers_result == 0):
+
+                        return
+                
                 #insert details into history table (note sqlite requires decimal values as text)
-                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_type, self.download_details_dict, self.last_run, self.last_run_sort)
+                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                 #add the record to the session object
                 sql_session.add(sqlite_insert)
@@ -2986,7 +2991,7 @@ class SearchIndex(object):
                 if self.download_result_str  == "Queued":
 
                         #insert details into queued table (note sqlite requires decimal values as text)
-                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_type, self.download_details_dict, self.last_run, self.last_run_sort)
+                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                         #add the record to the session object
                         sql_session.add(sqlite_insert)
@@ -3046,6 +3051,8 @@ class SearchIndex(object):
                 site_name = u"Newznab"
                 
                 mg_log.info(u"Newznab Index - Newznab search index started")
+
+                self.download_format = ["nzb"]
                 
                 #substitute friendly names for real values for categories
                 if self.config_cat == "all formats":
@@ -3441,6 +3448,8 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
+                self.download_format = ["magnet", "torrent"]
+                
                 #substitute friendly names for real values for categories
                 if self.config_cat == "any":
 
@@ -3498,6 +3507,8 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
+                self.download_format = ["magnet"]
+                
                 #substitute friendly names for real values for categories
                 if self.config_cat == "any":
 
@@ -3539,6 +3550,8 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
+                self.download_format = ["magnet", "torrent"]
+                
                 #substitute friendly names for real values for categories
                 if self.config_cat == "any":
 
@@ -3596,7 +3609,9 @@ class SearchIndex(object):
                 site_name = u"ExtraTorrent"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                        
+
+                self.download_format = ["torrent"]
+                
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
@@ -6946,7 +6961,7 @@ class SearchIndexThread(object):
 
                                         self.index_site_item = usenet_index_site_item
                                         self.search_index_function = "newznab_index"
-                                        self.download_type = "usenet"
+                                        self.download_method = "usenet"
 
                                         config_hostname = config_obj["usenet"]["%s_hostname" % (usenet_index_site_item)]
                                         config_portnumber = config_obj["usenet"]["%s_portnumber" % (usenet_index_site_item)]
@@ -6977,7 +6992,7 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "kat_index"
-                                                self.download_type = "torrent"
+                                                self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
@@ -6987,7 +7002,7 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "piratebay_index"
-                                                self.download_type = "torrent"
+                                                self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
@@ -6997,7 +7012,7 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "bitsnoop_index"
-                                                self.download_type = "torrent"
+                                                self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
@@ -7007,7 +7022,7 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "extratorrent_index"
-                                                self.download_type = "torrent"
+                                                self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
@@ -7026,7 +7041,7 @@ class SearchIndexThread(object):
         def run(self):
 
                 #contruct class and function name and pass to thread with attributes
-                search_index_function = getattr(SearchIndex(self.download_type,self.index_site_item), self.search_index_function)
+                search_index_function = getattr(SearchIndex(self.download_method,self.index_site_item), self.search_index_function)
 
                 #start search index thread
                 search_index_thread = threading.Thread(name="search_index_thread_%s" % (self.index_site_item), target=search_index_function, args=())
