@@ -1404,12 +1404,12 @@ class SearchIndex(object):
                 self.config_fav_writer = config_obj["imdb"]["fav_writer"]
                 self.config_fav_dir = config_obj["imdb"]["fav_dir"]
                 self.config_queue_genre = config_obj["imdb"]["queue_genre"]
-                self.config_queue_date = int(config_obj["imdb"]["queue_date"])
+                self.config_queue_date_int = int(config_obj["imdb"]["queue_date"])
                 self.config_good_genre = config_obj["imdb"]["good_genre"]
-                self.config_good_date = int(config_obj["imdb"]["good_date"])
-                self.config_good_votes = int(config_obj["imdb"]["good_votes"])
-                self.config_good_rating = float(config_obj["imdb"]["good_rating"])
-                self.config_preferred_rating = float(config_obj["imdb"]["preferred_rating"])
+                self.config_good_date_int = int(config_obj["imdb"]["good_date"])
+                self.config_good_votes_int = int(config_obj["imdb"]["good_votes"])
+                self.config_good_rating_float = float(config_obj["imdb"]["good_rating"])
+                self.config_preferred_rating_float = float(config_obj["imdb"]["preferred_rating"])
                 self.config_preferred_genre = config_obj["imdb"]["preferred_genre"]
 
                 #read switches from config.ini
@@ -1429,8 +1429,8 @@ class SearchIndex(object):
                 self.config_search_or = config_obj[download_method]["%s_search_or" % (index_site_item)]
                 self.config_search_not = config_obj[download_method]["%s_search_not" % (index_site_item)]
                 self.config_cat = config_obj[download_method]["%s_cat" % (index_site_item)]
-                self.config_minsize = int(config_obj[download_method]["%s_minsize" % (index_site_item)])
-                self.config_maxsize = int(config_obj[download_method]["%s_maxsize" % (index_site_item)])
+                self.config_minsize_int = int(config_obj[download_method]["%s_minsize" % (index_site_item)])
+                self.config_maxsize_int = int(config_obj[download_method]["%s_maxsize" % (index_site_item)])
                 self.config_hostname = config_obj[download_method]["%s_hostname" % (index_site_item)]
                 self.config_portnumber = config_obj[download_method]["%s_portnumber" % (index_site_item)]
 
@@ -1446,7 +1446,7 @@ class SearchIndex(object):
                 self.config_preferred_group = config_obj["general"]["index_preferred_group"]        
                 self.config_bad_group = config_obj["general"]["index_bad_group"]
                 self.config_bad_report = config_obj["general"]["index_bad_report"]    
-                self.config_posts_to_process = int(config_obj["general"]["index_posts_to_process"])
+                self.config_posts_to_process_int = int(config_obj["general"]["index_posts_to_process"])
 
                 if self.download_method == "usenet":
 
@@ -1458,8 +1458,8 @@ class SearchIndex(object):
                 else:
                         #read torrent specific settings from config.ini
                         self.config_lang = config_obj[download_method]["%s_lang" % (index_site_item)]
-                        self.config_min_seeds = config_obj["general"]["min_seeds"]
-                        self.config_min_peers = config_obj["general"]["min_peers"]
+                        self.config_min_seeds_int = int(config_obj["general"]["min_seeds"])
+                        self.config_min_peers_int = int(config_obj["general"]["min_peers"])
                         
                 if self.config_movies_downloaded_dir:
 
@@ -1692,13 +1692,13 @@ class SearchIndex(object):
         def filter_index_min_seeds(self):
 
                 #if download type not torrent or index min seeds not found or config min seeds not defined then return 1
-                if self.download_method == "usenet" or self.index_min_seeds == "" or self.config_min_seeds == 0:
+                if self.download_method == "usenet" or self.index_min_seeds == "" or self.config_min_seeds_int == 0:
 
                         mg_log.info(u"Filter Index - Seed count not defined, proceed")
                         return 1
-                
+
                 #this is set to download movies with minimum defined seed count
-                elif self.index_min_seeds >= self.config_min_seeds:
+                elif self.index_min_seeds_int >= self.config_min_seeds_int:
 
                         mg_log.info(u"Filter Index - Seed count %s above threshold, proceed" % (self.index_min_seeds))
                         return 1
@@ -1712,13 +1712,13 @@ class SearchIndex(object):
         def filter_index_min_peers(self):
 
                 #if download type not torrent or index min peers not found or config min peers not defined then return 1
-                if self.download_method == "usenet" or self.index_min_peers == "" or self.config_min_peers == 0:
+                if self.download_method == "usenet" or self.index_min_peers == "" or self.config_min_peers_int == 0:
 
                         mg_log.info(u"Filter Index - Peer count not defined, proceed")
                         return 1
                 
                 #this is set to download movies with minimum defined seed count
-                elif self.index_min_peers >= self.config_min_peers:
+                elif self.index_min_peers_int >= self.config_min_peers_int:
 
                         mg_log.info(u"Filter Index - Peer count %s above threshold, proceed" % (self.index_min_peers))
                         return 1
@@ -1755,48 +1755,48 @@ class SearchIndex(object):
         def filter_index_good_size(self):
                 
                 #if min and maxsize not defined then return 1config_enable_group_filter
-                if self.config_minsize == 0 and self.config_maxsize == 0:
+                if self.config_minsize_int == 0 and self.config_maxsize_int == 0:
 
                         mg_log.info(u"Filter Index - Post Size not defined, proceed")
                         return 1
 
                 #if min and maxsize defined then check min and max against post
-                elif self.config_minsize and self.config_maxsize != 0:
+                elif self.config_minsize_int and self.config_maxsize_int != 0:
 
-                        if self.index_post_size_check >= self.config_minsize and self.index_post_size_check <= self.config_maxsize:
+                        if self.index_post_size_int >= self.config_minsize_int and self.index_post_size_int <= self.config_maxsize_int:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_int))
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_int))
                                 return 0
 
                 #if maxsize only defined then check max against post
-                elif self.config_minsize == 0:
+                elif self.config_minsize_int == 0:
 
-                        if self.index_post_size_check <= self.config_maxsize:
+                        if self.index_post_size_int <= self.config_maxsize_int:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_int))
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_int))
                                 return 0
 
                 #if minsize only defined then check min against post
-                elif self.config_maxsize == 0:
+                elif self.config_maxsize_int == 0:
 
-                        if self.index_post_size_check >= self.config_minsize:
+                        if self.index_post_size_int >= self.config_minsize_int:
 
-                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is within thresholds, proceed" % (self.index_post_size_int))
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_check))
+                                mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_int))
                                 return 0
                         
         def filter_index_special_cut(self):
@@ -2020,61 +2020,61 @@ class SearchIndex(object):
                 #this is set to download movies if preferred genre matches and movie rating is greater than preferred rating
                 if self.config_enable_preferred == "yes" and self.filter_imdb_preferred_genre() == 1:
 
-                        config_preferred_rating_dec = decimal.Decimal(str(self.config_preferred_rating)).quantize(decimal.Decimal('.1'))
+                        config_preferred_rating_dec = decimal.Decimal(str(self.config_preferred_rating_float)).quantize(decimal.Decimal('.1'))
 
-                        if self.imdb_movie_rating >= config_preferred_rating_dec:
+                        if self.imdb_movie_rating_dec >= config_preferred_rating_dec:
 
-                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating))
+                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating_str))
                                 return 1
 
                         else:
 
                                 self.download_details_dict["filter_imdb_good_ratings_result"] = [0,"Rating", "IMDb - Rating below threshold"]
-                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating))
+                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating_str))
                                 return 0
 
                 else:
 
                         #this is set to download movies if imdb movie rating is greater than config good rating
-                        config_good_rating_dec = decimal.Decimal(str(self.config_good_rating)).quantize(decimal.Decimal('.1'))
+                        config_good_rating_dec = decimal.Decimal(str(self.config_good_rating_float)).quantize(decimal.Decimal('.1'))
 
-                        if self.imdb_movie_rating >= config_good_rating_dec:
+                        if self.imdb_movie_rating_dec >= config_good_rating_dec:
 
-                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating))
+                                mg_log.info(u"Filter IMDb - Rating %s above threshold, proceed" % (self.imdb_movie_rating_str))
                                 return 1
 
                         else:
 
                                 self.download_details_dict["filter_imdb_good_ratings_result"] = [0,"Rating", "IMDb - Rating below threshold"]
-                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating))
+                                mg_log.info(u"Filter IMDb - Rating %s below threshold, skip" % (self.imdb_movie_rating_str))
                                 return 0
 
         def filter_imdb_good_votes(self):
                 
                 #this is set to download movies with minimum defined vote count
-                if self.imdb_movie_votes >= self.config_good_votes:
+                if self.imdb_movie_votes_int >= self.config_good_votes_int:
 
-                        mg_log.info(u"Filter IMDb - Votes %s above threshold, proceed" % (self.imdb_movie_votes))
+                        mg_log.info(u"Filter IMDb - Votes %s above threshold, proceed" % (self.imdb_movie_votes_int))
                         return 1
 
                 else:
 
                         self.download_details_dict["filter_imdb_good_votes_result"] = [0,"Votes", "IMDb - Votes below threshold"]
-                        mg_log.info(u"Filter IMDb - Votes %s below threshold, skip" % (self.imdb_movie_votes))
+                        mg_log.info(u"Filter IMDb - Votes %s below threshold, skip" % (self.imdb_movie_votes_int))
                         return 0
 
         def filter_imdb_good_date(self):
                 
                 #this is set to download movies with a minimum defined year
-                if self.imdb_movie_year >= self.config_good_date:
+                if self.imdb_movie_year_int >= self.config_good_date_int:
 
-                        mg_log.info(u"Filter IMDb - Date %s is above threshold, proceed" % (self.imdb_movie_year))
+                        mg_log.info(u"Filter IMDb - Date %s is above threshold, proceed" % (self.imdb_movie_year_str))
                         return 1
 
                 else:
 
                         self.download_details_dict["filter_imdb_good_date_result"] = [0,"Date", "IMDb - Date is below threshold"]
-                        mg_log.info(u"Filter IMDb - Date %s is below threshold, skip" % (self.imdb_movie_year))
+                        mg_log.info(u"Filter IMDb - Date %s is below threshold, skip" % (self.imdb_movie_year_str))
                         return 0
 
         def filter_imdb_good_genre(self):
@@ -2303,14 +2303,14 @@ class SearchIndex(object):
                 #this is set to queue movies with a maximum defined year (min is GoodDate)
                 if self.config_enable_queuing == "yes":
 
-                        if self.imdb_movie_year <= self.config_queue_date:
+                        if self.imdb_movie_year_int <= self.config_queue_date_int:
 
-                                mg_log.info(u"Filter IMDb - Queue Date %s is above threshold, proceed" % (self.imdb_movie_year))
+                                mg_log.info(u"Filter IMDb - Queue Date %s is above threshold, proceed" % (self.imdb_movie_year_str))
                                 return 1
 
                         else:
 
-                                mg_log.info(u"Filter IMDb - Queue Date %s is below threshold, skip" % (self.imdb_movie_year))
+                                mg_log.info(u"Filter IMDb - Queue Date %s is below threshold, skip" % (self.imdb_movie_year_str))
                                 return 0
 
         def filter_imdb_queue_genre(self):
@@ -2495,12 +2495,12 @@ class SearchIndex(object):
 
                                 raise KeyError
 
-                        self.imdb_movie_year = int(imdb_movie_year)
+                        self.imdb_movie_year_int = int(imdb_movie_year)
                         self.imdb_movie_year_str = str(imdb_movie_year)
 
                 except (KeyError, TypeError):
 
-                        self.imdb_movie_year = 1900
+                        self.imdb_movie_year_int = 1900
                         self.imdb_movie_year_str = "-"
 
                 #create imdb name used for webui history and queue (no year or custom separators)
@@ -2524,36 +2524,36 @@ class SearchIndex(object):
                 try:
 
                         imdb_movie_runtime = self.imdb_json_page["data"]["runtime"]["time"]
-                        self.imdb_movie_runtime = int(imdb_movie_runtime) / 60
+                        self.imdb_movie_runtime_int = int(imdb_movie_runtime) / 60
                         self.imdb_movie_runtime_str = str(self.imdb_movie_runtime)
 
                 except (KeyError, TypeError):
 
-                        self.imdb_movie_runtime = 0
+                        self.imdb_movie_runtime_int = 0
                         self.imdb_movie_runtime_str = "-"
 
                 #imdb movie rating
                 try:
 
                         imdb_movie_rating = self.imdb_json_page["data"]["rating"]
-                        self.imdb_movie_rating = decimal.Decimal(str(imdb_movie_rating)).quantize(decimal.Decimal('.1'))
-                        self.imdb_movie_rating_str = str(self.imdb_movie_rating)
+                        self.imdb_movie_rating_dec = decimal.Decimal(str(imdb_movie_rating)).quantize(decimal.Decimal('.1'))
+                        self.imdb_movie_rating_str = str(imdb_movie_rating)
 
                 except (KeyError, TypeError):
 
-                        self.imdb_movie_rating = decimal.Decimal("0.0").quantize(decimal.Decimal('.1'))
+                        self.imdb_movie_rating_dec = decimal.Decimal("0.0").quantize(decimal.Decimal('.1'))
                         self.imdb_movie_rating_str = "-"
 
                 #imdb movie votes
                 try:
 
                         imdb_movie_votes = self.imdb_json_page["data"]["num_votes"]
-                        self.imdb_movie_votes = int(imdb_movie_votes)
+                        self.imdb_movie_votes_int = int(imdb_movie_votes)
                         self.imdb_movie_votes_str  = str(imdb_movie_votes)
 
                 except (KeyError, TypeError):
 
-                        self.imdb_movie_votes = 0
+                        self.imdb_movie_votes_int = 0
                         self.imdb_movie_votes_str = "-"
 
                 #imdb movie director
@@ -2956,7 +2956,7 @@ class SearchIndex(object):
                         return
                 
                 #insert details into history table (note sqlite requires decimal values as text)
-                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                 #add the record to the session object
                 sql_session.add(sqlite_insert)
@@ -2991,7 +2991,7 @@ class SearchIndex(object):
                 if self.download_result_str  == "Queued":
 
                         #insert details into queued table (note sqlite requires decimal values as text)
-                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year, self.imdb_movie_runtime, self.imdb_movie_rating_str, self.imdb_movie_votes, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                         #add the record to the session object
                         sql_session.add(sqlite_insert)
@@ -3092,13 +3092,13 @@ class SearchIndex(object):
 
                         self.config_path = "%s/" % (self.config_path)
 
-                for offset in range(0,self.config_posts_to_process,50):
+                for offset in range(0,self.config_posts_to_process_int,50):
 
                         #use server side for config search AND terms
                         if self.config_search_and == "":
 
                                 #generate newznab api search url xml format
-                                api_search = "%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                                api_search = "%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
 
                         else:
 
@@ -3112,14 +3112,14 @@ class SearchIndex(object):
                                 config_search_and = re.sub(ur"\s","%20", config_search_and)
 
                                 #generate newznab api search url xml format
-                                api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize, offset)
+                                api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
 
                         mg_log.info(u"Newznab Index - API search %s" % api_search)
 
                         if self.config_spotweb_support == "yes":
 
                                 #generate spotweb api search url xml format
-                                api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize, self.config_maxsize)
+                                api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int)
                                 mg_log.info(u"Newznab Index - API search %s" % spotweb_api_search)
 
                         #pass to urllib2 retry function - decorator
@@ -3343,7 +3343,7 @@ class SearchIndex(object):
                                         self.index_post_size_sort = int(post_size)
 
                                         #generate size in mb for GoodSize checks
-                                        self.index_post_size_check = int(post_size) / 1000000
+                                        self.index_post_size_int = int(post_size) / 1000000
 
                                         #if size is greater than 999 mb then convert to gb format
                                         if int(post_size) > 999999999:
@@ -3369,7 +3369,7 @@ class SearchIndex(object):
 
                                         self.index_post_size = ""
                                         self.index_post_size_sort = 0
-                                        self.index_post_size_check = 0
+                                        self.index_post_size_int = 0
                                         mg_log.info(u"Newznab Index - Post size not found")
 
                                 #if size is below min/max then continue to next post - not all newznab sites support size filtering via api, so fallback to client
@@ -3970,7 +3970,7 @@ class SearchIndex(object):
                                 self.index_post_size_sort = int(post_size)
 
                                 #generate size in mb for GoodSize checks
-                                self.index_post_size_check = int(post_size) / 1000000
+                                self.index_post_size_int = int(post_size) / 1000000
 
                                 #if size is greater than 999 mb then convert to gb format
                                 if int(post_size) > 999999999:
@@ -3998,7 +3998,7 @@ class SearchIndex(object):
 
                                 self.index_post_size = ""
                                 self.index_post_size_sort = 0
-                                self.index_post_size_check = 0
+                                self.index_post_size_int = 0
                                 mg_log.info(u"%s Index - Post size not found" % (site_name))
 
                         #if size is below min/max then continue to next post
@@ -4231,30 +4231,34 @@ class SearchIndex(object):
 
                                 if post_seeders == "---":
 
-                                        post_seeders = "0"
+                                        post_seeders = u"0"
 
                                 if post_peers == "---":
 
-                                        post_peers = "0"
+                                        post_peers = u"0"
                                         
                         if post_seeders != None:
 
                                 self.index_min_seeds = post_seeders
+                                self.index_min_seeds_int = int(post_seeders)
+                                
                                 mg_log.info(u"%s Index - Post seed count %s" % (site_name,self.index_min_seeds))
 
                         else:
 
-                                self.index_min_seeds = ""
+                                self.index_min_seeds = u""
                                 mg_log.info(u"%s Index - Post seed count not found" % (site_name))
 
                         if post_peers != None:
 
                                 self.index_min_peers = post_peers
+                                self.index_min_peers_int = int(post_peers)
+                                
                                 mg_log.info(u"%s Index - Post peer count %s" % (site_name,self.index_min_peers))
 
                         else:
 
-                                self.index_min_peers = ""
+                                self.index_min_peers = u""
                                 mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #call imdb search json
