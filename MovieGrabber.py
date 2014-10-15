@@ -2525,7 +2525,7 @@ class SearchIndex(object):
 
                         imdb_movie_runtime = self.imdb_json_page["data"]["runtime"]["time"]
                         self.imdb_movie_runtime_int = int(imdb_movie_runtime) / 60
-                        self.imdb_movie_runtime_str = str(self.imdb_movie_runtime)
+                        self.imdb_movie_runtime_str = str(self.imdb_movie_runtime_int)
 
                 except (KeyError, TypeError):
 
@@ -3052,28 +3052,28 @@ class SearchIndex(object):
                 
                 mg_log.info(u"Newznab Index - Newznab search index started")
 
-                self.download_format = ["nzb"]
+                self.download_format = [u"nzb"]
                 
                 #substitute friendly names for real values for categories
-                if self.config_cat == "all formats":
+                if self.config_cat == u"all formats":
 
-                        self.config_cat = "2010,2020,2030,2040"
+                        self.config_cat = u"2010,2020,2030,2040"
 
-                if self.config_cat == "other":
+                if self.config_cat == u"other":
 
-                        self.config_cat = "2020"
+                        self.config_cat = u"2020"
 
-                if self.config_cat == "foreign":
+                if self.config_cat == u"foreign":
 
-                        self.config_cat = "2010"
+                        self.config_cat = u"2010"
 
-                if self.config_cat == "divx/xvid":
+                if self.config_cat == u"divx/xvid":
 
-                        self.config_cat = "2030"
+                        self.config_cat = u"2030"
 
-                if self.config_cat == "hd/x264":
+                if self.config_cat == u"hd/x264":
 
-                        self.config_cat = "2040"
+                        self.config_cat = u"2040"
 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3081,12 +3081,12 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://%s" % (self.config_hostname)
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #add start and end slashes to pathname if not present
                 if not re.compile(ur"^/", re.IGNORECASE).search(self.config_path):
 
-                        self.config_path = "/%s" % (self.config_path)
+                        self.config_path = u"/%s" % (self.config_path)
 
                 if not re.compile(ur"/$", re.IGNORECASE).search(self.config_path):
 
@@ -3098,7 +3098,7 @@ class SearchIndex(object):
                         if self.config_search_and == "":
 
                                 #generate newznab api search url xml format
-                                api_search = "%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
+                                api_search = u"%s:%s%sapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
 
                         else:
 
@@ -3112,14 +3112,14 @@ class SearchIndex(object):
                                 config_search_and = re.sub(ur"\s","%20", config_search_and)
 
                                 #generate newznab api search url xml format
-                                api_search = "%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
+                                api_search = u"%s:%s%sapi?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, config_search_and, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, offset)
 
                         mg_log.info(u"Newznab Index - API search %s" % api_search)
 
                         if self.config_spotweb_support == "yes":
 
                                 #generate spotweb api search url xml format
-                                api_search = "%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int)
+                                api_search = u"%s:%s%spage=newznabapi?t=movie&apikey=%s&cat=%s&min=%s&max=%s&extended=1" % (self.config_hostname, self.config_portnumber, self.config_path, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int)
                                 mg_log.info(u"Newznab Index - API search %s" % spotweb_api_search)
 
                         #pass to urllib2 retry function - decorator
@@ -3276,12 +3276,12 @@ class SearchIndex(object):
 
                                         if len(self.imdb_tt_number) == 7:
 
-                                                self.imdb_tt_number = "tt%s" % (self.imdb_tt_number)
+                                                self.imdb_tt_number = u"tt%s" % (self.imdb_tt_number)
                                                 
                                         elif len(self.imdb_tt_number) == 6:
 
                                                 #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
-                                                self.imdb_tt_number = "tt0%s" % (self.imdb_tt_number)
+                                                self.imdb_tt_number = u"tt0%s" % (self.imdb_tt_number)
 
                                         else:
                                                 
@@ -3448,20 +3448,20 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                self.download_format = ["magnet", "torrent"]
+                self.download_format = [u"magnet", u"torrent"]
                 
                 #substitute friendly names for real values for categories
-                if self.config_cat == "any":
+                if self.config_cat == u"any":
 
-                        self.config_cat = "any"
+                        self.config_cat = u"any"
                 
-                if self.config_cat == "all movies":
+                if self.config_cat == u"all movies":
 
-                        self.config_cat = "movies"
+                        self.config_cat = u"movies"
 
-                if self.config_cat == "hd/x264":
+                if self.config_cat == u"hd/x264":
 
-                        self.config_cat = "highres-movies"
+                        self.config_cat = u"highres-movies"
 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3469,7 +3469,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://%s" % (self.config_hostname)
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #use server side search term for rss feed
                 if self.config_search_and != "":
@@ -3492,7 +3492,7 @@ class SearchIndex(object):
                         search_term = re.sub(ur","," ", search_term)
                         
                 #generate url for site with must exist search criteria
-                site_feed = "%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
+                site_feed = u"%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
                         
                 #convert to url for feed
                 self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
@@ -3507,24 +3507,24 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                self.download_format = ["magnet"]
+                self.download_format = [u"magnet"]
                 
                 #substitute friendly names for real values for categories
-                if self.config_cat == "any":
+                if self.config_cat == u"any":
 
-                        self.config_cat = "0"
+                        self.config_cat = u"0"
                         
-                if self.config_cat == "all movies":
+                if self.config_cat == u"all movies":
 
-                        self.config_cat = "201"
+                        self.config_cat = u"201"
 
-                if self.config_cat == "dvd":
+                if self.config_cat == u"dvd":
 
-                        self.config_cat = "202"
+                        self.config_cat = u"202"
 
-                if self.config_cat == "hd/x264":
+                if self.config_cat == u"hd/x264":
 
-                        self.config_cat = "207"
+                        self.config_cat = u"207"
 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3532,10 +3532,10 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://%s" % (self.config_hostname)
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #construct site rss feed
-                site_feed = "%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                site_feed = u"%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
                 #convert to uri for feed
                 self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
@@ -3550,16 +3550,16 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                self.download_format = ["magnet", "torrent"]
+                self.download_format = [u"magnet", u"torrent"]
                 
                 #substitute friendly names for real values for categories
-                if self.config_cat == "any":
+                if self.config_cat == u"any":
 
-                        self.config_cat = "all"
+                        self.config_cat = u"all"
                         
-                if self.config_cat == "all movies":
+                if self.config_cat == u"all movies":
 
-                        self.config_cat = "video-movies"
+                        self.config_cat = u"video-movies"
 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3567,7 +3567,7 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://%s" % (self.config_hostname)
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #use server side search term for rss feed, bitsnoop REQUIRES search term
                 if self.config_search_and != "":
@@ -3590,12 +3590,12 @@ class SearchIndex(object):
                         search_term = re.sub(ur","," ", search_term)
 
                         #generate url for site with must exist search criteria
-                        site_feed = "%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
+                        site_feed = u"%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
                         
                 else:
 
                         #generate url for site with default new videos section
-                        site_feed = "%s:%s/new_video.html?fmt=rss" % (self.config_hostname, self.config_portnumber)
+                        site_feed = u"%s:%s/new_video.html?fmt=rss" % (self.config_hostname, self.config_portnumber)
 
                 #convert to uri for feed
                 self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
@@ -3610,7 +3610,7 @@ class SearchIndex(object):
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
-                self.download_format = ["torrent"]
+                self.download_format = [u"torrent"]
                 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3618,10 +3618,10 @@ class SearchIndex(object):
                 #add http:// to hostname if hostname not prefixed with either http or https
                 if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-                        self.config_hostname = "http://%s" % (self.config_hostname)
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #construct site rss feed
-                site_feed = "%s:%s/rss.xml?cid=4&type=last" % (self.config_hostname, self.config_portnumber)
+                site_feed = u"%s:%s/rss.xml?cid=4&type=last" % (self.config_hostname, self.config_portnumber)
 
                 #convert to uri for feed
                 self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
@@ -3661,7 +3661,7 @@ class SearchIndex(object):
                                 return
                         
                         #generate post title
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -3671,7 +3671,7 @@ class SearchIndex(object):
 
                                         post_title = None
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -3681,7 +3681,7 @@ class SearchIndex(object):
 
                                         post_title = None
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -3691,7 +3691,7 @@ class SearchIndex(object):
 
                                         post_title = None
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -3731,7 +3731,7 @@ class SearchIndex(object):
                                 continue
 
                         #generate download link
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -3744,7 +3744,7 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -3757,7 +3757,7 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -3770,7 +3770,7 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -3831,7 +3831,7 @@ class SearchIndex(object):
                                 continue
 
                         #generate imdb id from description if possible
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -3841,15 +3841,15 @@ class SearchIndex(object):
                                         
                                         post_description = None
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 post_description = None
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 post_description = None
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 post_description = None
 
@@ -3865,13 +3865,13 @@ class SearchIndex(object):
                                         #if length is equal to 7 then prefix with tt
                                         if len(self.imdb_tt_number) == 7:
 
-                                                self.imdb_tt_number = "%s" % (self.imdb_tt_number)
+                                                self.imdb_tt_number = u"%s" % (self.imdb_tt_number)
                                                 
                                         #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
                                         elif len(self.imdb_tt_number) == 6:
 
 
-                                                self.imdb_tt_number = "0%s" % (self.imdb_tt_number)
+                                                self.imdb_tt_number = u"0%s" % (self.imdb_tt_number)
 
                                         #if any other length then mark as none
                                         else:
@@ -3924,7 +3924,7 @@ class SearchIndex(object):
                                                 continue
                                 
                         #generate post size
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -3934,7 +3934,7 @@ class SearchIndex(object):
                                         
                                         post_size = None
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -3944,7 +3944,7 @@ class SearchIndex(object):
                                         
                                         post_size = None
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -3954,7 +3954,7 @@ class SearchIndex(object):
                                         
                                         post_size = None
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -3982,7 +3982,7 @@ class SearchIndex(object):
                                         post_size_int = decimal.Decimal(int(post_size)) / 1000000000
                                         
                                         #append string GB for History/Queue
-                                        self.index_post_size = "%s GB" % (str(post_size_int))
+                                        self.index_post_size = u"%s GB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
 
                                 else:
@@ -3991,7 +3991,7 @@ class SearchIndex(object):
                                         post_size_int = int(post_size) / 1000000
                                         
                                         #append string mb for History/Queue
-                                        self.index_post_size = "%s MB" % (str(post_size_int))
+                                        self.index_post_size = u"%s MB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
 
                         else:
@@ -4008,7 +4008,7 @@ class SearchIndex(object):
                                 continue
 
                         #generate post date
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -4018,7 +4018,7 @@ class SearchIndex(object):
                                         
                                         post_date = None                        
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -4028,11 +4028,11 @@ class SearchIndex(object):
                                         
                                         post_date = None                        
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 post_date = None                      
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -4049,7 +4049,7 @@ class SearchIndex(object):
 
                                 #reformat time to correct string format
                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
-                                post_date_string = "%s UTC" % (post_date_string)
+                                post_date_string = u"%s UTC" % (post_date_string)
                                 
                                 self.index_post_date = post_date_string
                                 mg_log.info(u"%s Index - Post date %s" % (site_name,self.index_post_date))
@@ -4060,7 +4060,7 @@ class SearchIndex(object):
 
                         else:
 
-                                self.index_post_date = "-"
+                                self.index_post_date = u"-"
                                 self.index_post_date_sort = 0
                                 mg_log.info(u"%s Index - Post date not found" % (site_name))
 
@@ -4068,7 +4068,7 @@ class SearchIndex(object):
                         self.index_post_nfo = ""
 
                         #generate post details
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -4078,7 +4078,7 @@ class SearchIndex(object):
                                         
                                         post_details = None                                                
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -4088,7 +4088,7 @@ class SearchIndex(object):
                                         
                                         post_details = None                                                
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -4098,7 +4098,7 @@ class SearchIndex(object):
                                         
                                         post_details = None                                                
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -4119,7 +4119,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Post details not found" % (site_name))
 
                         #generate post id
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -4129,7 +4129,7 @@ class SearchIndex(object):
                                         
                                         post_id = None
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 try:
                                         
@@ -4139,7 +4139,7 @@ class SearchIndex(object):
                                         
                                         post_id = None
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -4149,7 +4149,7 @@ class SearchIndex(object):
                                         
                                         post_id = None
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -4170,7 +4170,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Post id not found" % (site_name))
 
                         #generate post seeders/peers
-                        if site_name == "KickAss":
+                        if site_name == u"KickAss":
                                 
                                 try:
                                         
@@ -4188,12 +4188,12 @@ class SearchIndex(object):
                                         
                                         post_peers = None
 
-                        if site_name == "PirateBay":
+                        if site_name == u"PirateBay":
                                 
                                 post_seeders = None
                                 post_peers = None
 
-                        if site_name == "Bitsnoop":
+                        if site_name == u"Bitsnoop":
                                 
                                 try:
                                         
@@ -4211,7 +4211,7 @@ class SearchIndex(object):
                                         
                                         post_peers = None
 
-                        if site_name == "ExtraTorrent":
+                        if site_name == u"ExtraTorrent":
                                 
                                 try:
                                         
@@ -4229,11 +4229,11 @@ class SearchIndex(object):
                                         
                                         post_peers = None
 
-                                if post_seeders == "---":
+                                if post_seeders == u"---":
 
                                         post_seeders = u"0"
 
-                                if post_peers == "---":
+                                if post_peers == u"---":
 
                                         post_peers = u"0"
                                         
@@ -4267,11 +4267,11 @@ class SearchIndex(object):
         def imdb_details_json(self):
                 
                 #create imdb json feed (used for iphone/android)
-                imdb_json = "http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
+                imdb_json = u"http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
                 mg_log.info(u"IMDb JSON URL is %s" % (imdb_json))
 
                 #generate imdb links for history/queued/email
-                self.imdb_link = "http://www.imdb.com/title/%s" % (self.imdb_tt_number)
+                self.imdb_link = u"http://www.imdb.com/title/%s" % (self.imdb_tt_number)
                 mg_log.info(u"Post IMDb link %s" % (self.imdb_link))
 
                 #pass to urllib2 retry function - decorator
