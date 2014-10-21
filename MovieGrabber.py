@@ -4359,8 +4359,8 @@ class PostProcessing(object):
 
                         if self.config_completed_dir:
 
-                                #select download name from history table where download status is downloaded
-                                self.sqlite_history_downloaded = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.dlstatus=="Downloaded").all()
+                                #select download name from history table where download status is downloaded and sort by process date (should help prevent getting wrong postname for duplicate downloads)
+                                self.sqlite_history_downloaded = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.dlstatus=="Downloaded").order_by(desc(ResultsDBHistory.procdatesort)).all()
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -4410,19 +4410,19 @@ class PostProcessing(object):
                                                 if os.path.exists(self.os_movie_path_folder):
 
                                                         #run method to move all files to root movie folder
-                                                        mg_log.info(u"Running file rename")
+                                                        mg_log.info(u"Running move to completed movie root folder")
                                                         self.move()
                                                         
                                                         #if rename defined then run method
                                                         if self.config_post_rename_files != "existing":
                                                                 
-                                                                mg_log.info(u"Running file rename")
+                                                                mg_log.info(u"Running rename movie file to imdb/postname")
                                                                 self.rename()                                                                
                                                         
                                                         #if rules defined then run method
                                                         if self.config_post_rule:
 
-                                                                mg_log.info(u"Processing defined rules")                                                                                                                
+                                                                mg_log.info(u"Running defined user post processing rules")
                                                                 self.rules()
 
                 def move(self):
