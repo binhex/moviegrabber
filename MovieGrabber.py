@@ -153,688 +153,6 @@ user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0;
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % (latest_mg_version)
 
-def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
-
-        #create configobj instance, set config.ini file, set encoding and set configspec.ini file
-        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
-
-        #create validator instance
-        val = validate.Validator()
-
-        #pass validator to configobj instance, copy required to write missing values out to config.ini
-        config_obj.validate(val, copy=True)
-        
-        #force write of version to config.ini
-        config_obj["general"]["local_version"] = latest_mg_version
-        config_obj["webconfig"]["address"] = webconfig_address
-        config_obj["webconfig"]["port"] = webconfig_port
-        config_obj["folders"]["logs_dir"] = logs_dir
-        config_obj["folders"]["results_dir"] = results_dir
-
-        #write out changes
-        config_obj.write()
-        
-def cli_arguments():
-
-        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
-        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
-
-                #custom argparse to redirect user to help if unknown argument specified
-                class argparse_custom(argparse.ArgumentParser):
-
-                        def error(self, message):
-
-                                sys.stderr.write('error: %s\n' % message)
-                                self.print_help()
-                                sys.exit(2)
-
-                #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
-
-                #add argparse command line flags
-                commandline_parser.add_argument(u"--ip",  metavar=u"<ipaddress>", help=u"specify ip e.g. --ip 192.168.1.2")
-                commandline_parser.add_argument(u"--port", metavar=u"<port>", help=u"specify port e.g. --port 9191")
-                commandline_parser.add_argument(u"--config", metavar=u"<path>", help=u"specify path for config file e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument(u"--logs", metavar=u"<path>", help=u"specify path for log files e.g. --logs /opt/moviegrabber/logs/")
-                commandline_parser.add_argument(u"--db", metavar=u"<path>", help=u"specify path for database e.g. --db /opt/moviegrabber/db/")
-                commandline_parser.add_argument(u"--pidfile", metavar=u"<path>", help=u"specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
-                commandline_parser.add_argument(u"--daemon", action=u"store_true", help=u"run as daemonized process")
-                commandline_parser.add_argument(u"--reset-config", action=u"store_true", help=u"reset config to default")
-                commandline_parser.add_argument(u"--reset-db", action=u"store_true", help=u"reset database to default")
-                commandline_parser.add_argument(u"--version", action=u"version", version=latest_mg_version)
-
-                #save arguments in dictionary
-                args = vars(commandline_parser.parse_args())
-
-                #if argument specified then use
-                if args["config"] != None:
-
-                        if not os.path.exists(args["config"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["config"])
-                                        config_dir = os.path.normpath(args["config"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
-                                        config_dir = os.path.normpath(config_dir)
-                                        
-                        else:
-
-                                config_dir = os.path.normpath(args["config"])
-                                
-                #if not specified then use default - note config.ini path not specified in config.ini!
-                else:
-
-                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
-                        config_dir = os.path.normpath(config_dir)
-
-                config_ini = os.path.join(config_dir, u"config.ini")
-                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
-
-                #if config.ini does not exist then create empty values
-                if not os.path.exists(config_ini):
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-
-                else:
-
-                        #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        
-                        try:
-                                
-                                #read values from config.ini
-                                logs_dir = config_obj["folders"]["logs_dir"]
-                                results_dir = config_obj["folders"]["results_dir"]
-                                webconfig_address = config_obj["webconfig"]["address"]
-                                webconfig_port = config_obj["webconfig"]["port"]              
-
-                        except Exception:
-
-                                logs_dir = None
-                                results_dir = None
-                                webconfig_address = None
-                                webconfig_port = None
-                        
-                #if argument specified then use
-                if args["logs"] != None:
-
-                        if not os.path.exists(args["logs"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["logs"])
-                                        logs_dir = os.path.normpath(args["logs"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
-                                        logs_dir = os.path.normpath(logs_dir)
-                                        
-                        else:
-
-                                logs_dir = os.path.normpath(args["logs"])
-                
-                #if not specified in config.ini then set to defaults
-                elif logs_dir == None:
-                        
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
-                        logs_dir = os.path.normpath(logs_dir)
-
-                #if argument specified then use
-                if args["db"] != None:
-
-                        if not os.path.exists(args["db"]):
-                                
-                                try:
-
-                                        #create path recursively
-                                        os.makedirs(args["db"])
-                                        results_dir = os.path.normpath(args["db"])                                        
-
-                                except WindowsError:
-
-                                        #if cannot create then use default
-                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
-                                        results_dir = os.path.normpath(results_dir)
-                                        
-                        else:
-
-                                results_dir = os.path.normpath(args["db"])
-
-                #if not specified in config.ini then set to defaults
-                elif results_dir == None:
-                
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
-                        results_dir = os.path.normpath(results_dir)
-
-                results_db = os.path.join(results_dir, u"results.db")
-                
-                #if argument specified then use
-                if args["ip"] != None:
-
-                        webconfig_address = args["ip"]
-
-                #if not specified in config.ini then set to defaults
-                elif webconfig_address == None:
-                        
-                        webconfig_address = u"0.0.0.0"
-
-                #if argument specified then use                        
-                if args["port"] != None:
-
-                        webconfig_port = args["port"]
-
-                #if not specified in config.ini then set to defaults
-                elif webconfig_port == None:
-
-                        webconfig_port = u"9191"
-
-                #check os is not windows and then create pidfile for cherrypy forked process
-                if args["pidfile"] != None and os.name != "nt":
-
-                        #create pidfile for daemonized process, used to end process in unraid
-                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
-                        pidfile.subscribe()
-
-                #check os is not windows and then run cherrypy as daemonized process
-                if args["daemon"] == True and os.name != "nt":
-
-                        #run cherrypy as daemonized process
-                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
-                        daemon.subscribe()
-
-                #if reset flagged then delete existing config.ini
-                if args["reset_config"] == True and os.path.exists(config_ini):
-
-                        os.remove(config_ini)
-
-                #if reset flagged then delete existing results.db
-                if args["reset_db"] == True and os.path.exists(results_db):
-
-                        os.remove(results_db)
-                        
-                #send values to config write function
-                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
-
-        #windows compiled binary cannot define config, logs, or db using argparse
-        else:
-
-                #default path to config.ini
-                config_dir = os.path.join(moviegrabber_root_dir, u"configs")
-                config_dir = os.path.normpath(config_dir)                
-                config_ini = os.path.join(config_dir, u"config.ini")
-                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
-
-                #if config.ini does not exist then create empty values
-                if not os.path.exists(config_ini):
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-
-                else:
-
-                        #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        
-                        try:
-                                
-                                #read values from config.ini
-                                logs_dir = config_obj["folders"]["logs_dir"]
-                                results_dir = config_obj["folders"]["results_dir"]
-                                webconfig_address = config_obj["webconfig"]["address"]
-                                webconfig_port = config_obj["webconfig"]["port"]             
-
-                        except Exception:
-
-                                logs_dir = None
-                                results_dir = None
-                                webconfig_address = None
-                                webconfig_port = None
-                        
-                #if not specified in config.ini then set to defaults
-                if logs_dir == None:
-
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
-                        logs_dir = os.path.normpath(logs_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if results_dir == None:
-
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
-                        results_dir = os.path.normpath(results_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if webconfig_address == None:
-
-                        webconfig_address = u"0.0.0.0"
-                        
-                #if not specified in config.ini then set to defaults
-                if webconfig_port == None:
-
-                        webconfig_port = u"9191"                
-
-                #send values to config write function
-                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
-                                        
-        #return config file paths - used to read logs and results values from ini file
-        return config_ini, configspec_ini
-
-#save returned value
-config_files = cli_arguments()
-
-config_ini = config_files[0]
-configspec_ini = config_files[1]
-
-#create configobj global instance
-config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
-
-#read values for logs and results db
-logs_dir = config_obj["folders"]["logs_dir"]
-results_dir = config_obj["folders"]["results_dir"]
-
-#construct full path to files
-cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
-moviegrabber_log = os.path.join(logs_dir, u"moviegrabber.log")
-sqlite_log = os.path.join(logs_dir, u"sqlite.log")
-results_db = os.path.join(results_dir, u"results.db")
-
-#create connection to sqlite db using sqlalchemy
-engine = create_engine("sqlite:///%s" % (results_db), echo=False)
-Base = declarative_base()
-
-#create sqlite session
-Session = sessionmaker(bind=engine)
-
-#scoped_session auto generates thread safe local variable (requires remove for each method)
-sql_session = scoped_session(Session)
-
-#define tables and columns for history table
-class ResultsDBHistory(Base):
-
-        __tablename__ = "history"
-
-        id = Column(Integer, primary_key=True)
-        imdbposter = Column(String)
-        imdblink = Column(String)
-        imdbplot = Column(String)
-        imdbdirectors = Column(String)
-        imdbwriters = Column(String)
-        imdbactors = Column(String)
-        imdbcharacters = Column(String)
-        imdbgenre = Column(String)
-        imdbname = Column(String)
-        imdbyear = Column(Integer)
-        imdbruntime = Column(Integer)
-        imdbrating = Column(String)
-        imdbvotes = Column(Integer)
-        imdbcert = Column(String)
-        postdate = Column(String)
-        postdatesort = Column(Integer)
-        postsize = Column(String)
-        postsizesort = Column(Integer)
-        postnfo = Column(String)
-        postdetails = Column(String)
-        postname = Column(String)
-        postnamestrip = Column(String, unique=True)
-        postdl = Column(String)
-        dlstatus = Column(String)
-        dlname = Column(String)
-        dltype = Column(String)
-        procresult = Column(PickleType)
-        procdate = Column(String)
-        procdatesort = Column(Integer)
-
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
-
-                self.imdbposter = imdbposter
-                self.imdblink = imdblink
-                self.imdbplot = imdbplot
-                self.imdbdirectors = imdbdirectors
-                self.imdbwriters = imdbwriters
-                self.imdbactors = imdbactors
-                self.imdbcharacters = imdbcharacters
-                self.imdbgenre = imdbgenre
-                self.imdbname = imdbname
-                self.imdbyear = imdbyear
-                self.imdbruntime = imdbruntime
-                self.imdbrating = imdbrating
-                self.imdbvotes = imdbvotes
-                self.imdbcert = imdbcert
-                self.postdate = postdate
-                self.postdatesort = postdatesort
-                self.postsize = postsize
-                self.postsizesort = postsizesort
-                self.postnfo = postnfo
-                self.postdetails = postdetails
-                self.postname = postname
-                self.postnamestrip = postnamestrip
-                self.postdl = postdl
-                self.dlstatus = dlstatus
-                self.dlname = dlname
-                self.dltype = dltype
-                self.procresult = procresult
-                self.procdate = procdate
-                self.procdatesort = procdatesort
-
-#define tables and columns for queued table
-class ResultsDBQueued(Base):
-
-        __tablename__ = "queued"
-
-        id = Column(Integer, primary_key=True)
-        imdbposter = Column(String)
-        imdblink = Column(String)
-        imdbplot = Column(String)
-        imdbdirectors = Column(String)
-        imdbwriters = Column(String)
-        imdbactors = Column(String)
-        imdbcharacters = Column(String)
-        imdbgenre = Column(String)
-        imdbname = Column(String)
-        imdbyear = Column(Integer)
-        imdbruntime = Column(Integer)
-        imdbrating = Column(String)
-        imdbvotes = Column(Integer)
-        imdbcert = Column(String)
-        postdate = Column(String)
-        postdatesort = Column(Integer)
-        postsize = Column(String)
-        postsizesort = Column(Integer)
-        postnfo = Column(String)
-        postdetails = Column(String)
-        postname = Column(String)
-        postnamestrip = Column(String, unique=True)
-        postdl = Column(String)
-        dlstatus = Column(String)
-        dlname = Column(String)
-        dltype = Column(String)
-        procresult = Column(PickleType)
-        procdate = Column(String)
-        procdatesort = Column(Integer)
-
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
-
-                self.imdbposter = imdbposter
-                self.imdblink = imdblink
-                self.imdbplot = imdbplot
-                self.imdbdirectors = imdbdirectors
-                self.imdbwriters = imdbwriters
-                self.imdbactors = imdbactors
-                self.imdbcharacters = imdbcharacters
-                self.imdbgenre = imdbgenre
-                self.imdbname = imdbname
-                self.imdbyear = imdbyear
-                self.imdbruntime = imdbruntime
-                self.imdbrating = imdbrating
-                self.imdbvotes = imdbvotes
-                self.imdbcert = imdbcert
-                self.postdate = postdate
-                self.postdatesort = postdatesort
-                self.postsize = postsize
-                self.postsizesort = postsizesort
-                self.postnfo = postnfo
-                self.postdetails = postdetails
-                self.postname = postname
-                self.postnamestrip = postnamestrip
-                self.postdl = postdl
-                self.dlstatus = dlstatus
-                self.dlname = dlname
-                self.dltype = dltype
-                self.procresult = procresult
-                self.procdate = procdate
-                self.procdatesort = procdatesort
-
-#---------------------- paths ----------------------------------
-
-#read theme name and pass to paths
-theme = config_obj["general"]["theme"]
-
-#define path to cheetah templates
-templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
-templates_dir = os.path.normpath(templates_dir)
-
-#encode templates directory - required for cherrypy
-templates_dir = templates_dir.encode("utf-8")
-
-#define path to history thumbnail images
-history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
-history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
-
-#define path to queued thumbnail images
-queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
-queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
-
-#define path to static images
-images_dir = os.path.join(moviegrabber_root_dir, u"images")
-images_dir = os.path.normpath(images_dir)
-
-#define path to certs dir
-certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
-certs_dir = os.path.normpath(certs_dir)
-
-###########
-# logging #
-###########
-
-def cherrypy_logging():
-
-        #specify log filename
-        log = cherrypy.log
-        
-        #remove the default FileHandlers if present
-        log.access_file = ""
-        log.error_file = ""
-
-        #max size of 512KB
-        maxBytes = getattr(log, "rot_maxBytes", 524288)
-
-        #cherrypy.log cherrypy.log.1 cherrypy.log.2
-        backupCount = getattr(log, "rot_backupCount", 3)
-
-        #create a new rotating log for error logging
-        fname = getattr(log, "rot_error_file", cherrypy_log)
-        h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount, encoding = "utf-8")
-        h.setLevel(logging.DEBUG)
-        h.setFormatter(cherrypy._cplogging.logfmt)
-        log.error_log.addHandler(h)
-
-def moviegrabber_logging():
-
-        #read log levels
-        log_level = config_obj["general"]["log_level"]
-
-        #get current thread name
-        threadname = threading.currentThread().getName()
-
-        #setup formatting for log messages
-        moviegrabber_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
-
-        #setup logger for moviegrabber
-        moviegrabber_logger = logging.getLogger("moviegrabber")
-
-        #setup logging to file for moviegrabber
-        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a", encoding = "UTF-8")
-
-        #set formatter for moviegrabber
-        moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
-
-        #add handler for formatter to the file logger
-        moviegrabber_logger.addHandler(moviegrabber_filehandler)
-
-        #set level of logging from config
-        if log_level == "INFO":
-
-                moviegrabber_logger.setLevel(logging.INFO)
-
-        elif log_level == "WARNING":
-
-                moviegrabber_logger.setLevel(logging.WARNING)
-
-        elif log_level == "exception":
-
-                moviegrabber_logger.setLevel(logging.ERROR)
-
-        #setup logging to console
-        console_streamhandler = logging.StreamHandler()
-
-        #set formatter for console
-        console_streamhandler.setFormatter(moviegrabber_formatter)
-
-        #add handler for formatter to the console
-        moviegrabber_logger.addHandler(console_streamhandler)
-
-        #set level of logging from config
-        if log_level == "INFO":
-
-                console_streamhandler.setLevel(logging.INFO)
-
-        elif log_level == "WARNING":
-
-                console_streamhandler.setLevel(logging.WARNING)
-
-        elif log_level == "exception":
-
-                console_streamhandler.setLevel(logging.ERROR)
-
-        return moviegrabber_logger
-
-def sqlite_logging():
-
-        #read log levels
-        log_level = config_obj["general"]["log_level"]
-
-        #get current thread name
-        threadname = threading.currentThread().getName()
-
-        #setup formatting for log messages
-        sqlite_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
-
-        #setup logger for sqlite using sqlalchemy
-        sqlite_logger = logging.getLogger("sqlalchemy.engine")
-
-        #setup logging to file for sqlite
-        sqlite_filehandler = logging.FileHandler(sqlite_log, "a", encoding = "UTF-8")
-
-        #set formatter for sqlite
-        sqlite_filehandler.setFormatter(sqlite_formatter)
-
-        #add handler for formatter to the file logger
-        sqlite_logger.addHandler(sqlite_filehandler)
-
-        #set level of logging from config
-        if log_level == "INFO":
-
-                sqlite_logger.setLevel(logging.INFO)
-
-        elif log_level == "WARNING":
-
-                sqlite_logger.setLevel(logging.WARNING)
-
-        elif log_level == "exception":
-
-                sqlite_logger.setLevel(logging.ERROR)
-
-        return sqlite_logger
-
-#store the logger instances
-mg_log = moviegrabber_logging()
-sql_log = sqlite_logging()        
-cherry_log = cherrypy_logging()
-
-################
-# sqlite check #
-################
-
-def sqlite_check():
-
-        #if db file doesnt exist then create from orm
-        if not os.path.exists(results_db):
-
-                try:
-
-                        mg_log.info(u"database doesnt exist, creating...")
-
-                        #create table and column structure from sqlalchemy metadata
-                        Base.metadata.create_all(engine)
-
-                        #set db to latest db version
-                        sql_session.execute("PRAGMA user_version = %s" % (latest_db_version))
-
-                        sql_session.execute("VACUUM")
-
-                        mg_log.info(u"database created with ver %s" % (latest_db_version))
-
-                #capture any sqlalchemy errors and log failure
-                except exc.SQLAlchemyError,e:
-
-                        mg_log.info(u"database creation failed with error %s" % (e))
-
-        else:
-
-                pragma_user_version = sql_session.execute(text("PRAGMA user_version;"))
-                current_db_version = pragma_user_version.fetchone()[0]
-
-                #if already up to date then log and exit
-                if str(current_db_version) == latest_db_version:
-
-                        mg_log.info(u"database up to date, running ver %s" % (current_db_version))
-                        
-                #if user version 0 or 1 then upgrade history and queued tables (add constraints and column postnamestrip)
-                elif current_db_version <= 1:
-
-                        mg_log.info(u"database requires upgrade to schema...")
-                        
-                        try:
-                                
-                                #rename existing tables, prefixing with old_
-                                sql_session.execute("ALTER TABLE history RENAME TO old_history;")
-                                sql_session.execute("ALTER TABLE queued RENAME TO old_queued;")
-
-                                #create table and column structure from sqlalchemy orm
-                                Base.metadata.create_all(engine)
-
-                                #commit changes
-                                sql_session.commit()
-
-                                #copy all column data from old table to new table, use NULL for column that doest exist (postnamestrip)
-                                sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_history;")
-                                sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_queued;")
-                                                        
-                                #drop old tables if they exist
-                                sql_session.execute("DROP TABLE IF EXISTS old_history;")
-                                sql_session.execute("DROP TABLE IF EXISTS old_queued;")
-
-                                #set db to latest db version
-                                sql_session.execute("PRAGMA user_version = %s" % (latest_db_version))
-
-                                sql_session.execute("VACUUM")
-
-                                mg_log.info(u"database upgraded from ver %s to ver %s succeeded" % (current_db_version,latest_db_version))
-
-                        #capture any sqlalchemy errors and log failure
-                        except exc.SQLAlchemyError,e:
-
-                                #catch any sqlalchemy error and rollback transaction
-                                sql_session.rollback()
-
-                                mg_log.warning(u"database upgrade from ver %s to ver %s failed with error %s" % (current_db_version,latest_db_version,e))
-
-        #remove scoped session
-        sql_session.remove()
-
 #########
 # tools #
 #########
@@ -1087,6 +405,692 @@ def urllib2_retry(url,user_agent):
 
                 mg_log.warning(u"Site Feed/API Download failed")
 
+###########
+# startup #
+###########
+
+def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
+
+        #create configobj instance, set config.ini file, set encoding and set configspec.ini file
+        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
+
+        #create validator instance
+        val = validate.Validator()
+
+        #pass validator to configobj instance, copy required to write missing values out to config.ini
+        config_obj.validate(val, copy=True)
+        
+        #force write of version to config.ini
+        config_obj["general"]["local_version"] = latest_mg_version
+        config_obj["webconfig"]["address"] = webconfig_address
+        config_obj["webconfig"]["port"] = webconfig_port
+        config_obj["folders"]["logs_dir"] = logs_dir
+        config_obj["folders"]["results_dir"] = results_dir
+
+        #write out changes
+        config_obj.write()
+        
+def cli_arguments():
+
+        #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
+        if uni_to_byte(os.path.exists(os.path.join(moviegrabber_root_dir, u"lib"))):
+
+                #custom argparse to redirect user to help if unknown argument specified
+                class argparse_custom(argparse.ArgumentParser):
+
+                        def error(self, message):
+
+                                sys.stderr.write('error: %s\n' % message)
+                                self.print_help()
+                                sys.exit(2)
+
+                #setup argparse description and usage, also increase spacing for help to 50
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+
+                #add argparse command line flags
+                commandline_parser.add_argument(u"--ip",  metavar=u"<ipaddress>", help=u"specify ip e.g. --ip 192.168.1.2")
+                commandline_parser.add_argument(u"--port", metavar=u"<port>", help=u"specify port e.g. --port 9191")
+                commandline_parser.add_argument(u"--config", metavar=u"<path>", help=u"specify path for config file e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument(u"--logs", metavar=u"<path>", help=u"specify path for log files e.g. --logs /opt/moviegrabber/logs/")
+                commandline_parser.add_argument(u"--db", metavar=u"<path>", help=u"specify path for database e.g. --db /opt/moviegrabber/db/")
+                commandline_parser.add_argument(u"--pidfile", metavar=u"<path>", help=u"specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
+                commandline_parser.add_argument(u"--daemon", action=u"store_true", help=u"run as daemonized process")
+                commandline_parser.add_argument(u"--reset-config", action=u"store_true", help=u"reset config to default")
+                commandline_parser.add_argument(u"--reset-db", action=u"store_true", help=u"reset database to default")
+                commandline_parser.add_argument(u"--version", action=u"version", version=latest_mg_version)
+
+                #save arguments in dictionary
+                args = vars(commandline_parser.parse_args())
+
+                #if argument specified then use
+                if args["config"] != None:
+
+                        if not uni_to_byte(os.path.exists(args["config"])):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["config"])
+                                        config_dir = os.path.normpath(args["config"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+                                        config_dir = os.path.normpath(config_dir)
+                                        
+                        else:
+
+                                config_dir = os.path.normpath(args["config"])
+                                
+                #if not specified then use default - note config.ini path not specified in config.ini!
+                else:
+
+                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+                        config_dir = os.path.normpath(config_dir)
+
+                config_ini = os.path.join(config_dir, u"config.ini")
+                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
+
+                #if config.ini does not exist then create empty values
+                if not uni_to_byte(os.path.exists(config_ini)):
+
+                        logs_dir = None
+                        results_dir = None
+                        webconfig_address = None
+                        webconfig_port = None
+
+                else:
+
+                        #enable config parser
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+                        
+                        try:
+                                
+                                #read values from config.ini
+                                logs_dir = config_obj["folders"]["logs_dir"]
+                                results_dir = config_obj["folders"]["results_dir"]
+                                webconfig_address = config_obj["webconfig"]["address"]
+                                webconfig_port = config_obj["webconfig"]["port"]              
+
+                        except Exception:
+
+                                logs_dir = None
+                                results_dir = None
+                                webconfig_address = None
+                                webconfig_port = None
+                        
+                #if argument specified then use
+                if args["logs"] != None:
+
+                        if not uni_to_byte(os.path.exists(args["logs"])):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["logs"])
+                                        logs_dir = os.path.normpath(args["logs"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
+                                        logs_dir = os.path.normpath(logs_dir)
+                                        
+                        else:
+
+                                logs_dir = os.path.normpath(args["logs"])
+                
+                #if not specified in config.ini then set to defaults
+                elif logs_dir == None:
+                        
+                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
+                        logs_dir = os.path.normpath(logs_dir)
+
+                #if argument specified then use
+                if args["db"] != None:
+
+                        if not uni_to_byte(os.path.exists(args["db"])):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["db"])
+                                        results_dir = os.path.normpath(args["db"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
+                                        results_dir = os.path.normpath(results_dir)
+                                        
+                        else:
+
+                                results_dir = os.path.normpath(args["db"])
+
+                #if not specified in config.ini then set to defaults
+                elif results_dir == None:
+                
+                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
+                        results_dir = os.path.normpath(results_dir)
+
+                results_db = os.path.join(results_dir, u"results.db")
+                
+                #if argument specified then use
+                if args["ip"] != None:
+
+                        webconfig_address = args["ip"]
+
+                #if not specified in config.ini then set to defaults
+                elif webconfig_address == None:
+                        
+                        webconfig_address = u"0.0.0.0"
+
+                #if argument specified then use                        
+                if args["port"] != None:
+
+                        webconfig_port = args["port"]
+
+                #if not specified in config.ini then set to defaults
+                elif webconfig_port == None:
+
+                        webconfig_port = u"9191"
+
+                #check os is not windows and then create pidfile for cherrypy forked process
+                if args["pidfile"] != None and os.name != "nt":
+
+                        #create pidfile for daemonized process, used to end process in unraid
+                        pidfile = cherrypy.process.plugins.PIDFile(cherrypy.engine, args["pidfile"])
+                        pidfile.subscribe()
+
+                #check os is not windows and then run cherrypy as daemonized process
+                if args["daemon"] == True and os.name != "nt":
+
+                        #run cherrypy as daemonized process
+                        daemon = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+                        daemon.subscribe()
+
+                #if reset flagged then delete existing config.ini
+                if args["reset_config"] == True and uni_to_byte(os.path.exists(config_ini)):
+
+                        os.remove(config_ini)
+
+                #if reset flagged then delete existing results.db
+                if args["reset_db"] == True and uni_to_byte(os.path.exists(results_db)):
+
+                        os.remove(results_db)
+                        
+                #send values to config write function
+                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
+
+        #windows compiled binary cannot define config, logs, or db using argparse
+        else:
+
+                #default path to config.ini
+                config_dir = os.path.join(moviegrabber_root_dir, u"configs")
+                config_dir = os.path.normpath(config_dir)                
+                config_ini = os.path.join(config_dir, u"config.ini")
+                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
+
+                #if config.ini does not exist then create empty values
+                if not uni_to_byte(os.path.exists(config_ini)):
+
+                        logs_dir = None
+                        results_dir = None
+                        webconfig_address = None
+                        webconfig_port = None
+
+                else:
+
+                        #enable config parser
+                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
+                        
+                        try:
+                                
+                                #read values from config.ini
+                                logs_dir = config_obj["folders"]["logs_dir"]
+                                results_dir = config_obj["folders"]["results_dir"]
+                                webconfig_address = config_obj["webconfig"]["address"]
+                                webconfig_port = config_obj["webconfig"]["port"]             
+
+                        except Exception:
+
+                                logs_dir = None
+                                results_dir = None
+                                webconfig_address = None
+                                webconfig_port = None
+                        
+                #if not specified in config.ini then set to defaults
+                if logs_dir == None:
+
+                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
+                        logs_dir = os.path.normpath(logs_dir)                
+
+                #if not specified in config.ini then set to defaults
+                if results_dir == None:
+
+                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
+                        results_dir = os.path.normpath(results_dir)                
+
+                #if not specified in config.ini then set to defaults
+                if webconfig_address == None:
+
+                        webconfig_address = u"0.0.0.0"
+                        
+                #if not specified in config.ini then set to defaults
+                if webconfig_port == None:
+
+                        webconfig_port = u"9191"                
+
+                #send values to config write function
+                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
+                                        
+        #return config file paths - used to read logs and results values from ini file
+        return config_ini, configspec_ini
+
+#save returned value
+config_files = cli_arguments()
+
+config_ini = config_files[0]
+configspec_ini = config_files[1]
+
+#create configobj global instance
+config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
+
+#read values for logs and results db
+logs_dir = config_obj["folders"]["logs_dir"]
+results_dir = config_obj["folders"]["results_dir"]
+
+#construct full path to files
+cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
+moviegrabber_log = os.path.join(logs_dir, u"moviegrabber.log")
+sqlite_log = os.path.join(logs_dir, u"sqlite.log")
+results_db = os.path.join(results_dir, u"results.db")
+
+#create connection to sqlite db using sqlalchemy
+engine = create_engine("sqlite:///%s" % (results_db), echo=False)
+Base = declarative_base()
+
+#create sqlite session
+Session = sessionmaker(bind=engine)
+
+#scoped_session auto generates thread safe local variable (requires remove for each method)
+sql_session = scoped_session(Session)
+
+#define tables and columns for history table
+class ResultsDBHistory(Base):
+
+        __tablename__ = "history"
+
+        id = Column(Integer, primary_key=True)
+        imdbposter = Column(String)
+        imdblink = Column(String)
+        imdbplot = Column(String)
+        imdbdirectors = Column(String)
+        imdbwriters = Column(String)
+        imdbactors = Column(String)
+        imdbcharacters = Column(String)
+        imdbgenre = Column(String)
+        imdbname = Column(String)
+        imdbyear = Column(Integer)
+        imdbruntime = Column(Integer)
+        imdbrating = Column(String)
+        imdbvotes = Column(Integer)
+        imdbcert = Column(String)
+        postdate = Column(String)
+        postdatesort = Column(Integer)
+        postsize = Column(String)
+        postsizesort = Column(Integer)
+        postnfo = Column(String)
+        postdetails = Column(String)
+        postname = Column(String)
+        postnamestrip = Column(String, unique=True)
+        postdl = Column(String)
+        dlstatus = Column(String)
+        dlname = Column(String)
+        dltype = Column(String)
+        procresult = Column(PickleType)
+        procdate = Column(String)
+        procdatesort = Column(Integer)
+
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
+
+                self.imdbposter = imdbposter
+                self.imdblink = imdblink
+                self.imdbplot = imdbplot
+                self.imdbdirectors = imdbdirectors
+                self.imdbwriters = imdbwriters
+                self.imdbactors = imdbactors
+                self.imdbcharacters = imdbcharacters
+                self.imdbgenre = imdbgenre
+                self.imdbname = imdbname
+                self.imdbyear = imdbyear
+                self.imdbruntime = imdbruntime
+                self.imdbrating = imdbrating
+                self.imdbvotes = imdbvotes
+                self.imdbcert = imdbcert
+                self.postdate = postdate
+                self.postdatesort = postdatesort
+                self.postsize = postsize
+                self.postsizesort = postsizesort
+                self.postnfo = postnfo
+                self.postdetails = postdetails
+                self.postname = postname
+                self.postnamestrip = postnamestrip
+                self.postdl = postdl
+                self.dlstatus = dlstatus
+                self.dlname = dlname
+                self.dltype = dltype
+                self.procresult = procresult
+                self.procdate = procdate
+                self.procdatesort = procdatesort
+
+#define tables and columns for queued table
+class ResultsDBQueued(Base):
+
+        __tablename__ = "queued"
+
+        id = Column(Integer, primary_key=True)
+        imdbposter = Column(String)
+        imdblink = Column(String)
+        imdbplot = Column(String)
+        imdbdirectors = Column(String)
+        imdbwriters = Column(String)
+        imdbactors = Column(String)
+        imdbcharacters = Column(String)
+        imdbgenre = Column(String)
+        imdbname = Column(String)
+        imdbyear = Column(Integer)
+        imdbruntime = Column(Integer)
+        imdbrating = Column(String)
+        imdbvotes = Column(Integer)
+        imdbcert = Column(String)
+        postdate = Column(String)
+        postdatesort = Column(Integer)
+        postsize = Column(String)
+        postsizesort = Column(Integer)
+        postnfo = Column(String)
+        postdetails = Column(String)
+        postname = Column(String)
+        postnamestrip = Column(String, unique=True)
+        postdl = Column(String)
+        dlstatus = Column(String)
+        dlname = Column(String)
+        dltype = Column(String)
+        procresult = Column(PickleType)
+        procdate = Column(String)
+        procdatesort = Column(Integer)
+
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
+
+                self.imdbposter = imdbposter
+                self.imdblink = imdblink
+                self.imdbplot = imdbplot
+                self.imdbdirectors = imdbdirectors
+                self.imdbwriters = imdbwriters
+                self.imdbactors = imdbactors
+                self.imdbcharacters = imdbcharacters
+                self.imdbgenre = imdbgenre
+                self.imdbname = imdbname
+                self.imdbyear = imdbyear
+                self.imdbruntime = imdbruntime
+                self.imdbrating = imdbrating
+                self.imdbvotes = imdbvotes
+                self.imdbcert = imdbcert
+                self.postdate = postdate
+                self.postdatesort = postdatesort
+                self.postsize = postsize
+                self.postsizesort = postsizesort
+                self.postnfo = postnfo
+                self.postdetails = postdetails
+                self.postname = postname
+                self.postnamestrip = postnamestrip
+                self.postdl = postdl
+                self.dlstatus = dlstatus
+                self.dlname = dlname
+                self.dltype = dltype
+                self.procresult = procresult
+                self.procdate = procdate
+                self.procdatesort = procdatesort
+
+#---------------------- paths ----------------------------------
+
+#read theme name and pass to paths
+theme = config_obj["general"]["theme"]
+
+#define path to cheetah templates
+templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
+templates_dir = os.path.normpath(templates_dir)
+
+#encode templates directory - required for cherrypy
+templates_dir = uni_to_byte(templates_dir)
+
+#define path to history thumbnail images
+history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
+history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
+
+#define path to queued thumbnail images
+queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
+queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
+
+#define path to static images
+images_dir = os.path.join(moviegrabber_root_dir, u"images")
+images_dir = os.path.normpath(images_dir)
+
+#define path to certs dir
+certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
+certs_dir = os.path.normpath(certs_dir)
+
+###########
+# logging #
+###########
+
+def cherrypy_logging():
+
+        #specify log filename
+        log = cherrypy.log
+        
+        #remove the default FileHandlers if present
+        log.access_file = ""
+        log.error_file = ""
+
+        #max size of 512KB
+        maxBytes = getattr(log, "rot_maxBytes", 524288)
+
+        #cherrypy.log cherrypy.log.1 cherrypy.log.2
+        backupCount = getattr(log, "rot_backupCount", 3)
+
+        #create a new rotating log for error logging
+        fname = getattr(log, "rot_error_file", cherrypy_log)
+        h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount, encoding = "utf-8")
+        h.setLevel(logging.DEBUG)
+        h.setFormatter(cherrypy._cplogging.logfmt)
+        log.error_log.addHandler(h)
+
+def moviegrabber_logging():
+
+        #read log levels
+        log_level = config_obj["general"]["log_level"]
+
+        #get current thread name
+        threadname = threading.currentThread().getName()
+
+        #setup formatting for log messages
+        moviegrabber_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
+
+        #setup logger for moviegrabber
+        moviegrabber_logger = logging.getLogger("moviegrabber")
+
+        #setup logging to file for moviegrabber
+        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a", encoding = "UTF-8")
+
+        #set formatter for moviegrabber
+        moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
+
+        #add handler for formatter to the file logger
+        moviegrabber_logger.addHandler(moviegrabber_filehandler)
+
+        #set level of logging from config
+        if log_level == "INFO":
+
+                moviegrabber_logger.setLevel(logging.INFO)
+
+        elif log_level == "WARNING":
+
+                moviegrabber_logger.setLevel(logging.WARNING)
+
+        elif log_level == "exception":
+
+                moviegrabber_logger.setLevel(logging.ERROR)
+
+        #setup logging to console
+        console_streamhandler = logging.StreamHandler()
+
+        #set formatter for console
+        console_streamhandler.setFormatter(moviegrabber_formatter)
+
+        #add handler for formatter to the console
+        moviegrabber_logger.addHandler(console_streamhandler)
+
+        #set level of logging from config
+        if log_level == "INFO":
+
+                console_streamhandler.setLevel(logging.INFO)
+
+        elif log_level == "WARNING":
+
+                console_streamhandler.setLevel(logging.WARNING)
+
+        elif log_level == "exception":
+
+                console_streamhandler.setLevel(logging.ERROR)
+
+        return moviegrabber_logger
+
+def sqlite_logging():
+
+        #read log levels
+        log_level = config_obj["general"]["log_level"]
+
+        #get current thread name
+        threadname = threading.currentThread().getName()
+
+        #setup formatting for log messages
+        sqlite_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s :: %(message)s")
+
+        #setup logger for sqlite using sqlalchemy
+        sqlite_logger = logging.getLogger("sqlalchemy.engine")
+
+        #setup logging to file for sqlite
+        sqlite_filehandler = logging.FileHandler(sqlite_log, "a", encoding = "UTF-8")
+
+        #set formatter for sqlite
+        sqlite_filehandler.setFormatter(sqlite_formatter)
+
+        #add handler for formatter to the file logger
+        sqlite_logger.addHandler(sqlite_filehandler)
+
+        #set level of logging from config
+        if log_level == "INFO":
+
+                sqlite_logger.setLevel(logging.INFO)
+
+        elif log_level == "WARNING":
+
+                sqlite_logger.setLevel(logging.WARNING)
+
+        elif log_level == "exception":
+
+                sqlite_logger.setLevel(logging.ERROR)
+
+        return sqlite_logger
+
+#store the logger instances
+mg_log = moviegrabber_logging()
+sql_log = sqlite_logging()        
+cherry_log = cherrypy_logging()
+
+################
+# sqlite check #
+################
+
+def sqlite_check():
+
+        #if db file doesnt exist then create from orm
+        if not uni_to_byte(os.path.exists(results_db)):
+
+                try:
+
+                        mg_log.info(u"database doesnt exist, creating...")
+
+                        #create table and column structure from sqlalchemy metadata
+                        Base.metadata.create_all(engine)
+
+                        #set db to latest db version
+                        sql_session.execute("PRAGMA user_version = %s" % (latest_db_version))
+
+                        sql_session.execute("VACUUM")
+
+                        mg_log.info(u"database created with ver %s" % (latest_db_version))
+
+                #capture any sqlalchemy errors and log failure
+                except exc.SQLAlchemyError,e:
+
+                        mg_log.info(u"database creation failed with error %s" % (e))
+
+        else:
+
+                pragma_user_version = sql_session.execute(text("PRAGMA user_version;"))
+                current_db_version = pragma_user_version.fetchone()[0]
+
+                #if already up to date then log and exit
+                if str(current_db_version) == latest_db_version:
+
+                        mg_log.info(u"database up to date, running ver %s" % (current_db_version))
+                        
+                #if user version 0 or 1 then upgrade history and queued tables (add constraints and column postnamestrip)
+                elif current_db_version <= 1:
+
+                        mg_log.info(u"database requires upgrade to schema...")
+                        
+                        try:
+                                
+                                #rename existing tables, prefixing with old_
+                                sql_session.execute("ALTER TABLE history RENAME TO old_history;")
+                                sql_session.execute("ALTER TABLE queued RENAME TO old_queued;")
+
+                                #create table and column structure from sqlalchemy orm
+                                Base.metadata.create_all(engine)
+
+                                #commit changes
+                                sql_session.commit()
+
+                                #copy all column data from old table to new table, use NULL for column that doest exist (postnamestrip)
+                                sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_history;")
+                                sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_queued;")
+                                                        
+                                #drop old tables if they exist
+                                sql_session.execute("DROP TABLE IF EXISTS old_history;")
+                                sql_session.execute("DROP TABLE IF EXISTS old_queued;")
+
+                                #set db to latest db version
+                                sql_session.execute("PRAGMA user_version = %s" % (latest_db_version))
+
+                                sql_session.execute("VACUUM")
+
+                                mg_log.info(u"database upgraded from ver %s to ver %s succeeded" % (current_db_version,latest_db_version))
+
+                        #capture any sqlalchemy errors and log failure
+                        except exc.SQLAlchemyError,e:
+
+                                #catch any sqlalchemy error and rollback transaction
+                                sql_session.rollback()
+
+                                mg_log.warning(u"database upgrade from ver %s to ver %s failed with error %s" % (current_db_version,latest_db_version,e))
+
+        #remove scoped session
+        sql_session.remove()
+
 class DownloadWatched():
 
         #create instance variables to pass between download methods
@@ -1218,7 +1222,7 @@ class DownloadWatched():
                         download_filename = u"%s.torrent" % (self.sqlite_row.dlname)
 
                 #check watched folder exists, if not continue
-                if os.path.exists(config_watch_dir):
+                if uni_to_byte(os.path.exists(config_watch_dir)):
 
                         #construct full path and filename
                         download_path_filename = os.path.join(config_watch_dir, download_filename)
@@ -1234,13 +1238,13 @@ class DownloadWatched():
                         return 0
 
                 #if nzb/torrent does exist in watched folder and 0 bytes in size (failed download) then delete
-                if os.path.exists(download_path_filename) and os.path.getsize(download_path_filename) == 0:
+                if uni_to_byte(os.path.exists(download_path_filename)) and os.path.getsize(download_path_filename) == 0:
 
                         os.remove(download_path_filename)
                         mg_log.info(u"Deleted zero byte file %s" % (download_path_filename))
 
                 #check nzb/torrent does not exist in watched folder
-                if not os.path.exists(download_path_filename):
+                if not uni_to_byte(os.path.exists(download_path_filename)):
 
                         #write nzb/torrent to file in watched folder
                         download_write = open(download_path_filename, "wb")
@@ -1331,7 +1335,7 @@ class XBMC(object):
                                 if self.config_xbmc_notification == "yes":
 
                                         #send gui notification to xbmc using jsonrpc - on add to queue/download
-                                        self.xbmc_jsonrpc = '{"jsonrpc": "2.0","method": "GUI.ShowNotification","params": {"title":"MovieGrabber","message":"%s (%s) - %s"},"id": "1"}' % (imdb_movie_title_strip.encode("utf-8"), imdb_movie_year_str, download_result_str)
+                                        self.xbmc_jsonrpc = '{"jsonrpc": "2.0","method": "GUI.ShowNotification","params": {"title":"MovieGrabber","message":"%s (%s) - %s"},"id": "1"}' % (uni_to_byte(imdb_movie_title_strip), imdb_movie_year_str, download_result_str)
 
                                         #send to xbmc request function
                                         self.xbmc_send_request()
@@ -1572,7 +1576,7 @@ class SearchIndex(object):
         def filter_os_watched(self):
                 
                 #this is set to download only if the nzb/torrent file doesn't exist in the watch folder
-                if os.path.exists(os.path.join(self.config_watch_dir, u"%s.nzb" % (self.imdb_movie_title)).encode('utf-8')) or os.path.exists(os.path.join(self.config_watch_dir, u"%s.torrent" % (self.imdb_movie_title)).encode('utf-8')):
+                if uni_to_byte(os.path.exists(os.path.join(self.config_watch_dir, u"%s.nzb" % (self.imdb_movie_title)))) or uni_to_byte(os.path.exists(os.path.join(self.config_watch_dir, u"%s.torrent" % (self.imdb_movie_title)))):
 
                         self.download_details_dict["filter_os_watched_result"] = [0,"Watched", "System - NZB/Torrent is in Watched folder"]
                         mg_log.info(ur"Filter System - NZB/Torrent is in Watched folder, skip")
@@ -1586,7 +1590,7 @@ class SearchIndex(object):
         def filter_os_archive(self):
                 
                 #this is set to download only if the nzb/torrent file doesn't exist in the nzb folder
-                if os.path.exists(os.path.join(self.config_usenet_archive_dir, u"%s.nzb.gz" % (self.imdb_movie_title)).encode('utf-8')) or os.path.exists(os.path.join(self.config_torrent_archive_dir, u"%s.torrent" % (self.imdb_movie_title)).encode('utf-8')):
+                if uni_to_byte(os.path.exists(os.path.join(self.config_usenet_archive_dir, u"%s.nzb.gz" % (self.imdb_movie_title)))) or uni_to_byte(os.path.exists(os.path.join(self.config_torrent_archive_dir, u"%s.torrent" % (self.imdb_movie_title)))):
 
                         self.download_details_dict["filter_os_archive_result"] = [0,"Archive", "System - NZB/Torrent is in Archive folder"]
                         mg_log.info(u"Filter System - NZB/Torrent is in Archive folder, skip")
@@ -1600,7 +1604,7 @@ class SearchIndex(object):
         def filter_os_completed(self):
                 
                 #this is set to download only if the movie doesn't exist in the completed folder
-                if os.path.exists(os.path.join(self.config_completed_dir, self.imdb_movie_title).encode('utf-8')):
+                if uni_to_byte(os.path.exists(os.path.join(self.config_completed_dir, self.imdb_movie_title))):
 
                         self.download_details_dict["filter_os_completed_result"] = [0,"Completed", "System - NZB/Torrent is in Completed folder"]
                         mg_log.info(u"Filter System - IMDb title in Completed Folder, skip")
@@ -2732,7 +2736,7 @@ class SearchIndex(object):
                         imdb_movie_title_ascii = self.imdb_movie_title.encode('ascii', 'ignore')
 
                         #if poster image doesnt exist then proceed
-                        if not os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % (imdb_movie_title_ascii))):
+                        if not uni_to_byte(os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % (imdb_movie_title_ascii)))):
 
                                 try:
 
@@ -2789,7 +2793,7 @@ class SearchIndex(object):
 
                         #create message container
                         msg = email.mime.multipart.MIMEMultipart('alternative')
-                        msg['Subject'] = ("MovieGrabber: %s (%s) - %s" % (self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.download_result_str))
+                        msg['Subject'] = ("MovieGrabber: %s (%s) - %s" % (uni_to_byte(self.imdb_movie_title_strip),self.imdb_movie_year_str,self.download_result_str))
                         msg['From'] = config_email_from
                         msg['To'] = config_email_to
 
@@ -2801,23 +2805,23 @@ class SearchIndex(object):
                         <body text="Black">
 
                         <p>
-                        <b>Title:</b> <a href=%s>%s (%s)</a> %s/10 from %s users""" % (self.imdb_link.encode("utf-8"),self.imdb_movie_title_strip.encode("utf-8"),self.imdb_movie_year_str,self.imdb_movie_rating_str,self.imdb_movie_votes_str) + """
+                        <b>Title:</b> <a href=%s>%s (%s)</a> %s/10 from %s users""" % (uni_to_byte(self.imdb_link),uni_to_byte(self.imdb_movie_title_strip),self.imdb_movie_year_str,self.imdb_movie_rating_str,self.imdb_movie_votes_str) + """
                         </p>
 
                         <p>
-                        <b>Plot:</b> %s""" % (self.imdb_movie_description.encode("utf-8")) + """
+                        <b>Plot:</b> %s""" % (uni_to_byte(self.imdb_movie_description)) + """
                         </p>
 
                         <p>
-                        <b>Actors:</b> %s""" % (self.imdb_movie_actors_str.encode("utf-8")) + """
+                        <b>Actors:</b> %s""" % (uni_to_byte(self.imdb_movie_actors_str)) + """
                         </p>
 
                         <p>
-                        <b>Genres:</b> %s""" % (self.imdb_movie_genres_str.encode("utf-8")) + """
+                        <b>Genres:</b> %s""" % (uni_to_byte(self.imdb_movie_genres_str)) + """
                         </p>
 
                         <p>
-                        <b>Post:</b> <a href=%s>%s</a> (%s)""" % (self.index_post_details.encode("utf-8"),self.index_post_title.encode("utf-8"),self.download_method) + """
+                        <b>Post:</b> <a href=%s>%s</a> (%s)""" % (uni_to_byte(self.index_post_details),uni_to_byte(self.index_post_title),self.download_method) + """
                         </p>
 
                         <p>
@@ -2840,7 +2844,7 @@ class SearchIndex(object):
                                 queue_release_internal = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,config_webconfig_address,config_webconfig_port,str(self.sqlite_id_queued))                                        
                                 html = html + """
                                 <p>
-                                <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (queue_release_internal.encode("utf-8"),queue_release_external.encode("utf-8")) + """
+                                <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (uni_to_byte(queue_release_internal),uni_to_byte(queue_release_external)) + """
                                 </p>
 
                                 </body>
@@ -3313,7 +3317,7 @@ class SearchIndex(object):
                                                 mg_log.info(u"Newznab Index - Cannot generate movie year from post title")                                                        
                                                 
                                         #convert to uri for html find_id
-                                        self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
+                                        self.index_post_movie_title_uri = urllib.quote(uni_to_byte(index_post_movie_title))
 
                                         #attempt to get imdb id using omdb
                                         self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
@@ -3495,7 +3499,7 @@ class SearchIndex(object):
                 site_feed = u"%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
                         
                 #convert to url for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3538,7 +3542,7 @@ class SearchIndex(object):
                 site_feed = u"%s:%s/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
                 #convert to uri for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3598,7 +3602,7 @@ class SearchIndex(object):
                         site_feed = u"%s:%s/new_video.html?fmt=rss" % (self.config_hostname, self.config_portnumber)
 
                 #convert to uri for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))                
 
                 #generate feed details
@@ -3624,7 +3628,7 @@ class SearchIndex(object):
                 site_feed = u"%s:%s/rss.xml?cid=4&type=last" % (self.config_hostname, self.config_portnumber)
 
                 #convert to uri for feed
-                self.site_feed = urllib.quote(site_feed.encode('utf-8'), safe=':/')
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -3904,7 +3908,7 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Cannot generate movie year from post title" % (site_name))
                                         
                                 #convert to uri for html find_id
-                                self.index_post_movie_title_uri = urllib.quote(index_post_movie_title.encode('utf-8'))
+                                self.index_post_movie_title_uri = urllib.quote(uni_to_byte(index_post_movie_title))
 
                                 #attempt to get imdb id using omdb
                                 self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
@@ -4407,7 +4411,7 @@ class PostProcessing(object):
                                                 self.os_movie_path_folder = os.path.normpath(self.os_movie_path_folder)
 
                                                 #this is set to check the completed folder for movie downloaded exists
-                                                if os.path.exists(self.os_movie_path_folder):
+                                                if uni_to_byte(os.path.exists(self.os_movie_path_folder)):
 
                                                         #run method to move all files to root movie folder
                                                         mg_log.info(u"Running move to completed movie root folder")
@@ -4428,14 +4432,14 @@ class PostProcessing(object):
                 def move(self):
 
                         #walk completed dir and imdb movie title
-                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
+                        for folder, subs, files in uni_to_byte(os.walk(self.os_movie_path_folder, topdown=False)):
                                 
                                 for os_movie_files_item in files:
 
                                         source_path_with_filename = os.path.join(folder, os_movie_files_item)
                                         dest_path_with_filename = os.path.join(self.os_movie_path_folder, os_movie_files_item)
 
-                                        if not os.path.exists(dest_path_with_filename):
+                                        if not uni_to_byte(os.path.exists(dest_path_with_filename)):
 
                                                 try:
 
@@ -4458,7 +4462,7 @@ class PostProcessing(object):
                         valid_extensions_list = [u".mkv", u".avi", u".mp4", u".dvx", u".wmv", u".mov"]
 
                         #walk completed dir and imdb movie title
-                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
+                        for folder, subs, files in uni_to_byte(os.walk(self.os_movie_path_folder, topdown=False)):
                                 
                                 for os_movie_files_item in files:
 
@@ -4480,7 +4484,7 @@ class PostProcessing(object):
                                                         
                                                         dest_path_with_filename = os.path.join(self.os_movie_path_folder, u"%s%s" % (self.sqlite_history_downloaded_postname,os_movie_files_ext))
 
-                                                if not os.path.exists(dest_path_with_filename):
+                                                if not uni_to_byte(os.path.exists(dest_path_with_filename)):
 
                                                         try:
 
@@ -4494,7 +4498,7 @@ class PostProcessing(object):
                 def rules(self):
 
                         #this is set to check the completed folder for movie downloaded exists
-                        if os.path.exists(self.os_movie_path_folder):
+                        if uni_to_byte(os.path.exists(self.os_movie_path_folder)):
 
                                 #convert comma seperated string into list - config parser cannot deal with lists
                                 config_post_rule_list = self.config_post_rule.split(",")
@@ -4509,7 +4513,7 @@ class PostProcessing(object):
                                         self.config_post_rule_textbox2 = config_obj["post_processing"]["%s_textbox2" % (config_post_rule_item)]
 
                                         #walk completed dir and imdb movie title, need to walk again due to move and rename functions previously applied
-                                        for folder, subs, files in os.walk(self.os_movie_path_folder, topdown=False):
+                                        for folder, subs, files in uni_to_byte(os.walk(self.os_movie_path_folder, topdown=False)):
 
                                                 #create filenames list - folder and subs not required as deleted in move function
                                                 self.os_movie_filenames_list = files
@@ -4773,7 +4777,7 @@ class PostProcessing(object):
                         mg_log.info(u"Source folder is %s" % self.os_movie_path_folder)
                         mg_log.info(u"Destination folder is %s" % destination_move_path)
 
-                        if self.config_post_replace_existing == "no" and os.path.exists(destination_move_path):
+                        if self.config_post_replace_existing == "no" and uni_to_byte(os.path.exists(destination_move_path)):
 
                                 mg_log.info(u"Cannot move folder %s as destination already exist at %s" % (self.os_movie_path_folder,destination_move_path))
 
@@ -4781,7 +4785,7 @@ class PostProcessing(object):
 
                                 try:
 
-                                        if os.path.exists(destination_move_path):
+                                        if uni_to_byte(os.path.exists(destination_move_path)):
 
                                                 #delete existing destination movie folder
                                                 shutil.rmtree(destination_move_path)
@@ -4820,7 +4824,7 @@ class PostProcessing(object):
                                 os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
 
                                 #delete files from movie folder
-                                if os.path.exists(os_movie_path_filenames):
+                                if uni_to_byte(os.path.exists(os_movie_path_filenames)):
 
                                         try:
 
@@ -5428,7 +5432,7 @@ class ConfigPost(object):
                         config_obj["post_processing"]["%s_textbox2" % (edit_config_rule)] = ""
 
                 #if dropdown3 set to move then check to make sure textbox2 (path) is not empty and path exists before saving
-                elif edit_config_dropdown3 == "move" and edit_config_textbox2 != "" and os.path.exists(edit_config_textbox2):
+                elif edit_config_dropdown3 == "move" and edit_config_textbox2 != "" and uni_to_byte(os.path.exists(edit_config_textbox2)):
 
                         #write values to config.ini
                         config_obj["post_processing"]["%s_dropdown1" % (edit_config_rule)] = edit_config_dropdown1
@@ -5992,31 +5996,31 @@ class ConfigDirectories(object):
         def save_config_directories(self, **kwargs):
 
                 #write values to config.ini - check to see if folders exist and check folder logic
-                if os.path.exists(kwargs["usenet_watch_dir2"]) and kwargs["usenet_watch_dir2"] != kwargs["usenet_archive_dir2"] or kwargs["usenet_watch_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["usenet_watch_dir2"])) and kwargs["usenet_watch_dir2"] != kwargs["usenet_archive_dir2"] or kwargs["usenet_watch_dir2"] == "":
 
                         config_obj["folders"]["usenet_watch_dir"] = del_inv_chars(kwargs["usenet_watch_dir2"])
 
-                if os.path.exists(kwargs["usenet_archive_dir2"]) and kwargs["usenet_archive_dir2"] != kwargs["usenet_watch_dir2"] or kwargs["usenet_archive_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["usenet_archive_dir2"])) and kwargs["usenet_archive_dir2"] != kwargs["usenet_watch_dir2"] or kwargs["usenet_archive_dir2"] == "":
 
                         config_obj["folders"]["usenet_archive_dir"] = del_inv_chars(kwargs["usenet_archive_dir2"])
 
-                if os.path.exists(kwargs["usenet_completed_dir2"]) or kwargs["usenet_completed_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["usenet_completed_dir2"])) or kwargs["usenet_completed_dir2"] == "":
 
                         config_obj["folders"]["usenet_completed_dir"] = del_inv_chars(kwargs["usenet_completed_dir2"])
 
-                if os.path.exists(kwargs["torrent_watch_dir2"]) and kwargs["torrent_watch_dir2"] != kwargs["torrent_archive_dir2"] or kwargs["torrent_watch_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["torrent_watch_dir2"])) and kwargs["torrent_watch_dir2"] != kwargs["torrent_archive_dir2"] or kwargs["torrent_watch_dir2"] == "":
 
                         config_obj["folders"]["torrent_watch_dir"] = del_inv_chars(kwargs["torrent_watch_dir2"])
 
-                if os.path.exists(kwargs["torrent_archive_dir2"]) and kwargs["torrent_archive_dir2"] != kwargs["torrent_watch_dir2"] or kwargs["torrent_archive_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["torrent_archive_dir2"])) and kwargs["torrent_archive_dir2"] != kwargs["torrent_watch_dir2"] or kwargs["torrent_archive_dir2"] == "":
 
                         config_obj["folders"]["torrent_archive_dir"] = del_inv_chars(kwargs["torrent_archive_dir2"])
 
-                if os.path.exists(kwargs["torrent_completed_dir2"]) or kwargs["torrent_completed_dir2"] == "":
+                if uni_to_byte(os.path.exists(kwargs["torrent_completed_dir2"])) or kwargs["torrent_completed_dir2"] == "":
 
                         config_obj["folders"]["torrent_completed_dir"] = del_inv_chars(kwargs["torrent_completed_dir2"])
 
-                if os.path.exists(kwargs["logs_dir2"]) and kwargs["logs_dir2"]:
+                if uni_to_byte(os.path.exists(kwargs["logs_dir2"])) and kwargs["logs_dir2"]:
 
                         config_obj["folders"]["logs_dir"] = del_inv_chars(kwargs["logs_dir2"])
 
@@ -6029,7 +6033,7 @@ class ConfigDirectories(object):
                         movies_to_replace_item = re.sub(ur"^\s+","" ,movies_to_replace_item)
                         movies_to_replace_item = re.sub(ur"\s+$","" ,movies_to_replace_item)
 
-                        if os.path.exists(movies_to_replace_item) and movies_to_replace_item != kwargs["usenet_completed_dir2"] and movies_to_replace_item != kwargs["torrent_completed_dir2"]:
+                        if uni_to_byte(os.path.exists(movies_to_replace_item)) and movies_to_replace_item != kwargs["usenet_completed_dir2"] and movies_to_replace_item != kwargs["torrent_completed_dir2"]:
 
                                 exitcode = 1
 
@@ -6052,7 +6056,7 @@ class ConfigDirectories(object):
                         movies_downloaded_item = re.sub(ur"^\s+","" ,movies_downloaded_item)
                         movies_downloaded_item = re.sub(ur"\s+$","" ,movies_downloaded_item)
 
-                        if os.path.exists(movies_downloaded_item) and movies_downloaded_item != kwargs["usenet_completed_dir2"] and movies_downloaded_item != kwargs["torrent_completed_dir2"]:
+                        if uni_to_byte(os.path.exists(movies_downloaded_item)) and movies_downloaded_item != kwargs["usenet_completed_dir2"] and movies_downloaded_item != kwargs["torrent_completed_dir2"]:
 
                                 exitcode = 1
 
@@ -6428,7 +6432,7 @@ class HistoryRoot(object):
                 for sqlite_imdbposter_history_item in sqlite_imdbposter_history:
 
                         #if imdbposter is not present in queued table, poster is not default.jpg, and file exists (maybe already deleted if duplicate entry in db) then delete
-                        if not sqlite_imdbposter_history_item in sqlite_imdbposter_queued and sqlite_imdbposter_history_item[0] != u"default.jpg" and os.path.exists(os.path.join(history_thumbnails_dir, sqlite_imdbposter_history_item[0])):
+                        if not sqlite_imdbposter_history_item in sqlite_imdbposter_queued and sqlite_imdbposter_history_item[0] != u"default.jpg" and uni_to_byte(os.path.exists(os.path.join(history_thumbnails_dir, sqlite_imdbposter_history_item[0]))):
 
                                 #delete poster image
                                 os.remove(os.path.join(history_thumbnails_dir, sqlite_imdbposter_history_item[0]))
@@ -6835,7 +6839,7 @@ def start_webgui():
                         'server.environment' : "production",
                         'engine.autoreload.on' : False,
                         'engine.timeout_monitor.on' : False,
-                        'server.socket_host' : config_obj["webconfig"]["address"].encode("utf-8"),
+                        'server.socket_host' : uni_to_byte(config_obj["webconfig"]["address"]),
                         'server.socket_port' : int(config_obj["webconfig"]["port"]),
                         'tools.staticdir.root' : os.path.dirname(os.path.abspath(sys.argv[0]))
                 },
@@ -7150,7 +7154,7 @@ class VersionCheckThread(object):
                 try:
 
                         #if lib folder exists then source code download url, else win32 binary download url
-                        if os.path.exists(os.path.join(moviegrabber_root_dir, u"lib")):
+                        if uni_to_byte(os.path.exists(os.path.join(moviegrabber_root_dir, u"lib"))):
 
                                 remote_download = sourceforge_webpage.splitlines()[1]
 
