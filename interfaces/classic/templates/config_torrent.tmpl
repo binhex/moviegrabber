@@ -30,6 +30,7 @@ CREATE INDEX
 		<option value="piratebay">thepiratebay</option>
 		<option value="bitsnoop">bitsnoop</option>
 		<option value="extratorrent">extratorrent</option>
+		<option value="demonoid">demonoid</option>
 		
 	</select>
 	
@@ -119,6 +120,10 @@ EDIT/DELETE INDEX
 			<!--#if "extratorrent" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["all movies"]#-->
 			<!--#end if#-->				
+
+			<!--#if "demonoid" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
+			<!--#end if#-->				
 			
 			<!--#for $torrent_cat_item in $torrent_cat_list#-->
 				<!--#if $torrent_cat_item.lower() == $torrent_cat.lower()#-->
@@ -154,6 +159,10 @@ EDIT/DELETE INDEX
 			<!--#end if#-->				
 
 			<!--#if "extratorrent" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->				
+
+			<!--#if "demonoid" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->				
 			

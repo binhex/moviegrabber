@@ -745,7 +745,7 @@ class ResultsDBHistory(Base):
         postdetails = Column(String)
         postname = Column(String)
         postnamestrip = Column(String, unique=True)
-        postdl = Column(String)
+        postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
         dltype = Column(String)
@@ -813,7 +813,7 @@ class ResultsDBQueued(Base):
         postdetails = Column(String)
         postname = Column(String)
         postnamestrip = Column(String, unique=True)
-        postdl = Column(String)
+        postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
         dltype = Column(String)
@@ -3311,13 +3311,20 @@ class SearchIndex(object):
 
                         mg_log.warning(u"%s Index - Site feed download failed" % (site_name))
                         return
-
-                if site_name == u"Newznab":
                         
-                        #parse json formatted feed
-                        site_feed_parse = json.loads(site_feed)
-                        site_feed_parse = site_feed_parse["channel"]["item"]
+                if site_name == u"Newznab":
 
+                        try:
+                                
+                                #parse json formatted feed
+                                site_feed_parse = json.loads(site_feed)
+                                site_feed_parse = site_feed_parse["channel"]["item"]
+                                
+                        except TypeError, e:
+                                
+                                mg_log.warning(u"%s Index - Site feed Parse failed" % (site_name))
+                                return
+                        
                 else:
 
                         try:
@@ -3384,7 +3391,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        post_title = node.title
+                                        post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
 
@@ -3428,18 +3435,20 @@ class SearchIndex(object):
 
                                 mg_log.info(u"%s Index - Post title not found" % (site_name))
                                 continue
+
+                        #create empty dictionary for download url's
+                        self.index_download_link = {}
                         
                         #generate download link
                         if site_name == u"Newznab":
 
                                 try:
-                                        
-                                        self.index_nzb_download = node["link"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_nzb_download))
+
+                                        self.index_download_link["nzb"] = node["link"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["link"]))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_nzb_download = None
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
@@ -3447,50 +3456,46 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        self.index_magnet_download = node["torrent:magnetURI"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_magnet_download))
+                                        self.index_download_link["magnet"] = node["torrent:magnetURI"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["torrent:magnetURI"]))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_magnet_download = None
+                                        pass
 
                                 try:
                                         
-                                        self.index_torrent_download = node["enclosure"]["@url"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_torrent_download))
+                                        self.index_download_link["torrent"] = node["enclosure"]["@url"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_torrent_download = None
-
-                                if self.index_magnet_download and self.index_torrent_download == None:
-
-                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
-                                        continue
+                                        pass
 
                         if site_name == u"PirateBay":
                                 
                                 try:
                                         
-                                        self.index_magnet_download = node["link"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_magnet_download))
+                                        self.index_download_link["magnet"] = node["link"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["link"]))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_magnet_download = None
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
                         if site_name == u"Demonoid":
-                                
+
                                 try:
                                         
-                                        self.index_download_link = node.magneturi
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_download_link))
+                                        index_details_link = node["link"]
+                                        index_download_link = re.sub(ur"details","download",index_details_link)
+                                        
+                                        self.index_download_link["torrent"] = index_download_link
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,index_download_link))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_download_link = None
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
@@ -3498,12 +3503,11 @@ class SearchIndex(object):
 
                                 try:
                                         
-                                        self.index_torrent_download = node["enclosure"]["@url"]
+                                        self.index_download_link["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_torrent_download))
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.index_torrent_download = None
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
                         
@@ -3525,7 +3529,7 @@ class SearchIndex(object):
                         #if postname already exists then add to download url list and go to next iter
                         if sqlite_post_name != None:
 
-                                #check if download url is in sqlite db (case insensitive), if == None then append
+                                #check if download url is already in sqlite db (case insensitive), if not found (equal to none) then append
                                 sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
 
                                 if sqlite_postdl == None:
@@ -3533,7 +3537,7 @@ class SearchIndex(object):
                                         #get download url for post name above
                                         sqlite_postdl_history = sqlite_post_name.postdl
 
-                                        #append current download url to existing download url in db
+                                        #append current download url to existing download url in db, using comma as seperator
                                         sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
 
                                         #change record with updated string
@@ -3574,6 +3578,16 @@ class SearchIndex(object):
                                 try:
                                         
                                         post_description = node["link"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_description = None
+
+                        if site_name == u"Demonoid":
+                                
+                                try:
+                                        
+                                        post_description = node["description"]
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -3674,7 +3688,7 @@ class SearchIndex(object):
 
                         #set post size to none
                         post_size = None
-                        
+
                         #generate post size
                         if site_name == u"Newznab":
                                 
@@ -3709,9 +3723,25 @@ class SearchIndex(object):
                         if site_name == u"Demonoid":
                                 
                                 try:
-                                        
-                                        post_size = node.size
 
+                                        #use regex to construct scale and value
+                                        post_size_desc = re.compile("(?<=Size:\s)[^<]+", re.IGNORECASE).search(post_description).group()
+                                        post_size_scale = re.compile("[a-zA-Z]+$", re.IGNORECASE).search(post_size_desc).group()                                
+                                        post_size_value_str = re.compile("[\d\.\,]+", re.IGNORECASE).search(post_size_desc).group()
+
+                                        #limit decimal precision to x.xx
+                                        decimal.getcontext().prec = 3
+
+                                        if post_size_scale == "MB":
+
+                                                #convert from MB to KB
+                                                post_size = int(decimal.Decimal(post_size_value_str) * 1000000) 
+
+                                        if post_size_scale == "GB":
+
+                                                #convert from GB to KB
+                                                post_size = int(decimal.Decimal(post_size_value_str) * 1000000000)
+                                                
                                 except (IndexError, AttributeError) as e:
                                         
                                         post_size = None
@@ -3762,7 +3792,7 @@ class SearchIndex(object):
                                 self.index_post_size_sort = 0
                                 self.index_post_size_int = 0
                                 mg_log.info(u"%s Index - Post size not found" % (site_name))
-
+                        
                         #if size is below min/max then continue to next post
                         if self.filter_index_good_size() != 1:
 
@@ -3794,6 +3824,16 @@ class SearchIndex(object):
                                         post_date = None                        
 
                         if site_name == u"PirateBay":
+                                
+                                try:
+                                        
+                                        post_date = node["pubDate"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
+                        if site_name == u"Demonoid":
                                 
                                 try:
                                         
@@ -3876,7 +3916,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        post_details = node.id
+                                        post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -3936,16 +3976,6 @@ class SearchIndex(object):
                                         
                                         post_id = None
 
-                        if site_name == u"Demonoid":
-                                
-                                try:
-                                        
-                                        post_id = node.infohash
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_id = None
-
                         if site_name == u"ExtraTorrent":
                                 
                                 try:
@@ -3984,24 +4014,6 @@ class SearchIndex(object):
                                 try:
                                         
                                         post_peers = node["torrent:peers"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_peers = None
-
-                        if site_name == u"Demonoid":
-                                
-                                try:
-                                        
-                                        post_seeders = node.numseeders
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_seeders = None
-
-                                try:
-                                        
-                                        post_peers = node.numleechers
 
                                 except (IndexError, AttributeError) as e:
                                         
