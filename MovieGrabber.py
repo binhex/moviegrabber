@@ -1144,68 +1144,86 @@ class DownloadWatched():
                                 if self.sqlite_row == None:
 
                                         continue
-
-                        #convert comma seperated string into list
-                        sqlite_postdl_list = self.sqlite_row.postdl.split(",")
-
-                        #iterate over list of download url's
-                        for sqlite_postdl_item in sqlite_postdl_list:
-
+                                
+                        #iterate over list of items in dict getting download type and url
+                        for self.download_type_item, self.download_url_item in self.sqlite_row.postdl.iteritems():
+                                
                                 if not download_poison_queue.empty():
 
                                         #send task done and exit function
                                         download_poison_queue.task_done()
                                         mg_log.info(u"Shutting down downloader")
                                         return
+                                        
+                                if self.download_type_item == "nzb":
 
-                                try:
+                                        #read watch directory entries from config.ini
+                                        config_watch_dir = config_obj["folders"]["usenet_watch_dir"]
+                                        config_watch_dir = os.path.normpath(config_watch_dir)
 
-                                        #this reads the nzb/torrent file from the download link
-                                        self.download_read = urllib2_retry(sqlite_postdl_item,user_agent_moviegrabber)
+                                        #if nzb client defined self.download_nzb_client()
+                                        #if readback from nzb client not succesfult then fallback to blackhole below
+                                        
+                                        if config_watch_dir != "":
 
-                                        download_read_result = 1
-                                        mg_log.info(u"Read of nzb/torrent successful for url %s" % (sqlite_postdl_item))
+                                                self.download_read_watched()
 
-                                except Exception:
+                                        else:
 
-                                        download_read_result = 0
-                                        mg_log.info(u"Read of nzb/torrent failed for url %s" % (sqlite_postdl_item))
+                                                return
 
-                                #if read ok then go to write method
-                                if download_read_result == 1:
+                                if self.download_type_item == "torrent":
 
-                                        download_write_result = self.download_write()
+                                        #read watch directory entries from config.ini
+                                        config_watch_dir = config_obj["folders"]["torrent_watch_dir"]
+                                        config_watch_dir = os.path.normpath(config_watch_dir)
 
-                                        #if write succesful then break download url for loop
-                                        if download_write_result == 1:
+                                        #if torrent client defined self.download_torrent_client()
+                                        #if readback from nzb client not succesfult then fallback to blackhole below                                        
+                                        
+                                        if config_watch_dir != "":
 
-                                                mg_log.info(u"Write of nzb/torrent successful for movie %s" % (self.sqlite_row.dlname))
-                                                break
+                                                self.download_read_watched()
 
-                                        #if write failed then break download url for loop
-                                        elif download_write_result == 0:
+                                        else:
 
-                                                mg_log.info(u"Write of nzb/torrent failed for movie %s" % (self.sqlite_row.dlname))
-                                                break
+                                                return
 
-                                else:
+                                if self.download_type_item == "magnet":
+                                        
+                                        pass
+                                        #if torrent client defined self.download_torrent_client() else return
+                                
+        def download_torrent_client(self):
+                
+                pass
+        
+        def download_nzb_client(self):
+                
+                pass
+        
+        def download_read_watched(self):
 
-                                        continue
+                try:
 
-                        #if retry attempts for read fail then mark as status failed
-                        if download_read_result == 0:
+                        #this reads the nzb/torrent file from the download link
+                        self.download_read = urllib2_retry(self.download_url_item,user_agent_moviegrabber)                        
+                        mg_log.info(u"Read of nzb/torrent successful for url %s" % (self.download_url_item))
 
-                                #write result to history/queue table
-                                self.download_status("Failed")
+                except Exception:
+                        
+                        mg_log.info(u"Read of nzb/torrent failed for url %s" % (self.download_url_item))
+                        return
 
-                                mg_log.info(u"Read of nzb/torrent failed for movie %s" % (self.sqlite_row.dlname))
+                #run download write method to blackhole
+                self.download_write_watched()
 
                 mg_log.info(u"Download nzb/torrent to watched folder finished")
-
-        def download_write(self):
                 
-                #check if index site is torrent or nzb
-                if self.sqlite_row.dltype == "usenet":
+        def download_write_watched(self):
+                
+                #check if download type is torrent or nzb
+                if self.download_type_item == "nzb":
 
                         #read watch directory entries from config.ini
                         config_watch_dir = config_obj["folders"]["usenet_watch_dir"]
@@ -1240,26 +1258,52 @@ class DownloadWatched():
                 #if nzb/torrent does exist in watched folder and 0 bytes in size (failed download) then delete
                 if uni_to_byte(os.path.exists(download_path_filename)) and os.path.getsize(download_path_filename) == 0:
 
-                        os.remove(download_path_filename)
-                        mg_log.info(u"Deleted zero byte file %s" % (download_path_filename))
+                        try:
+                                
+                                os.remove(download_path_filename)
+                                mg_log.info(u"Deleted zero byte file %s" % (download_path_filename))
 
+                        except Exception:
+
+                                mg_log.info(u"Cannot delete zero byte file %s" % (download_path_filename))
+                                return
+                                
                 #check nzb/torrent does not exist in watched folder
                 if not uni_to_byte(os.path.exists(download_path_filename)):
 
-                        #write nzb/torrent to file in watched folder
-                        download_write = open(download_path_filename, "wb")
-                        download_write.write(self.download_read)
-                        download_write.close()
+                        try:
 
-                        #write result to history/queue table
-                        self.download_status("Downloaded")
+                                #write nzb/torrent to file in watched folder
+                                download_write = open(download_path_filename, "wb")
+                                download_write.write(self.download_read)
+                                download_write.close()
+
+                        except Exception:
+
+                                #set result to downloaded for history/queue status
+                                self.dlstatus_msg = "Failed"
+
+                                #run function to write status
+                                self.download_status()
+                                
+                                mg_log.info(u"write of nzb/torrent to %s failed" % (download_path_filename))
+                                return
+
+                        #set result to downloaded for history/queue status
+                        self.dlstatus_msg = "Downloaded"
+                        
+                        #run function to write status
+                        self.download_status()
 
                         mg_log.info(u"Write of nzb/torrent file successful for file  %s" % (download_path_filename))
 
                 else:
 
-                        #write result to history/queue table
-                        self.download_status("Failed")
+                        #set result to downloaded for history/queue status
+                        self.dlstatus_msg = "Failed"
+
+                        #run function to write status
+                        self.download_status()
 
                         mg_log.info(u"Nzb/torrent already exists in watched folder %s" % (download_path_filename))
                         return 0
@@ -1276,33 +1320,15 @@ class DownloadWatched():
 
                         mg_log.info(u"Deleted queued item from database")
 
-                return 1
+                mg_log.info(u"Write of nzb/torrent successful for movie %s" % (self.sqlite_row.dlname))
 
-        def download_status(self, dlstatus_msg):
-                
-                #select row from history table for selected queued postname
-                sqlite_history_row = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.postname==self.sqlite_row.postname).first()
+        def download_status(self):
 
-                if sqlite_history_row != None:
-
+                if self.sqlite_row.dlstatus != None:
+                        
                         #write result to history table
-                        sqlite_history_row.dlstatus = dlstatus_msg
+                        self.sqlite_row.dlstatus = self.dlstatus_msg
                         sql_session.commit()
-
-                #remove scoped session
-                sql_session.remove()
-
-                #select row from queued table for selected queued postname
-                sqlite_queued_row = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.postname==self.sqlite_row.postname).first()
-
-                if sqlite_queued_row != None:
-
-                        #write result to queue table
-                        sqlite_queued_row.dlstatus = dlstatus_msg
-                        sql_session.commit()
-
-                #remove scoped session
-                sql_session.remove()
 
 #####################
 # xbmc notification #
@@ -2960,7 +2986,7 @@ class SearchIndex(object):
                         return
                 
                 #insert details into history table (note sqlite requires decimal values as text)
-                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+                sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                 #add the record to the session object
                 sql_session.add(sqlite_insert)
@@ -2995,7 +3021,7 @@ class SearchIndex(object):
                 if self.download_result_str  == "Queued":
 
                         #insert details into queued table (note sqlite requires decimal values as text)
-                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_link, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+                        sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
                         #add the record to the session object
                         sql_session.add(sqlite_insert)
@@ -3055,8 +3081,6 @@ class SearchIndex(object):
                 site_name = u"Newznab"
                 
                 mg_log.info(u"Newznab Index - Newznab search index started")
-
-                self.download_format = [u"nzb"]
                 
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"all formats":
@@ -3142,8 +3166,6 @@ class SearchIndex(object):
                 site_name = u"KickAss"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-
-                self.download_format = [u"magnet", u"torrent"]
                 
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
@@ -3201,8 +3223,6 @@ class SearchIndex(object):
                 site_name = u"PirateBay"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-
-                self.download_format = [u"magnet"]
                 
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
@@ -3244,8 +3264,6 @@ class SearchIndex(object):
                 site_name = u"Demonoid"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-
-                self.download_format = [u"torrent"]
                 
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
@@ -3279,8 +3297,6 @@ class SearchIndex(object):
                 site_name = u"ExtraTorrent"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-
-                self.download_format = [u"torrent"]
                 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3322,7 +3338,7 @@ class SearchIndex(object):
                                 
                         except TypeError, e:
                                 
-                                mg_log.warning(u"%s Index - Site feed Parse failed" % (site_name))
+                                mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
                         
                 else:
@@ -3335,12 +3351,12 @@ class SearchIndex(object):
                                                                 
                         except xmltodict.expat.ExpatError, e:
 
-                                mg_log.warning(u"%s Index - Site feed Parse failed" % (site_name))
+                                mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
                                 
                 #this breaks down the rss feed page into tag sections
                 for node in site_feed_parse:
-
+                        
                         if not search_index_poison_queue.empty():
 
                                 #get task from queue
@@ -3437,14 +3453,14 @@ class SearchIndex(object):
                                 continue
 
                         #create empty dictionary for download url's
-                        self.index_download_link = {}
+                        self.index_download_dict = {}
                         
                         #generate download link
                         if site_name == u"Newznab":
 
                                 try:
 
-                                        self.index_download_link["nzb"] = node["link"]
+                                        self.index_download_dict["nzb"] = node["link"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["link"]))
 
                                 except (IndexError, AttributeError) as e:
@@ -3456,7 +3472,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        self.index_download_link["magnet"] = node["torrent:magnetURI"]
+                                        self.index_download_dict["magnet"] = node["torrent:magnetURI"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["torrent:magnetURI"]))
 
                                 except (IndexError, AttributeError) as e:
@@ -3465,7 +3481,7 @@ class SearchIndex(object):
 
                                 try:
                                         
-                                        self.index_download_link["torrent"] = node["enclosure"]["@url"]
+                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
                                 except (IndexError, AttributeError) as e:
@@ -3476,7 +3492,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        self.index_download_link["magnet"] = node["link"]
+                                        self.index_download_dict["magnet"] = node["link"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["link"]))
 
                                 except (IndexError, AttributeError) as e:
@@ -3491,7 +3507,7 @@ class SearchIndex(object):
                                         index_details_link = node["link"]
                                         index_download_link = re.sub(ur"details","download",index_details_link)
                                         
-                                        self.index_download_link["torrent"] = index_download_link
+                                        self.index_download_dict["torrent"] = index_download_link
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,index_download_link))
 
                                 except (IndexError, AttributeError) as e:
@@ -3503,8 +3519,8 @@ class SearchIndex(object):
 
                                 try:
                                         
-                                        self.index_download_link["torrent"] = node["enclosure"]["@url"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,self.index_torrent_download))
+                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
                                 except (IndexError, AttributeError) as e:
 
@@ -3512,46 +3528,49 @@ class SearchIndex(object):
                                         continue
                         
                         #remove seperators from post title, used for compare
-                        self.index_post_title_strip = re.sub(ur"[\.\s\-\_\(\)\[\]\,]+", "", self.index_post_title)
+                        self.index_post_title_strip = re.sub(ur"[\+\.\s\-\_\(\)\[\]\,]+", "", self.index_post_title)
 
                         #convert to lowercase
                         self.index_post_title_strip = self.index_post_title_strip.lower()
 
-                        #append dltype to allow usenet/torrent with same postname
-                        self.index_post_title_strip = u"%s-torrent" % (self.index_post_title_strip)
-
                         #check if post title strip is in sqlite db
-                        sqlite_post_name = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
+                        sqlite_postnamestrip = sql_session.query(ResultsDBHistory).filter((ResultsDBHistory.postnamestrip)==(self.index_post_title_strip)).first()
 
                         #remove scoped session
                         sql_session.remove()
 
-                        #if postname already exists then add to download url list and go to next iter
-                        if sqlite_post_name != None:
+                        #if current postname not in db then proceed, otherwise do check for dl link and then continue to next item
+                        if sqlite_postnamestrip != None:
 
-                                #check if download url is already in sqlite db (case insensitive), if not found (equal to none) then append
-                                sqlite_postdl = sql_session.query(ResultsDBHistory).filter(func.lower(ResultsDBHistory.postdl).contains(func.lower(self.index_download_link))).first()
+                                mg_log.info(u"%s Index - Post title %s in db history table" % (site_name,self.index_post_title))
+                                
+                                #get dict of postdl links for current postname in db
+                                sqlite_postnamestrip_postdl =  sqlite_postnamestrip.postdl
 
-                                if sqlite_postdl == None:
+                                #compare dictionaries to see if download link already exists in db
+                                matching_postdl = set(sqlite_postnamestrip_postdl.items()) & set(self.index_download_dict.items())
 
-                                        #get download url for post name above
-                                        sqlite_postdl_history = sqlite_post_name.postdl
+                                #if no matching items then append
+                                if len(matching_postdl) == 0:
 
-                                        #append current download url to existing download url in db, using comma as seperator
-                                        sqlite_postdl_history_append = u"%s,%s" % (sqlite_postdl_history, self.index_download_link)
-
-                                        #change record with updated string
-                                        sqlite_post_name.postdl = sqlite_postdl_history_append
-
+                                        #add download link dict to db postdl dict
+                                        sqlite_postnamestrip_postdl.update(self.index_download_dict)
+                                        
                                         #commit download url append to history table
                                         sql_session.commit()
 
-                                #remove scoped session
-                                sql_session.remove()
-
-                                mg_log.info(u"%s Index - Post title in db history table" % (site_name))
+                                        mg_log.info(u"%s Index - Download link(s) appended to db postdl dict" % (site_name))
+                                        
+                                else:
+                                        
+                                        mg_log.info(u"%s Index - Download link(s) already in db postdl dict" % (site_name))
+                                        
                                 continue
 
+                        else:
+                                
+                                mg_log.info(u"%s Index - Post title %s NOT in db history table" % (site_name,self.index_post_title))
+                        
                         #if post title filters are not 0 then continue to next post
                         if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
@@ -3714,7 +3733,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        post_size = node["contentlength"]
+                                        post_size = node["torrent"]["contentLength"]
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -3970,7 +3989,7 @@ class SearchIndex(object):
                                 
                                 try:
                                         
-                                        post_id = node["infoHash"]
+                                        post_id = node["torrent"]["infoHash"]
 
                                 except (IndexError, AttributeError) as e:
                                         
