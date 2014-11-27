@@ -703,6 +703,8 @@ results_dir = config_obj["folders"]["results_dir"]
 
 #construct full path to files
 cherrypy_log = os.path.join(logs_dir, u"cherrypy.log")
+cherrypy_access_log = os.path.join(logs_dir, u"cherrypy_access.log")
+cherrypy_error_log = os.path.join(logs_dir, u"cherrypy_error.log")
 moviegrabber_log = os.path.join(logs_dir, u"moviegrabber.log")
 sqlite_log = os.path.join(logs_dir, u"sqlite.log")
 results_db = os.path.join(results_dir, u"results.db")
@@ -890,9 +892,9 @@ def cherrypy_logging():
         #specify log filename
         log = cherrypy.log
         
-        #remove the default FileHandlers if present
-        log.access_file = ""
-        log.error_file = ""
+        #define additional cherrypy logs
+        log.access_file = cherrypy_access_log
+        log.error_file = cherrypy_error_log
 
         #max size of 512KB
         maxBytes = getattr(log, "rot_maxBytes", 524288)
