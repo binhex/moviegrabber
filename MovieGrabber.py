@@ -6693,7 +6693,8 @@ def start_webgui():
                         'tools.auth_basic.checkpassword' : checkpassword,
                         'tools.encode.on' : True,             
                         'tools.encode.encoding' : "utf-8",
-                        'tools.gzip.on' : True
+                        'tools.gzip.on' : True,
+                        'tools.secureheaders.on' : True
                 }
 
         }
@@ -7138,6 +7139,21 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
 
         #set priority so search index stops first as its reliant on sqlite, lower number means higher priority
         stop.priority = 80
+
+#secure cherrypy headers from attack
+def secure_headers():
+        
+        headers = cherrypy.response.headers
+        headers['X-Frame-Options'] = 'DENY'
+        headers['X-XSS-Protection'] = '1; mode=block'
+        headers['Content-Security-Policy'] = "default-src='self'"
+
+        #if ssl enabled and defined then enable strict transport headers, age to 1 year
+        if (cherrypy.server.ssl_certificate != None and cherrypy.server.ssl_private_key != None):
+        
+                headers['Strict-Transport-Security'] = 'max-age=31536000'
+                
+cherrypy.tools.secureheaders = cherrypy.Tool('before_finalize', secure_headers, priority=60)
                 
 #run default client browser on startup
 def launch_default_browser():
@@ -7224,7 +7240,7 @@ if __name__ == '__main__':
                         #enable ssl self signed certs
                         cherrypy.server.ssl_certificate = os.path.join(certs_dir, u"host.cert")
                         cherrypy.server.ssl_private_key = os.path.join(certs_dir, u"host.key")
-
+                        
                 except Exception:
 
                         #disable ssl self signed certs
@@ -7234,6 +7250,9 @@ if __name__ == '__main__':
                         config_obj.write()
 
                         sys.stderr.write(u"SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS")
+
+        #run secure headers function
+        secure_headers()
 
         #run sqlite check function
         sqlite_check()
