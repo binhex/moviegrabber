@@ -6694,7 +6694,10 @@ def start_webgui():
                         'tools.encode.on' : True,             
                         'tools.encode.encoding' : "utf-8",
                         'tools.gzip.on' : True,
-                        'tools.secureheaders.on' : True
+                        'tools.secureheaders.on' : True,
+                        'tools.sessions.on' : True,
+                        'tools.sessions.secure' : True,
+                        'tools.sessions.httponly' : True
                 }
 
         }
@@ -7237,7 +7240,7 @@ if __name__ == '__main__':
                         #attempt to import openssl module, if error then disable ssl and log warning
                         import OpenSSL
 
-                        #enable ssl self signed certs
+                        #set path to ssl cert and key
                         cherrypy.server.ssl_certificate = os.path.join(certs_dir, u"host.cert")
                         cherrypy.server.ssl_private_key = os.path.join(certs_dir, u"host.key")
                         
@@ -7248,6 +7251,10 @@ if __name__ == '__main__':
 
                         #write settings to config.ini
                         config_obj.write()
+
+                        #set path to ssl cert and key to none to disable strict transport headers
+                        cherrypy.server.ssl_certificate = None
+                        cherrypy.server.ssl_private_key = None
 
                         sys.stderr.write(u"SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS")
 
