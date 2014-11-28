@@ -418,7 +418,34 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
         val = validate.Validator()
 
         #pass validator to configobj instance, copy required to write missing values out to config.ini
-        config_obj.validate(val, copy=True)
+        val_result = config_obj.validate(val, copy=True)
+
+        #loop over validator and fix any validation failures, such as unquotes string
+        if val_result != True:
+                
+                for (section_list, key, _) in configobj.flatten_errors(config_obj, val_result):
+                        
+                        if key is not None:
+
+                                #convert section list to str
+                                section_item = ', '.join(section_list)
+                                
+                                #get value from section and key
+                                config_bad_value = config_obj[section_item][key]
+                                
+                                if type(config_bad_value) is list:
+
+                                        #convert list to comma seperated string
+                                        config_bad_value_str = ','.join(config_bad_value)
+
+                                        #write new string value to config.ini
+                                        config_obj[section_item][key] = config_bad_value_str
+                                        
+                                print 'The "%s" key in the section "%s" failed validation' % (key, ', '.join(section_list))
+                                
+                        else:
+
+                                print 'The following section was missing:%s ' % ', '.join(section_list)
         
         #force write of version to config.ini
         config_obj["general"]["local_version"] = latest_mg_version
@@ -3209,12 +3236,12 @@ class SearchIndex(object):
 
                         #replace comma with spaces to seperate search terms
                         search_term = re.sub(ur","," ", search_term)
-                        
+
                 #generate url for site with must exist search criteria
                 site_feed = u"%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
                         
                 #convert to url for feed
-                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #generate feed details
@@ -6693,13 +6720,13 @@ def start_webgui():
                         'tools.auth_basic.on' : auth_basic,
                         'tools.auth_basic.realm' : "MovieGrabber",
                         'tools.auth_basic.checkpassword' : checkpassword,
-                        'tools.encode.on' : True,             
-                        'tools.encode.encoding' : "utf-8",
-                        'tools.gzip.on' : True,
                         'tools.secureheaders.on' : True,
                         'tools.sessions.on' : True,
                         'tools.sessions.secure' : True,
-                        'tools.sessions.httponly' : True
+                        'tools.sessions.httponly' : True,
+                        'tools.encode.on' : True,             
+                        'tools.encode.encoding' : "utf-8",
+                        'tools.gzip.on' : True
                 }
 
         }
