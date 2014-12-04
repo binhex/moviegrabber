@@ -1125,7 +1125,12 @@ class DownloadWatched():
         #create instance variables to pass between download methods
         def __init__(self):
 
-                pass
+                self.sqlite_row = None
+                self.sqlite_id_item = None
+                self.sqlite_table = None
+                self.download_url_item = None
+                self.download_type_item = None
+                self.dlstatus_msg = None
 
         def download_read(self):
 
@@ -1136,7 +1141,7 @@ class DownloadWatched():
                 #get dictionary value for sqlite_id, id's will be in a list
                 sqlite_id_list = download_details_queue_contents.get("sqlite_id")
 
-                for sqlite_id_item in sqlite_id_list:
+                for self.sqlite_id_item in sqlite_id_list:
 
                         if not download_poison_queue.empty():
 
@@ -1151,7 +1156,7 @@ class DownloadWatched():
                         if self.sqlite_table == "history":
 
                                 #select row from history table for selected id
-                                self.sqlite_row = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.id==sqlite_id_item).first()
+                                self.sqlite_row = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.id==self.sqlite_id_item).first()
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -1164,7 +1169,7 @@ class DownloadWatched():
                         else:
 
                                 #select row from queued table for selected id
-                                self.sqlite_row = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.id==sqlite_id_item).first()
+                                self.sqlite_row = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.id==self.sqlite_id_item).first()
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -1278,8 +1283,11 @@ class DownloadWatched():
 
                 else:
 
-                        #write result to history/queue table
-                        self.download_status("Failed")
+                        #set result to downloaded for history/queue status
+                        self.dlstatus_msg = "Failed"
+
+                        #run function to write status
+                        self.download_status()
 
                         mg_log.info(u"Watched folder does not exist %s" % (config_watch_dir))
                         return 0
@@ -1347,6 +1355,9 @@ class DownloadWatched():
                         #shrink database
                         sql_session.execute("VACUUM")
 
+                        #remove scoped session
+                        sql_session.remove()
+
                         mg_log.info(u"Deleted queued item from database")
 
                 mg_log.info(u"Write of nzb/torrent successful for movie %s" % (self.sqlite_row.dlname))
@@ -1354,10 +1365,15 @@ class DownloadWatched():
         def download_status(self):
 
                 if self.sqlite_row.dlstatus != None:
-                        
+
+                        #select row from history table for selected id and update dlstatus
+                        sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.id==self.sqlite_id_item).update({'dlstatus': self.dlstatus_msg})
+
                         #write result to history table
-                        self.sqlite_row.dlstatus = self.dlstatus_msg
                         sql_session.commit()
+
+                        #remove scoped session
+                        sql_session.remove()
 
 #####################
 # xbmc notification #
@@ -3311,8 +3327,8 @@ class SearchIndex(object):
 
                         self.config_hostname = u"http://%s" % (self.config_hostname)
 
-                #construct site rss feed
-                site_feed = u"%s:%s/rss/%s.xml" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                #construct site rss feed, note demonoid does not support specification of port number
+                site_feed = u"%s/rss/%s.xml" % (self.config_hostname, self.config_cat)
                 
                 #convert to uri for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
@@ -3378,7 +3394,7 @@ class SearchIndex(object):
                                 site_feed_parse = xmltodict.parse(site_feed)
                                 site_feed_parse = site_feed_parse["rss"]["channel"]["item"]
                                                                 
-                        except xmltodict.expat.ExpatError, e:
+                        except (xmltodict.expat.ExpatError, KeyError), e:
 
                                 mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
@@ -5713,7 +5729,7 @@ class ConfigTorrent(object):
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "demonoid":
 
-                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://www.demonoid.ph"
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://www.demonoid.pw"
                         config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #set hostname, path, and port number for known index sites
