@@ -3203,6 +3203,9 @@ class SearchIndex(object):
                         self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/&=?%')
                         mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
+                        #set user agent sent to index site
+                        self.user_agent = user_agent_moviegrabber
+
                         #generate feed details
                         self.feed_details(site_name)
 
@@ -3260,6 +3263,9 @@ class SearchIndex(object):
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
+                #set user agent sent to index site
+                self.user_agent = user_agent_moviegrabber
+
                 #generate feed details
                 self.feed_details(site_name)
 
@@ -3301,6 +3307,9 @@ class SearchIndex(object):
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
+                #set user agent sent to index site
+                self.user_agent = user_agent_moviegrabber
+
                 #generate feed details
                 self.feed_details(site_name)
 
@@ -3334,6 +3343,9 @@ class SearchIndex(object):
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))                
 
+                #set user agent sent to index site
+                self.user_agent = user_agent_ie
+
                 #generate feed details
                 self.feed_details(site_name)
 
@@ -3358,6 +3370,9 @@ class SearchIndex(object):
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
+                #set user agent sent to index site
+                self.user_agent = user_agent_moviegrabber
+                
                 #generate feed details
                 self.feed_details(site_name)
 
@@ -3366,7 +3381,7 @@ class SearchIndex(object):
                 #pass to urllib2 retry function - decorator
                 try:
 
-                        site_feed = urllib2_retry(self.site_feed,user_agent_moviegrabber)
+                        site_feed = urllib2_retry(self.site_feed,self.user_agent)
 
                 except Exception:
 
