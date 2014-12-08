@@ -916,25 +916,40 @@ certs_dir = os.path.normpath(certs_dir)
 
 def cherrypy_logging():
 
-        #specify log filename
+        #define cherrpy app log
         log = cherrypy.log
         
-        #define additional cherrypy logs
-        log.access_file = cherrypy_access_log
-        log.error_file = cherrypy_error_log
+        #remove error and access file, specified in rotatingfilehandler
+        log.access_file = ""
+        log.error_file = ""
+        
+        # error log
+        
+        #add the log message handler to the logger
+        cherrypy_error_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_log, 'a', maxBytes=10485760, backupCount=3, encoding = "utf-8")
 
-        #max size of 512KB
-        maxBytes = getattr(log, "rot_maxBytes", 524288)
+        #set logging level to debug
+        cherrypy_error_rotatingfilehandler.setLevel(logging.DEBUG)
 
-        #cherrypy.log cherrypy.log.1 cherrypy.log.2
-        backupCount = getattr(log, "rot_backupCount", 3)
+        #set formatting for app log
+        cherrypy_error_rotatingfilehandler.setFormatter(cherrypy._cplogging.logfmt)
 
-        #create a new rotating log for error logging
-        fname = getattr(log, "rot_error_file", cherrypy_log)
-        h = logging.handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount, encoding = "utf-8")
-        h.setLevel(logging.DEBUG)
-        h.setFormatter(cherrypy._cplogging.logfmt)
-        log.error_log.addHandler(h)
+        #add RotatingFileHandler for app log
+        log.error_log.addHandler(cherrypy_error_rotatingfilehandler)
+
+        # access log
+        
+        #add the access message handler to the logger
+        cherrypy_access_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_access_log, 'a', maxBytes=10485760, backupCount=3, encoding = "utf-8")
+
+        #set logging level to debug
+        cherrypy_access_rotatingfilehandler.setLevel(logging.DEBUG)
+
+        #set formatting for access log  
+        cherrypy_access_rotatingfilehandler.setFormatter(cherrypy._cplogging.logfmt)
+
+        #add RotatingFileHandler for access log
+        log.access_log.addHandler(cherrypy_access_rotatingfilehandler)
 
 def moviegrabber_logging():
 
@@ -950,14 +965,14 @@ def moviegrabber_logging():
         #setup logger for moviegrabber
         moviegrabber_logger = logging.getLogger("moviegrabber")
 
-        #setup logging to file for moviegrabber
-        moviegrabber_filehandler = logging.FileHandler(moviegrabber_log, "a", encoding = "UTF-8")
-
+        #add rotating log handler
+        moviegrabber_rotatingfilehandler = logging.handlers.RotatingFileHandler(moviegrabber_log, "a", maxBytes=10485760, backupCount=3, encoding = "utf-8")
+        
         #set formatter for moviegrabber
-        moviegrabber_filehandler.setFormatter(moviegrabber_formatter)
+        moviegrabber_rotatingfilehandler.setFormatter(moviegrabber_formatter)
 
-        #add handler for formatter to the file logger
-        moviegrabber_logger.addHandler(moviegrabber_filehandler)
+        #add the log message handler to the logger
+        moviegrabber_logger.addHandler(moviegrabber_rotatingfilehandler)
 
         #set level of logging from config
         if log_level == "INFO":
@@ -993,7 +1008,7 @@ def moviegrabber_logging():
         elif log_level == "exception":
 
                 console_streamhandler.setLevel(logging.ERROR)
-
+        
         return moviegrabber_logger
 
 def sqlite_logging():
@@ -1010,14 +1025,14 @@ def sqlite_logging():
         #setup logger for sqlite using sqlalchemy
         sqlite_logger = logging.getLogger("sqlalchemy.engine")
 
-        #setup logging to file for sqlite
-        sqlite_filehandler = logging.FileHandler(sqlite_log, "a", encoding = "UTF-8")
+        #add rotating log handler
+        sqlite_rotatingfilehandler = logging.handlers.RotatingFileHandler(sqlite_log, "a", maxBytes=10485760, backupCount=3, encoding = "utf-8")
 
         #set formatter for sqlite
-        sqlite_filehandler.setFormatter(sqlite_formatter)
+        sqlite_rotatingfilehandler.setFormatter(sqlite_formatter)
 
         #add handler for formatter to the file logger
-        sqlite_logger.addHandler(sqlite_filehandler)
+        sqlite_logger.addHandler(sqlite_rotatingfilehandler)
 
         #set level of logging from config
         if log_level == "INFO":
