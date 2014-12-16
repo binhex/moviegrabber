@@ -420,11 +420,11 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
         #pass validator to configobj instance, copy required to write missing values out to config.ini
         val_result = config_obj.validate(val, copy=True)
 
-        #loop over validator and fix any validation failures, such as unquotes string
+        #loop over validator and fix any validation failures
         if val_result != True:
                 
                 for (section_list, key, _) in configobj.flatten_errors(config_obj, val_result):
-                        
+
                         if key is not None:
 
                                 #convert section list to str
@@ -432,7 +432,8 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
                                 
                                 #get value from section and key
                                 config_bad_value = config_obj[section_item][key]
-                                
+
+                                #if the bad value is list then convert
                                 if type(config_bad_value) is list:
 
                                         #convert list to comma seperated string
@@ -440,13 +441,13 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
 
                                         #write new string value to config.ini
                                         config_obj[section_item][key] = config_bad_value_str
-                                        
-                                print 'The "%s" key in the section "%s" failed validation' % (key, ', '.join(section_list))
-                                
-                        else:
 
-                                print 'The following section was missing:%s ' % ', '.join(section_list)
-        
+                                mg_log.warning(u"The '%s' key in the section '%s' failed validation" % (key, ', '.join(section_list))
+
+                        else:
+                                               
+                                mg_log.warning(u"The section '%s' was missing from the config.ini" % ', '.join(section_list)
+
         #force write of version to config.ini
         config_obj["general"]["local_version"] = latest_mg_version
         config_obj["webconfig"]["address"] = webconfig_address
@@ -3503,14 +3504,20 @@ class SearchIndex(object):
                                 #remove square brackets and content from start and end of post title
                                 post_title = re.sub(ur"^\[.*\](?!$)|(?!^)\[.*\]$|^\[|\]$", "", post_title)
 
+                                #remove round brackets and content from start and end of post title
+                                post_title = re.sub(ur"^\(.*\)(?!$)|(?!^)\(.*\)$|^\(|\)$", "", post_title)
+
+                                #remove .torrent from end of post title (kickass)
+                                post_title = re.sub(ur"\.torrent$", "", post_title)
+
                                 #remove seperator from start and end of post title
                                 post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
                                 
                                 self.index_post_title = post_title
                                 mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
 
-                                #search end of post title stopping at period, underscore or space as seperator
-                                index_post_group_search = re.compile(ur"(?i)((?<=-)[^\.\s\_]+$)").search(post_title)                                  
+                                #search end of post title stopping at period, underscore, hyphen or space as seperator
+                                index_post_group_search = re.compile(ur"(?i)[^\.\s\_\-]+$").search(post_title)
 
                                 if index_post_group_search != None:
 
