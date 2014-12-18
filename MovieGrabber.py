@@ -82,6 +82,12 @@ except Exception:
         sys.stderr.write("Required SQLite Python module missing, please install before running MovieGrabber\n")
         os._exit(1)
 
+config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+config_dir = os.path.normpath(config_dir)
+
+#set paths for configspec.ini
+configspec_ini = os.path.join(config_dir, u"configspec.ini")
+
 #-------------------------- shared ------------------------
 
 import urllib
@@ -409,16 +415,42 @@ def urllib2_retry(url,user_agent):
 # startup #
 ###########
 
-def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir):
+#write out default values to config.ini if not defined by arguments
+def config_write(logs_dir,results_dir,webconfig_address,webconfig_port):
 
-        #create configobj instance, set config.ini file, set encoding and set configspec.ini file
-        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
+        #check for none values (not defined via argument)
+        if logs_dir == None:
+
+                logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
+                config_obj["folders"]["logs_dir"] = logs_dir        
+
+        if results_dir == None:
+
+                results_dir = os.path.join(moviegrabber_root_dir, u"db")
+                config_obj["folders"]["results_dir"] = results_dir        
+
+        if webconfig_address == None:
+
+                webconfig_address = u"0.0.0.0"
+                config_obj["webconfig"]["address"] = webconfig_address
+
+        if webconfig_port == None:
+
+                webconfig_port = u"9191"
+                config_obj["webconfig"]["port"] = webconfig_port        
+
+        config_obj["general"]["local_version"] = latest_mg_version
+
+        #write out changes
+        config_obj.write()
+
+def config_validate():
 
         #create validator instance
         val = validate.Validator()
 
         #pass validator to configobj instance, copy required to write missing values out to config.ini
-        val_result = config_obj.validate(val, copy=True)
+        val_result = config_obj.validate(val, copy=True, preserve_errors=True)
 
         #loop over validator and fix any validation failures
         if val_result != True:
@@ -426,13 +458,16 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
                 for (section_list, key, _) in configobj.flatten_errors(config_obj, val_result):
 
                         if key is not None:
-
+                                print config_obj.restore_defaults
                                 #convert section list to str
                                 section_item = ', '.join(section_list)
                                 
                                 #get value from section and key
                                 config_bad_value = config_obj[section_item][key]
+                                print config_bad_value
+                                config_obj.restore_default(key)
 
+                                
                                 #if the bad value is list then convert
                                 if type(config_bad_value) is list:
 
@@ -442,23 +477,9 @@ def config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs
                                         #write new string value to config.ini
                                         config_obj[section_item][key] = config_bad_value_str
 
-                                mg_log.warning(u"The '%s' key in the section '%s' failed validation" % (key, ', '.join(section_list))
-
-                        else:
-                                               
-                                mg_log.warning(u"The section '%s' was missing from the config.ini" % ', '.join(section_list)
-
-        #force write of version to config.ini
-        config_obj["general"]["local_version"] = latest_mg_version
-        config_obj["webconfig"]["address"] = webconfig_address
-        config_obj["webconfig"]["port"] = webconfig_port
-        config_obj["folders"]["logs_dir"] = logs_dir
-        config_obj["folders"]["results_dir"] = results_dir
-
-        #write out changes
-        config_obj.write()
+                                sys.stdout.write(u"The '%s' key in the section '%s' failed validation" % (key, ', '.join(section_list)))
         
-def cli_arguments():
+def cli_argparse():
 
         #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
         if uni_to_byte(os.path.exists(os.path.join(moviegrabber_root_dir, u"lib"))):
@@ -510,44 +531,15 @@ def cli_arguments():
                         else:
 
                                 config_dir = os.path.normpath(args["config"])
+
+                        config_ini = os.path.join(config_dir, u"config.ini")
+                        config_ini = os.path.normpath(config_ini)
                                 
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
 
-                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
-                        config_dir = os.path.normpath(config_dir)
+                        config_ini = None                    
 
-                config_ini = os.path.join(config_dir, u"config.ini")
-                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
-
-                #if config.ini does not exist then create empty values
-                if not uni_to_byte(os.path.exists(config_ini)):
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-
-                else:
-
-                        #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        
-                        try:
-                                
-                                #read values from config.ini
-                                logs_dir = config_obj["folders"]["logs_dir"]
-                                results_dir = config_obj["folders"]["results_dir"]
-                                webconfig_address = config_obj["webconfig"]["address"]
-                                webconfig_port = config_obj["webconfig"]["port"]              
-
-                        except Exception:
-
-                                logs_dir = None
-                                results_dir = None
-                                webconfig_address = None
-                                webconfig_port = None
-                        
                 #if argument specified then use
                 if args["logs"] != None:
 
@@ -570,10 +562,9 @@ def cli_arguments():
                                 logs_dir = os.path.normpath(args["logs"])
                 
                 #if not specified in config.ini then set to defaults
-                elif logs_dir == None:
-                        
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
-                        logs_dir = os.path.normpath(logs_dir)
+                else:
+
+                        logs_dir = None
 
                 #if argument specified then use
                 if args["db"] != None:
@@ -595,14 +586,11 @@ def cli_arguments():
                         else:
 
                                 results_dir = os.path.normpath(args["db"])
-
+                        
                 #if not specified in config.ini then set to defaults
-                elif results_dir == None:
+                else:
                 
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
-                        results_dir = os.path.normpath(results_dir)
-
-                results_db = os.path.join(results_dir, u"results.db")
+                        results_dir = None                 
                 
                 #if argument specified then use
                 if args["ip"] != None:
@@ -610,9 +598,9 @@ def cli_arguments():
                         webconfig_address = args["ip"]
 
                 #if not specified in config.ini then set to defaults
-                elif webconfig_address == None:
+                else:
                         
-                        webconfig_address = u"0.0.0.0"
+                        webconfig_address = None
 
                 #if argument specified then use                        
                 if args["port"] != None:
@@ -620,9 +608,9 @@ def cli_arguments():
                         webconfig_port = args["port"]
 
                 #if not specified in config.ini then set to defaults
-                elif webconfig_port == None:
+                else:
 
-                        webconfig_port = u"9191"
+                        webconfig_port = None
 
                 #check os is not windows and then create pidfile for cherrypy forked process
                 if args["pidfile"] != None and os.name != "nt":
@@ -647,84 +635,44 @@ def cli_arguments():
                 if args["reset_db"] == True and uni_to_byte(os.path.exists(results_db)):
 
                         os.remove(results_db)
-                        
-                #send values to config write function
-                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
 
         #windows compiled binary cannot define config, logs, or db using argparse
         else:
 
-                #default path to config.ini
-                config_dir = os.path.join(moviegrabber_root_dir, u"configs")
-                config_dir = os.path.normpath(config_dir)                
-                config_ini = os.path.join(config_dir, u"config.ini")
-                configspec_ini = os.path.join(config_dir, u"configspec.ini")                
+                #set defaults
+                config_ini = None
+                logs_dir = None                    
+                results_dir = None                        
+                webconfig_address = None
+                webconfig_port = None
 
-                #if config.ini does not exist then create empty values
-                if not uni_to_byte(os.path.exists(config_ini)):
-
-                        logs_dir = None
-                        results_dir = None
-                        webconfig_address = None
-                        webconfig_port = None
-
-                else:
-
-                        #enable config parser
-                        config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8')
-                        
-                        try:
-                                
-                                #read values from config.ini
-                                logs_dir = config_obj["folders"]["logs_dir"]
-                                results_dir = config_obj["folders"]["results_dir"]
-                                webconfig_address = config_obj["webconfig"]["address"]
-                                webconfig_port = config_obj["webconfig"]["port"]             
-
-                        except Exception:
-
-                                logs_dir = None
-                                results_dir = None
-                                webconfig_address = None
-                                webconfig_port = None
-                        
-                #if not specified in config.ini then set to defaults
-                if logs_dir == None:
-
-                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
-                        logs_dir = os.path.normpath(logs_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if results_dir == None:
-
-                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
-                        results_dir = os.path.normpath(results_dir)                
-
-                #if not specified in config.ini then set to defaults
-                if webconfig_address == None:
-
-                        webconfig_address = u"0.0.0.0"
-                        
-                #if not specified in config.ini then set to defaults
-                if webconfig_port == None:
-
-                        webconfig_port = u"9191"                
-
-                #send values to config write function
-                config_write(config_ini,configspec_ini,webconfig_address,webconfig_port,logs_dir,results_dir)
-                                        
         #return config file paths - used to read logs and results values from ini file
-        return config_ini, configspec_ini
+        return {'config_ini':config_ini, 'logs_dir':logs_dir , 'results_dir':results_dir, 'webconfig_address':webconfig_address, 'webconfig_port':webconfig_port}
 
 #save returned value
-config_files = cli_arguments()
+cli_argparse_values = cli_argparse()
+config_ini = cli_argparse_values.get("config_ini")
+logs_dir = cli_argparse_values.get("logs_dir")
+results_dir = cli_argparse_values.get("results_dir")
+webconfig_address = cli_argparse_values.get("webconfig_address")
+webconfig_port = cli_argparse_values.get("webconfig_port")
 
-config_ini = config_files[0]
-configspec_ini = config_files[1]
+#check for none values (not defined via argument)
+if config_ini == None:
 
-#create configobj global instance
-config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
+        config_dir = os.path.join(moviegrabber_root_dir, u"configs")
+        config_ini = os.path.join(config_dir, u"config.ini")
+        config_ini = os.path.normpath(config_ini)
 
+#create configobj instance, set config.ini file, set encoding and set configspec.ini file
+config_obj = configobj.ConfigObj(config_ini, list_values=False, write_empty_values=True, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
+
+#run function to validate and write out default values for config.ini
+config_validate()
+
+#run function to write out default values for logs dir, db etc if not defined via arguments
+config_write(logs_dir,results_dir,webconfig_address,webconfig_port)
+        
 #read values for logs and results db
 logs_dir = config_obj["folders"]["logs_dir"]
 results_dir = config_obj["folders"]["results_dir"]
@@ -5234,7 +5182,7 @@ class ConfigPost(object):
                 if config_post_rule:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
-                        template.post_config_rule_list = config_post_rule.split(",")
+                        template.post_config_rule_list = [x.strip() for x in config_post_rule.split(",")]                        
 
                 else:
 
@@ -5459,7 +5407,7 @@ class ConfigUsenet(object):
                 if template.index_site:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
-                        template.index_site_list = template.index_site.split(",")
+                        template.index_site_list = [x.strip() for x in template.index_site.split(",")]
 
                 else:
 
@@ -5699,7 +5647,7 @@ class ConfigTorrent(object):
                 if template.index_site:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
-                        template.index_site_list = template.index_site.split(",")
+                        template.index_site_list = [x.strip() for x in template.index_site.split(",")]
                                                 
                 else:
 
@@ -6115,8 +6063,8 @@ class HistoryRoot(object):
                         sql_session.remove()
 
                         #convert comma seperated sort order to list
-                        history_sort_order_list = history_sort_order.split(',')
-
+                        history_sort_order_list = [x.strip() for x in history_sort_order.split(",")]
+                        
                         history_sort_order_scale = history_sort_order_list[0]
                         history_sort_order_column = history_sort_order_list[1]
 
@@ -6419,7 +6367,7 @@ class QueueRoot(object):
                         sql_session.remove()
 
                         #convert comma seperated sort order to list
-                        queued_sort_order_list = queued_sort_order.split(',')
+                        queued_sort_order_list = [x.strip() for x in queued_sort_order.split(",")]
 
                         queued_sort_order_scale = queued_sort_order_list[0]
                         queued_sort_order_column = queued_sort_order_list[1]
@@ -6816,9 +6764,6 @@ class DownloadThread(object):
 class PostProcessingThread(object):
 
         def checks(self):
-
-                #create configobj global instance
-                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
                 
                 self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
@@ -6852,9 +6797,6 @@ class PostProcessingThread(object):
 class SearchIndexThread(object):
 
         def checks(self):
-
-                #create configobj global instance
-                config_obj = configobj.ConfigObj(config_ini, encoding='UTF-8', configspec=configspec_ini)
 
                 #get list of index sites defined in config,ini
                 usenet_index_site = config_obj["usenet"]["index_site"]
