@@ -3173,6 +3173,62 @@ class SearchIndex(object):
                         #generate feed details
                         self.feed_details(site_name)
 
+        def bitsnoop_index(self):
+
+                site_name = u"BitSnoop"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
+                
+                #substitute friendly names for real values for categories
+                if self.config_cat == u"any":
+
+                        self.config_cat = u"video"
+                
+                if self.config_cat == u"all movies":
+
+                        self.config_cat = u"video-movies"
+
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
+
+                #use server side search term for rss feed
+                if self.config_search_and != "":
+
+                        search_term = self.config_search_and
+
+                else:
+
+                        search_term = ""
+
+                if search_term != "":
+                        
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
+
+                        #convert list back to string
+                        search_term = ','.join(search_term)
+
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+
+                #generate url for site with must exist search criteria
+                site_feed = u"%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
+                        
+                #convert to url for feed
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?')
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
+
+                #set user agent sent to index site
+                self.user_agent = user_agent_ie
+
+                #generate feed details
+                self.feed_details(site_name)
+
         def kat_index(self):
 
                 site_name = u"KickAss"
@@ -3351,7 +3407,7 @@ class SearchIndex(object):
 
                         mg_log.warning(u"%s Index - Site feed download failed" % (site_name))
                         return
-                        
+
                 if site_name == u"Newznab":
 
                         try:
@@ -3395,9 +3451,19 @@ class SearchIndex(object):
 
                         #set post title to none                
                         post_title = None
-                        
+
                         #generate post title
                         if site_name == u"Newznab":
+                                
+                                try:
+                                        
+                                        post_title = node["title"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if site_name == u"BitSnoop":
                                 
                                 try:
                                         
@@ -3458,6 +3524,9 @@ class SearchIndex(object):
                                 #remove .torrent from end of post title (kickass)
                                 post_title = re.sub(ur"\.torrent$", "", post_title)
 
+                                #remove .mkv from end of post title (newznab)
+                                post_title = re.sub(ur"\.mkv$", "", post_title)
+
                                 #remove seperator from start and end of post title
                                 post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
                                 
@@ -3498,6 +3567,26 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
 
+                        if site_name == u"BitSnoop":
+
+                                try:
+                                        
+                                        self.index_download_dict["magnet"] = node["torrent"]["magnetURI"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["torrent"]["magnetURI"]))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        pass
+
+                                try:
+                                        
+                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        pass
+                                
                         if site_name == u"KickAss":
                                 
                                 try:
@@ -3621,6 +3710,16 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
                                         
                                         self.imdb_tt_number = None
+
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_description = node["link"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_description = None
                                         
                         if site_name == u"KickAss":
                                 
@@ -3749,6 +3848,16 @@ class SearchIndex(object):
                                         
                                         post_size = None
 
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_size = node["size"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
+
                         if site_name == u"KickAss":
                                 
                                 try:
@@ -3862,6 +3971,16 @@ class SearchIndex(object):
                                         
                                         post_date = None
 
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_date = node["pubDate"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
                         if site_name == u"KickAss":
                                 
                                 try:
@@ -3941,6 +4060,16 @@ class SearchIndex(object):
                                         
                                         post_details = None
 
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_details = node["link"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
                         if site_name == u"KickAss":
                                 
                                 try:
@@ -4004,6 +4133,16 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
                                         
                                         post_id = None
+
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_id = node["torrent"]["infoHash"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_id = None
                         
                         if site_name == u"KickAss":
                                 
@@ -4050,6 +4189,24 @@ class SearchIndex(object):
                         post_peers = None
 
                         #generate post seeders/peers
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_seeders = node["numSeeders"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node["numLeechers"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+                        
                         if site_name == u"KickAss":
                                 
                                 try:
@@ -5700,6 +5857,12 @@ class ConfigTorrent(object):
                         config_obj["torrent"]["index_site"] = add_torrent_site_index
 
                 #set hostname, path, and port number for known index sites
+                if add_torrent_site == "bitsnoop":
+
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://bitsnoop.com"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
+
+                #set hostname, path, and port number for known index sites
                 if add_torrent_site == "kat":
 
                         config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://kickass.to"
@@ -6847,6 +7010,16 @@ class SearchIndexThread(object):
 
                                 if config_index_enabled == "yes":
 
+                                        if "bitsnoop" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "bitsnoop_index"
+                                                self.download_method = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+                                                        
                                         if "kat" in torrent_index_site_item:
 
                                                 self.index_site_item = torrent_index_site_item
