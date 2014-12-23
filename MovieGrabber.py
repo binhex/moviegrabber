@@ -1146,7 +1146,7 @@ def sqlite_check():
 
                                 sql_session.execute("VACUUM")
 
-                                mg_log.info(u"database upgraded from ver %s to ver %s succeeded" % (current_db_version,latest_db_version))
+                                mg_log.info(u"database upgraded from ver <=1 to ver 2 succeeded")
 
                         #capture any sqlalchemy errors and log failure
                         except exc.SQLAlchemyError,e:
@@ -3641,6 +3641,9 @@ class SearchIndex(object):
 
                                 #remove .mkv from end of post title (newznab)
                                 post_title = re.sub(ur"\.mkv$", "", post_title)
+
+                                #remove .rarbg from end of post title (torrents)
+                                post_title = re.sub(ur"\.rarbg$", "", post_title)
 
                                 #remove seperator from start and end of post title
                                 post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
