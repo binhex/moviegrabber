@@ -806,11 +806,12 @@ class ResultsDBHistory(Base):
         postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
+        dltype = Column(String)
         procresult = Column(PickleType)
         procdate = Column(String)
         procdatesort = Column(Integer)
 
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort):
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
 
                 self.imdbposter = imdbposter
                 self.imdblink = imdblink
@@ -837,6 +838,7 @@ class ResultsDBHistory(Base):
                 self.postdl = postdl
                 self.dlstatus = dlstatus
                 self.dlname = dlname
+                self.dltype = dltype
                 self.procresult = procresult
                 self.procdate = procdate
                 self.procdatesort = procdatesort
@@ -872,11 +874,12 @@ class ResultsDBQueued(Base):
         postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
+        dltype = Column(String)
         procresult = Column(PickleType)
         procdate = Column(String)
         procdatesort = Column(Integer)
 
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort):
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
 
                 self.imdbposter = imdbposter
                 self.imdblink = imdblink
@@ -903,6 +906,7 @@ class ResultsDBQueued(Base):
                 self.postdl = postdl
                 self.dlstatus = dlstatus
                 self.dlname = dlname
+                self.dltype = dltype                
                 self.procresult = procresult
                 self.procdate = procdate
                 self.procdatesort = procdatesort
@@ -1115,6 +1119,12 @@ def sqlite_check():
                 if str(current_db_version) == latest_db_version:
 
                         mg_log.info(u"database up to date, running ver %s" % (current_db_version))
+
+                #if current version is greater than latest version then log and exit
+                elif str(current_db_version) > latest_db_version:
+
+                        mg_log.warning(u"current database version %s is greater than latest version %s, please delete db" % (current_db_version,latest_db_version))
+                        os._exit(1)
                         
                 #if user version 0 or 1 then upgrade history and queued tables (add constraints and column postnamestrip)
                 elif current_db_version <= 1:
@@ -1174,8 +1184,8 @@ def sqlite_check():
                                 sql_session.commit()
 
                                 #copy all column data (excluding dltype) from old table to new table
-                                sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort FROM old_history;")
-                                sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort FROM old_queued;")
+                                sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_history;")
+                                sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_queued;")
                                                         
                                 #drop old tables if they exist
                                 sql_session.execute("DROP TABLE IF EXISTS old_history;")
