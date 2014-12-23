@@ -1,6 +1,6 @@
 #set moviegrabber and db schema version numbers
 latest_mg_version = "2.2.1.0"
-latest_db_version = "2"
+latest_db_version = "3"
 
 import os
 import sys
@@ -415,29 +415,75 @@ def urllib2_retry(url,user_agent):
 # startup #
 ###########
 
-#write out default values to config.ini if not defined by arguments
-def config_write(logs_dir,results_dir,webconfig_address,webconfig_port):
+#write out argument defined values to config.ini, if not defined then write defaults
+def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_arg,webconfig_port_arg):
 
-        #check for none values (not defined via argument)
-        if logs_dir == None:
+        #read values from config.ini
+        certs_dir = config_obj["folders"]["certs_dir"]
+        logs_dir = config_obj["folders"]["logs_dir"]
+        results_dir = config_obj["folders"]["results_dir"]
+        webconfig_address = config_obj["webconfig"]["address"]
+        webconfig_port = config_obj["webconfig"]["port"]
+
+        #if not defined via webui and not defined via argument then set to default path
+        if certs_dir == "" and certs_dir_arg == None:
+                
+                certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
+
+        #if defined via argument then use this
+        if certs_dir_arg != None and os.path.exists(certs_dir_arg):
+
+                certs_dir = certs_dir_arg
+                
+        config_obj["folders"]["certs_dir"] = certs_dir               
+
+        #if not defined via webui and not defined via argument then set to default path
+        if logs_dir == "" and logs_dir_arg == None:
 
                 logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
-                config_obj["folders"]["logs_dir"] = logs_dir        
 
-        if results_dir == None:
+        #if defined via argument then use this
+        if logs_dir_arg != None and os.path.exists(logs_dir_arg):
+
+                logs_dir = logs_dir_arg
+                
+        config_obj["folders"]["logs_dir"] = logs_dir        
+
+        #if not defined via webui and not defined via argument then set to default path
+        if results_dir == "" and results_dir_arg == None:
 
                 results_dir = os.path.join(moviegrabber_root_dir, u"db")
-                config_obj["folders"]["results_dir"] = results_dir        
 
-        if webconfig_address == None:
+        #if defined via argument then use this
+        if results_dir_arg != None and os.path.exists(results_dir_arg):
+
+                results_dir = results_dir_arg
+                
+        config_obj["folders"]["results_dir"] = results_dir        
+
+        #if not defined via webui and not defined via argument then set to default path 
+        if webconfig_address == "" and webconfig_address_arg == None:
 
                 webconfig_address = u"0.0.0.0"
-                config_obj["webconfig"]["address"] = webconfig_address
 
-        if webconfig_port == None:
+        #if defined via argument then use this
+        if webconfig_address_arg != None:
+
+                webconfig_address = webconfig_address_arg
+                
+        config_obj["webconfig"]["address"] = webconfig_address
+
+        #if not defined via webui and not defined via argument then set to default path
+        if webconfig_port == "" and webconfig_port_arg == None:
 
                 webconfig_port = u"9191"
-                config_obj["webconfig"]["port"] = webconfig_port        
+
+        #if defined via argument then use this
+        if webconfig_port_arg != None:
+
+                webconfig_port = webconfig_port_arg
+                
+        config_obj["webconfig"]["port"] = webconfig_port        
 
         config_obj["general"]["local_version"] = latest_mg_version
 
@@ -494,12 +540,13 @@ def cli_argparse():
                                 sys.exit(2)
 
                 #setup argparse description and usage, also increase spacing for help to 50
-                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+                commandline_parser = argparse_custom(prog="MovieGrabber", description="%(prog)s " + latest_mg_version, usage="%(prog)s [--help] [--ip <ipaddress>] [--port <portnumber>] [--config <path>] [--certs <path>] [--logs <path>] [--db <path>] [--pidfile <path>] [--daemon] [--reset] [--version]", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
 
                 #add argparse command line flags
                 commandline_parser.add_argument(u"--ip",  metavar=u"<ipaddress>", help=u"specify ip e.g. --ip 192.168.1.2")
                 commandline_parser.add_argument(u"--port", metavar=u"<port>", help=u"specify port e.g. --port 9191")
                 commandline_parser.add_argument(u"--config", metavar=u"<path>", help=u"specify path for config file e.g. --config /opt/moviegrabber/config/")
+                commandline_parser.add_argument(u"--certs", metavar=u"<path>", help=u"specify path for ssl cert files e.g. --certs /opt/moviegrabber/certs/")                
                 commandline_parser.add_argument(u"--logs", metavar=u"<path>", help=u"specify path for log files e.g. --logs /opt/moviegrabber/logs/")
                 commandline_parser.add_argument(u"--db", metavar=u"<path>", help=u"specify path for database e.g. --db /opt/moviegrabber/db/")
                 commandline_parser.add_argument(u"--pidfile", metavar=u"<path>", help=u"specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
@@ -531,14 +578,37 @@ def cli_argparse():
                         else:
 
                                 config_dir = os.path.normpath(args["config"])
-
-                        config_ini = os.path.join(config_dir, u"config.ini")
-                        config_ini = os.path.normpath(config_ini)
                                 
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
 
-                        config_ini = None                    
+                        config_dir = None              
+
+                #if argument specified then use
+                if args["certs"] != None:
+
+                        if not uni_to_byte(os.path.exists(args["certs"])):
+                                
+                                try:
+
+                                        #create path recursively
+                                        os.makedirs(args["certs"])
+                                        certs_dir = os.path.normpath(args["certs"])                                        
+
+                                except WindowsError:
+
+                                        #if cannot create then use default
+                                        certs_dir = os.path.join(moviegrabber_root_dir, u"certs")                        
+                                        certs_dir = os.path.normpath(certs_dir)
+                                        
+                        else:
+
+                                certs_dir = os.path.normpath(args["certs"])
+                
+                #if not specified in config.ini then set to defaults
+                else:
+
+                        certs_dir = None
 
                 #if argument specified then use
                 if args["logs"] != None:
@@ -636,33 +706,42 @@ def cli_argparse():
 
                         os.remove(results_db)
 
-        #windows compiled binary cannot define config, logs, or db using argparse
+        #windows compiled binary cannot define arguments
         else:
 
                 #set defaults
-                config_ini = None
+                config_dir = None
+                certs_dir = None       
                 logs_dir = None                    
                 results_dir = None                        
                 webconfig_address = None
                 webconfig_port = None
 
         #return config file paths - used to read logs and results values from ini file
-        return {'config_ini':config_ini, 'logs_dir':logs_dir , 'results_dir':results_dir, 'webconfig_address':webconfig_address, 'webconfig_port':webconfig_port}
+        return {'config_dir':config_dir, 'certs_dir':certs_dir, 'logs_dir':logs_dir , 'results_dir':results_dir, 'webconfig_address':webconfig_address, 'webconfig_port':webconfig_port}
 
 #save returned value
 cli_argparse_values = cli_argparse()
-config_ini = cli_argparse_values.get("config_ini")
-logs_dir = cli_argparse_values.get("logs_dir")
-results_dir = cli_argparse_values.get("results_dir")
-webconfig_address = cli_argparse_values.get("webconfig_address")
-webconfig_port = cli_argparse_values.get("webconfig_port")
+config_dir_arg = cli_argparse_values.get("config_dir")
+certs_dir_arg = cli_argparse_values.get("certs_dir")
+logs_dir_arg = cli_argparse_values.get("logs_dir")
+results_dir_arg = cli_argparse_values.get("results_dir")
+webconfig_address_arg = cli_argparse_values.get("webconfig_address")
+webconfig_port_arg = cli_argparse_values.get("webconfig_port")
 
 #check for none values (not defined via argument)
-if config_ini == None:
+if config_dir_arg == None:
 
         config_dir = os.path.join(moviegrabber_root_dir, u"configs")
-        config_ini = os.path.join(config_dir, u"config.ini")
-        config_ini = os.path.normpath(config_ini)
+
+#if defined via argument then use this
+if config_dir_arg != None and os.path.exists(config_dir_arg):
+
+        config_dir = config_dir_arg
+
+#create full path to config.ini
+config_ini = os.path.join(config_dir, u"config.ini")
+config_ini = os.path.normpath(config_ini)
 
 #create configobj instance, set config.ini file, set encoding and set configspec.ini file
 config_obj = configobj.ConfigObj(config_ini, list_values=False, write_empty_values=True, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
@@ -671,9 +750,10 @@ config_obj = configobj.ConfigObj(config_ini, list_values=False, write_empty_valu
 config_validate()
 
 #run function to write out default values for logs dir, db etc if not defined via arguments
-config_write(logs_dir,results_dir,webconfig_address,webconfig_port)
+config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_arg,webconfig_port_arg)
         
 #read values for logs and results db
+certs_dir = config_obj["folders"]["certs_dir"]
 logs_dir = config_obj["folders"]["logs_dir"]
 results_dir = config_obj["folders"]["results_dir"]
 
@@ -726,12 +806,11 @@ class ResultsDBHistory(Base):
         postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
-        dltype = Column(String)
         procresult = Column(PickleType)
         procdate = Column(String)
         procdatesort = Column(Integer)
 
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort):
 
                 self.imdbposter = imdbposter
                 self.imdblink = imdblink
@@ -758,7 +837,6 @@ class ResultsDBHistory(Base):
                 self.postdl = postdl
                 self.dlstatus = dlstatus
                 self.dlname = dlname
-                self.dltype = dltype
                 self.procresult = procresult
                 self.procdate = procdate
                 self.procdatesort = procdatesort
@@ -794,12 +872,11 @@ class ResultsDBQueued(Base):
         postdl = Column(PickleType)
         dlstatus = Column(String)
         dlname = Column(String)
-        dltype = Column(String)
         procresult = Column(PickleType)
         procdate = Column(String)
         procdatesort = Column(Integer)
 
-        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort):
+        def __init__(self,imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort):
 
                 self.imdbposter = imdbposter
                 self.imdblink = imdblink
@@ -826,7 +903,6 @@ class ResultsDBQueued(Base):
                 self.postdl = postdl
                 self.dlstatus = dlstatus
                 self.dlname = dlname
-                self.dltype = dltype
                 self.procresult = procresult
                 self.procdate = procdate
                 self.procdatesort = procdatesort
@@ -854,10 +930,6 @@ queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
 #define path to static images
 images_dir = os.path.join(moviegrabber_root_dir, u"images")
 images_dir = os.path.normpath(images_dir)
-
-#define path to certs dir
-certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
-certs_dir = os.path.normpath(certs_dir)
 
 ###########
 # logging #
@@ -1009,6 +1081,9 @@ cherry_log = cherrypy_logging()
 
 def sqlite_check():
 
+        """notes - The ALTER TABLE command in SQLite allows the user to rename a table or to add a new column to an existing table.
+        It is not possible to rename a column, remove a column, or add or remove constraints from a table."""
+        
         #if db file doesnt exist then create from orm
         if not uni_to_byte(os.path.exists(results_db)):
 
@@ -1067,7 +1142,7 @@ def sqlite_check():
                                 sql_session.execute("DROP TABLE IF EXISTS old_queued;")
 
                                 #set db to latest db version
-                                sql_session.execute("PRAGMA user_version = %s" % (latest_db_version))
+                                sql_session.execute("PRAGMA user_version = 2")
 
                                 sql_session.execute("VACUUM")
 
@@ -1079,7 +1154,47 @@ def sqlite_check():
                                 #catch any sqlalchemy error and rollback transaction
                                 sql_session.rollback()
 
-                                mg_log.warning(u"database upgrade from ver %s to ver %s failed with error %s" % (current_db_version,latest_db_version,e))
+                                mg_log.warning(u"database upgrade from ver <=1 to ver 2 failed with error %s" % (e,))
+
+                #if user version 2 then upgrade history and queued tables (change postdl to pickle and remove column dltype)
+                elif current_db_version == 2:
+
+                        mg_log.info(u"database requires upgrade to schema...")
+                        
+                        try:
+                                
+                                #rename existing tables, prefixing with "old_"
+                                sql_session.execute("ALTER TABLE history RENAME TO old_history;")
+                                sql_session.execute("ALTER TABLE queued RENAME TO old_queued;")
+
+                                #create table and column structure from sqlalchemy orm
+                                Base.metadata.create_all(engine)
+
+                                #commit changes
+                                sql_session.commit()
+
+                                #copy all column data (excluding dltype) from old table to new table
+                                sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort FROM old_history;")
+                                sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,procresult,procdate,procdatesort FROM old_queued;")
+                                                        
+                                #drop old tables if they exist
+                                sql_session.execute("DROP TABLE IF EXISTS old_history;")
+                                sql_session.execute("DROP TABLE IF EXISTS old_queued;")
+
+                                #set db to latest db version
+                                sql_session.execute("PRAGMA user_version = 3")
+
+                                sql_session.execute("VACUUM")
+
+                                mg_log.info(u"database upgraded from ver 2 to ver 3 succeeded")
+
+                        #capture any sqlalchemy errors and log failure
+                        except exc.SQLAlchemyError,e:
+
+                                #catch any sqlalchemy error and rollback transaction
+                                sql_session.rollback()
+
+                                mg_log.warning(u"database upgrade from ver 2 to ver 3 failed with error %s" % (e,))
 
         #remove scoped session
         sql_session.remove()
@@ -3812,7 +3927,7 @@ class SearchIndex(object):
                                 else:
 
                                         self.index_post_movie_year = ""
-                                        mg_log.info(u"%s Index - Cannot generate movie year from post title" % (site_name))
+                                        mg_log.info(u"%s Index - Cannot generate movie year from post %s" % (site_name,self.index_post_title))
                                         
                                 #convert to uri for html find_id
                                 self.index_post_movie_title_uri = urllib.quote(uni_to_byte(index_post_movie_title))
@@ -3823,7 +3938,7 @@ class SearchIndex(object):
                                 #if no imdb id then fallback to tmdb (slower)
                                 if self.imdb_tt_number == None:
 
-                                        mg_log.info(u"%s Index - Failed to get IMDb ID from OMDb, falling back to TMDb" % (site_name))
+                                        mg_log.info(u"%s Index - Failed to get IMDb ID from OMDb for post %s, falling back to TMDb" % (site_name,self.index_post_title))
                                         
                                         #attempt to get imdb id using tmdb
                                         self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
@@ -3831,7 +3946,7 @@ class SearchIndex(object):
                                         #if no imdb id from omdb or tmdb then skip post
                                         if self.imdb_tt_number == None:                                                                
 
-                                                mg_log.warning(u"%s Index - Failed to get IMDb ID, skipping post" % (site_name))
+                                                mg_log.warning(u"%s Index - Failed to get IMDb ID for post %s, skipping post" % (site_name,self.index_post_title))
                                                 continue
 
                         #set post size to none
@@ -6000,6 +6115,8 @@ class ConfigDirectories(object):
                 template.torrent_watch_dir = config_obj["folders"]["torrent_watch_dir"]
                 template.torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
                 template.torrent_completed_dir = config_obj["folders"]["torrent_completed_dir"]
+                template.certs_dir = config_obj["folders"]["certs_dir"]
+                template.results_dir = config_obj["folders"]["results_dir"]              
                 template.logs_dir = config_obj["folders"]["logs_dir"]
                 header()
 
@@ -6035,6 +6152,14 @@ class ConfigDirectories(object):
                 if uni_to_byte(os.path.exists(kwargs["torrent_completed_dir2"])) or kwargs["torrent_completed_dir2"] == "":
 
                         config_obj["folders"]["torrent_completed_dir"] = del_inv_chars(kwargs["torrent_completed_dir2"])
+
+                if uni_to_byte(os.path.exists(kwargs["certs_dir2"])) and kwargs["certs_dir2"]:
+
+                        config_obj["folders"]["certs_dir"] = del_inv_chars(kwargs["certs_dir2"])
+
+                if uni_to_byte(os.path.exists(kwargs["results_dir2"])) and kwargs["results_dir2"]:
+
+                        config_obj["folders"]["results_dir"] = del_inv_chars(kwargs["results_dir2"])
 
                 if uni_to_byte(os.path.exists(kwargs["logs_dir2"])) and kwargs["logs_dir2"]:
 
