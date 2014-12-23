@@ -19,7 +19,7 @@ else:
         #check version of python is 2.6.x or 2.7.x
         if sys.version_info<(2,6,0) or sys.version_info>=(3,0,0):
 
-                sys.stderr.write(u"You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (sys.version_info))
+                sys.stderr.write(u"WARNING - You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s\n" % (sys.version_info))
                 os._exit(1)
 
         else:
@@ -79,7 +79,7 @@ try:
 
 except Exception:
 
-        sys.stderr.write("Required SQLite Python module missing, please install before running MovieGrabber\n")
+        sys.stderr.write("WARNING - Required SQLite Python module missing, please install before running MovieGrabber\n")
         os._exit(1)
 
 config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
@@ -7560,18 +7560,37 @@ if __name__ == '__main__':
         
         if webui_ssl == "yes":
 
-                try:
-
-                        #attempt to import openssl module, if error then disable ssl and log warning
-                        import OpenSSL
-
-                        #set path to ssl cert and key
-                        cherrypy.server.ssl_certificate = os.path.join(certs_dir, u"host.cert")
-                        cherrypy.server.ssl_private_key = os.path.join(certs_dir, u"host.key")
+                ssl_host_cert = os.path.join(certs_dir, u"host.cert")
+                ssl_host_key = os.path.join(certs_dir, u"host.key")
+                
+                if os.path.exists(ssl_host_cert) and os.path.exists(ssl_host_key):
                         
-                except Exception:
+                        try:
 
-                        #disable ssl self signed certs
+                                #attempt to import openssl module, if error then disable ssl and log warning
+                                import OpenSSL
+
+                                #set path to ssl cert and key to enable strict transport headers
+                                cherrypy.server.ssl_certificate = ssl_host_cert
+                                cherrypy.server.ssl_private_key = ssl_host_key
+                                
+                        except Exception:
+
+                                #if openssl not installed, disable ssl
+                                config_obj["webconfig"]["enable_ssl"] = "no"
+
+                                #write settings to config.ini
+                                config_obj.write()
+        
+                                #set path to ssl cert and key to none to disable strict transport headers
+                                cherrypy.server.ssl_certificate = None
+                                cherrypy.server.ssl_private_key = None
+
+                                sys.stderr.write(u"WARNING - SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS\n")
+                                
+                else:
+
+                        #if path not found, disable ssl
                         config_obj["webconfig"]["enable_ssl"] = "no"
 
                         #write settings to config.ini
@@ -7581,8 +7600,8 @@ if __name__ == '__main__':
                         cherrypy.server.ssl_certificate = None
                         cherrypy.server.ssl_private_key = None
 
-                        sys.stderr.write(u"SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS")
-
+                        sys.stderr.write(u"WARNING - SSL disabled, certificate and key not found in specified folder %s\n" % (certs_dir,))
+                        
         #run secure headers function
         secure_headers()
 
@@ -7599,7 +7618,7 @@ if __name__ == '__main__':
 
                 if retry_count == 6:
 
-                        sys.stderr.write(u"No valid IPv4 address found after 30 seconds, please check host network config")
+                        sys.stderr.write(u"WARNING - No valid IPv4 address found after 30 seconds, please check host network config\n")
                         os._exit(1)
 
         #run valid config ip function
