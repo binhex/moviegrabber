@@ -3532,7 +3532,7 @@ class SearchIndex(object):
                                 site_feed_parse = json.loads(site_feed)
                                 site_feed_parse = site_feed_parse["channel"]["item"]
                                 
-                        except TypeError, e:
+                        except (ValueError, TypeError), e:
                                 
                                 mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
@@ -3967,14 +3967,14 @@ class SearchIndex(object):
                                 #if length is equal to 7 then prefix with tt
                                 if len(self.imdb_tt_number) == 7:
 
-                                        self.imdb_tt_number = u"%s" % (self.imdb_tt_number)
+                                        self.imdb_tt_number = u"tt%s" % (self.imdb_tt_number)
                                         mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
                                         
                                 #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
                                 elif len(self.imdb_tt_number) == 6:
 
 
-                                        self.imdb_tt_number = u"0%s" % (self.imdb_tt_number)
+                                        self.imdb_tt_number = u"tt0%s" % (self.imdb_tt_number)
                                         mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
                                 
                                 #if any other length then mark as none
