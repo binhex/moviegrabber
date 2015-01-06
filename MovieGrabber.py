@@ -3982,8 +3982,12 @@ class SearchIndex(object):
                                         
                                         self.imdb_tt_number = None
                                         mg_log.info(u"%s Index - Malformed IMDb number from index site" % (site_name))                                        
-      
-                        elif post_description != None:
+
+                        else:
+                                        
+                                mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))                                                
+
+                        if post_description != None:
 
                                 #search post description, looking for matching imdb tt number
                                 imdb_tt_number_search = re.compile(ur"(?<=/title/)tt[0-9]{6,7}").search(post_description)
@@ -4011,14 +4015,12 @@ class SearchIndex(object):
                                                 self.imdb_tt_number = None
                                                 mg_log.info(u"%s Index - Malformed IMDb number from post description" % (site_name))                                                
 
-                                #if any other length then mark as none
                                 else:
                                         
-                                        self.imdb_tt_number = None
                                         mg_log.info(u"%s Index - IMDb number from post description not found" % (site_name))                                                
 
-                        #if imdb id not found from index site then use omdb or tmdb                                               
-                        if post_description == None or self.imdb_tt_number == None:
+                        #if imdb id not found from index site or post description then use omdb or tmdb                                       
+                        if self.imdb_tt_number == None:
 
                                 mg_log.info(u"%s Index - Cannot find IMDb number from index site, using OMDb/TMDb to generate IMDb number" % (site_name))
                                 
