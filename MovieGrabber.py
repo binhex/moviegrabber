@@ -1856,7 +1856,7 @@ class SearchIndex(object):
         def filter_index_min_seeds(self):
 
                 #if download type not torrent or index min seeds not found or config min seeds not defined then return 1
-                if self.download_method == "usenet" or self.index_min_seeds == "" or self.config_min_seeds_int == 0:
+                if self.config_min_seeds_int == 0:
 
                         mg_log.info(u"Filter Index - Seed count not defined, proceed")
                         return 1
@@ -1869,14 +1869,13 @@ class SearchIndex(object):
 
                 else:
 
-                        self.download_details_dict["filter_index_min_seeds_result"] = [0,"Min Seeds", "Index - Seed count below threshold"]
                         mg_log.info(u"Filter Index - Seed count %s below threshold, skip" % (self.index_min_seeds))
                         return 0
 
         def filter_index_min_peers(self):
 
                 #if download type not torrent or index min peers not found or config min peers not defined then return 1
-                if self.download_method == "usenet" or self.index_min_peers == "" or self.config_min_peers_int == 0:
+                if self.config_min_peers_int == 0:
 
                         mg_log.info(u"Filter Index - Peer count not defined, proceed")
                         return 1
@@ -1889,7 +1888,6 @@ class SearchIndex(object):
 
                 else:
 
-                        self.download_details_dict["filter_index_min_peers_result"] = [0,"Min Peers", "Index - Peer count below threshold"]
                         mg_log.info(u"Filter Index - Peer count %s below threshold, skip" % (self.index_min_peers))
                         return 0
 
@@ -3069,8 +3067,6 @@ class SearchIndex(object):
                 self.filter_imdb_bad_title_result = self.filter_imdb_bad_title()
                 self.filter_index_special_cut_result = self.filter_index_special_cut()                
                 self.filter_index_preferred_group_result = self.filter_index_preferred_group()
-                self.filter_index_min_seeds_result = self.filter_index_min_seeds()
-                self.filter_index_min_peers_result = self.filter_index_min_peers()                
                 self.filter_index_bad_group_result = self.filter_index_bad_group()
                 self.filter_imdb_good_ratings_result = self.filter_imdb_good_ratings()
                 self.filter_imdb_good_votes_result = self.filter_imdb_good_votes()
@@ -3094,7 +3090,7 @@ class SearchIndex(object):
 
                         self.filter_check_status = 1                        
 
-                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_min_seeds_result == 1 and self.filter_index_min_peers_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
+                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
 
                         self.filter_check_status = 1
 
@@ -3113,11 +3109,6 @@ class SearchIndex(object):
                 self.last_run = "%s %s" % (str(last_run), time.tzname[1])
                 
                 self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))                
-
-                #skip commit to db if method is torrent and peer/seed count not met, seed/peer count may increase over time and reach required values
-                if self.download_method == "torrent" and (self.filter_index_min_seeds_result == 0 or self.filter_index_min_peers_result == 0):
-
-                        return
                 
                 #insert details into history table (note sqlite requires decimal values as text)
                 sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
@@ -3641,16 +3632,19 @@ class SearchIndex(object):
                         if post_title != None:
 
                                 #remove square brackets and content from start and end of post title
-                                post_title = re.sub(ur"^\[.*\](?!$)|(?!^)\[.*\]$|^\[|\]$", "", post_title)
+                                post_title = re.sub(ur"^\[[^\]]+\]|\[[^\[]+\]$", "", post_title)
 
                                 #remove round brackets and content from start and end of post title
-                                post_title = re.sub(ur"^\(.*\)(?!$)|(?!^)\(.*\)$|^\(|\)$", "", post_title)
+                                post_title = re.sub(ur"^\([^\)]+\)|\([^\(]+\)$", "", post_title)
 
                                 #remove .torrent from end of post title (kickass)
                                 post_title = re.sub(ur"\.torrent$", "", post_title)
 
                                 #remove .mkv from end of post title (newznab)
                                 post_title = re.sub(ur"\.mkv$", "", post_title)
+
+                                #remove .subs from end of post title (newznab)
+                                post_title = re.sub(ur"\.subs$", "", post_title)
 
                                 #remove .rarbg from end of post title (torrents)
                                 post_title = re.sub(ur"\.rarbg$", "", post_title)
@@ -3810,19 +3804,118 @@ class SearchIndex(object):
                                         
                                 else:
                                         
-                                        mg_log.info(u"%s Index - Download link(s) already in db postdl dict" % (site_name))
+                                        mg_log.info(u"%s Index - Download link(s) already in db postdl dict, skipping" % (site_name))
                                         
                                 continue
 
                         else:
                                 
-                                mg_log.info(u"%s Index - Post title %s NOT in db history table" % (site_name,self.index_post_title))
+                                mg_log.info(u"%s Index - Post title %s NOT in db history table, proceed" % (site_name,self.index_post_title))
                         
                         #if post title filters are not 0 then continue to next post
                         if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
                                 mg_log.info(u"%s Index - Post title search criteria failed" % (site_name))
                                 continue
+
+                        #set seeds/peers to none
+                        post_seeders = None
+                        post_peers = None
+
+                        #generate post seeders/peers
+                        if site_name == u"BitSnoop":
+                                
+                                try:
+                                        
+                                        post_seeders = node["numSeeders"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node["numLeechers"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+                        
+                        if site_name == u"KickAss":
+                                
+                                try:
+                                        
+                                        post_seeders = node["torrent:seeds"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node["torrent:peers"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+
+                        if site_name == u"ExtraTorrent":
+                                
+                                try:
+                                        
+                                        post_seeders = node["seeders"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+                                        
+                                        post_peers = node["leechers"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
+
+                                if post_seeders == u"---":
+
+                                        post_seeders = u"0"
+
+                                if post_peers == u"---":
+
+                                        post_peers = u"0"
+                                        
+                        if post_seeders != None:
+
+                                self.index_min_seeds = post_seeders
+                                self.index_min_seeds_int = int(post_seeders)                                
+                                mg_log.info(u"%s Index - Post seed count %s" % (site_name,self.index_min_seeds))
+
+                                #run function to check if seed count above threshold
+                                if self.filter_index_min_seeds() != 1:
+
+                                        continue
+                                
+                        else:
+
+                                self.index_min_seeds = u""
+                                mg_log.info(u"%s Index - Post seed count not found" % (site_name))
+
+                        if post_peers != None:
+
+                                self.index_min_peers = post_peers
+                                self.index_min_peers_int = int(post_peers)                                
+                                mg_log.info(u"%s Index - Post peer count %s" % (site_name,self.index_min_peers))
+
+                                #run function to check if peer count above threshold
+                                if self.filter_index_min_peers() != 1:
+
+                                        continue
+
+                        else:
+
+                                self.index_min_peers = u""
+                                mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #set post description and imdb tt number to none
                         post_description = None
@@ -4311,97 +4404,6 @@ class SearchIndex(object):
 
                                 self.index_post_id = ""
                                 mg_log.info(u"%s Index - Post id not found" % (site_name))
-
-                        #set seeds/peers to none
-                        post_seeders = None
-                        post_peers = None
-
-                        #generate post seeders/peers
-                        if site_name == u"BitSnoop":
-                                
-                                try:
-                                        
-                                        post_seeders = node["numSeeders"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_seeders = None
-
-                                try:
-                                        
-                                        post_peers = node["numLeechers"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_peers = None
-                        
-                        if site_name == u"KickAss":
-                                
-                                try:
-                                        
-                                        post_seeders = node["torrent:seeds"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_seeders = None
-
-                                try:
-                                        
-                                        post_peers = node["torrent:peers"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_peers = None
-
-                        if site_name == u"ExtraTorrent":
-                                
-                                try:
-                                        
-                                        post_seeders = node["seeders"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_seeders = None
-
-                                try:
-                                        
-                                        post_peers = node["leechers"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_peers = None
-
-                                if post_seeders == u"---":
-
-                                        post_seeders = u"0"
-
-                                if post_peers == u"---":
-
-                                        post_peers = u"0"
-                                        
-                        if post_seeders != None:
-
-                                self.index_min_seeds = post_seeders
-                                self.index_min_seeds_int = int(post_seeders)
-                                
-                                mg_log.info(u"%s Index - Post seed count %s" % (site_name,self.index_min_seeds))
-
-                        else:
-
-                                self.index_min_seeds = u""
-                                mg_log.info(u"%s Index - Post seed count not found" % (site_name))
-
-                        if post_peers != None:
-
-                                self.index_min_peers = post_peers
-                                self.index_min_peers_int = int(post_peers)
-                                
-                                mg_log.info(u"%s Index - Post peer count %s" % (site_name,self.index_min_peers))
-
-                        else:
-
-                                self.index_min_peers = u""
-                                mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #call imdb search json
                         self.imdb_details_json()
