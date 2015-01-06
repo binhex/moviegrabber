@@ -3564,7 +3564,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Shutting down search index" % (site_name))
 
                                 return
-
+                
                         #set post title to none                
                         post_title = None
 
@@ -3925,8 +3925,8 @@ class SearchIndex(object):
                         if site_name == u"Newznab":
                                 
                                 try:
-                                        
-                                        self.imdb_tt_number = node["attr"][8]["@attributes"]["value"]
+
+                                        self.imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -3980,9 +3980,9 @@ class SearchIndex(object):
                                 #if any other length then mark as none
                                 else:
                                         
+                                        mg_log.info(u"%s Index - Malformed IMDb number %s from index site" % (site_name,self.imdb_tt_number))
                                         self.imdb_tt_number = None
-                                        mg_log.info(u"%s Index - Malformed IMDb number from index site" % (site_name))                                        
-
+                                        
                         else:
                                         
                                 mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))                                                
@@ -4010,11 +4010,11 @@ class SearchIndex(object):
                                                 mg_log.info(u"%s Index - IMDb number from post description is %s" % (site_name,self.imdb_tt_number))
                                         
                                         #if any other length then mark as none
-                                        else:
-                                                
-                                                self.imdb_tt_number = None
-                                                mg_log.info(u"%s Index - Malformed IMDb number from post description" % (site_name))                                                
+                                        else:                                                
 
+                                                mg_log.info(u"%s Index - Malformed IMDb number %s from post description" % (site_name,self.imdb_tt_number))
+                                                self.imdb_tt_number = None
+                                                                                                
                                 else:
                                         
                                         mg_log.info(u"%s Index - IMDb number from post description not found" % (site_name))                                                
