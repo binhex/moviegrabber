@@ -24,18 +24,13 @@ CREATE INDEX
 	<br>
 
 	<select name="add_newznab_site2" form="add_config_usenet_form">
-		<option value="nzbs_org" selected>nzbs.org</option>
-		<option value="nzb_su">nzb.su</option>
-		<option value="dognzb_cr">dognzb.cr</option>
-		<option value="nzbs4u_net">nzbs4u.net</option>
-		<option value="nzb_ag">nzb.ag</option>
-		<option value="usenet_crawler">usenet-crawler.com</option>		
-		<option value="nmatrix_co_za">nmatrix.co.za</option>		
-		<option value="newzb_net">newzb.net</option>
-		<option value="nzbplanet_net">nzbplanet.net</option>
-		<option value="nzbndx_com">nzbndx.com</option>
-		<option value="nzbid_org">nzbid.org</option>
-		<option value="custom">custom</option>
+	
+		<!--#for $add_index_site_item in $add_index_site_list#-->
+				
+			<option value="$add_index_site_item">$add_index_site_item</option>
+			
+		<!--#end for#-->
+	
 	</select>
 	
 	<br>

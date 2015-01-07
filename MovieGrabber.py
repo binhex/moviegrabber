@@ -3512,6 +3512,52 @@ class SearchIndex(object):
                 #generate feed details
                 self.feed_details(site_name)
 
+        def monova_index(self):
+
+                site_name = u"Monova"
+                
+                mg_log.info(u"%s Index - Search index started" % (site_name))
+                
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
+
+                #use server side search term for rss feed
+                if self.config_search_and != "":
+
+                        search_term = self.config_search_and
+                        
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
+
+                        #convert list back to string
+                        search_term = ','.join(search_term)
+
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+
+                        #generate url for site using search criteria only (does not support category)
+                        site_feed = u"%s:%s/rss.php?type=search&term=%s" % (self.config_hostname, self.config_portnumber, search_term)
+
+                else:
+
+                        #generate url for site using category only (category hard set to movies)
+                        site_feed = u"%s:%s/rss.php?type=catname&id=1" % (self.config_hostname, self.config_portnumber)
+                        
+                #convert to url for feed
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?&')
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
+
+                #set user agent sent to index site
+                self.user_agent = user_agent_moviegrabber
+
+                #generate feed details
+                self.feed_details(site_name)
+
         def feed_details(self,site_name):
                 
                 #pass to urllib2 retry function - decorator
@@ -3564,7 +3610,7 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Shutting down search index" % (site_name))
 
                                 return
-                
+                        
                         #set post title to none                
                         post_title = None
 
@@ -3629,6 +3675,16 @@ class SearchIndex(object):
 
                                         post_title = None
 
+                        if site_name == u"Monova":
+                                
+                                try:
+                                        
+                                        post_title = node["title"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+                                        
                         if post_title != None:
 
                                 #remove square brackets and content from start and end of post title
@@ -3767,7 +3823,19 @@ class SearchIndex(object):
 
                                         mg_log.info(u"%s Index - Post download link not found" % (site_name))
                                         continue
-                        
+
+                        if site_name == u"Monova":
+
+                                try:
+                                        
+                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+
                         #remove seperators from post title, used for compare
                         self.index_post_title_strip = re.sub(ur"[\+\.\s\-\_\(\)\[\]\,]+", "", self.index_post_title)
 
@@ -3884,6 +3952,42 @@ class SearchIndex(object):
                                 if post_peers == u"---":
 
                                         post_peers = u"0"
+
+                        if site_name == u"Monova":
+                                
+                                try:
+                                        
+                                        post_description = node["description"]
+                                        post_seeders_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
+
+                                        if post_seeders_search != None:
+                                                
+                                                post_seeders = post_seeders_search.group()
+
+                                        else:
+
+                                                post_seeders = None
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_seeders = None
+
+                                try:
+
+                                        post_description = node["description"]
+                                        post_peers_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
+
+                                        if post_peers_search != None:
+                                                
+                                                post_peers = post_peers_search.group()
+
+                                        else:
+
+                                                post_peers = None
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_peers = None
                                         
                         if post_seeders != None:
 
@@ -3917,8 +4021,7 @@ class SearchIndex(object):
                                 self.index_min_peers = u""
                                 mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
-                        #set post description and imdb tt number to none
-                        post_description = None
+                        #set imdb tt number to none
                         self.imdb_tt_number = None
 
                         #generate imdb id
@@ -3931,36 +4034,6 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
                                         
                                         self.imdb_tt_number = None
-
-                        if site_name == u"BitSnoop":
-                                
-                                try:
-                                        
-                                        post_description = node["link"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_description = None
-                                        
-                        if site_name == u"KickAss":
-                                
-                                try:
-                                        
-                                        post_description = node["link"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_description = None
-
-                        if site_name == u"Demonoid":
-                                
-                                try:
-                                        
-                                        post_description = node["description"]
-
-                                except (IndexError, AttributeError) as e:
-                                        
-                                        post_description = None
 
                         if self.imdb_tt_number != None:
                                 
@@ -3986,38 +4059,6 @@ class SearchIndex(object):
                         else:
                                         
                                 mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))                                                
-
-                        if post_description != None:
-
-                                #search post description, looking for matching imdb tt number
-                                imdb_tt_number_search = re.compile(ur"(?<=/title/)tt[0-9]{6,7}").search(post_description)
-
-                                if imdb_tt_number_search != None:
-
-                                        self.imdb_tt_number = imdb_tt_number_search.group(0)
-
-                                        #if length is equal to 7 then prefix with tt
-                                        if len(self.imdb_tt_number) == 7:
-
-                                                self.imdb_tt_number = u"%s" % (self.imdb_tt_number)
-                                                mg_log.info(u"%s Index - IMDb number from post description is %s" % (site_name,self.imdb_tt_number))
-                                                
-                                        #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
-                                        elif len(self.imdb_tt_number) == 6:
-
-
-                                                self.imdb_tt_number = u"0%s" % (self.imdb_tt_number)
-                                                mg_log.info(u"%s Index - IMDb number from post description is %s" % (site_name,self.imdb_tt_number))
-                                        
-                                        #if any other length then mark as none
-                                        else:                                                
-
-                                                mg_log.info(u"%s Index - Malformed IMDb number %s from post description" % (site_name,self.imdb_tt_number))
-                                                self.imdb_tt_number = None
-                                                                                                
-                                else:
-                                        
-                                        mg_log.info(u"%s Index - IMDb number from post description not found" % (site_name))                                                
 
                         #if imdb id not found from index site or post description then use omdb or tmdb                                       
                         if self.imdb_tt_number == None:
@@ -4070,13 +4111,13 @@ class SearchIndex(object):
                         if site_name == u"Newznab":
                                 
                                 try:
-                                        
-                                        post_size = node["attr"][2]["@attributes"]["value"]
+
+                                        post_size = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "size").next()
                                         
                                 except (IndexError, AttributeError) as e:
                                         
                                         post_size = None
-
+                                        
                         if site_name == u"BitSnoop":
                                 
                                 try:
@@ -4124,10 +4165,14 @@ class SearchIndex(object):
                                                 #convert from MB to KB
                                                 post_size = int(decimal.Decimal(post_size_value_str) * 1000000) 
 
-                                        if post_size_scale == "GB":
+                                        elif post_size_scale == "GB":
 
                                                 #convert from GB to KB
                                                 post_size = int(decimal.Decimal(post_size_value_str) * 1000000000)
+
+                                        else:
+
+                                                post_size = None
                                                 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -4138,6 +4183,15 @@ class SearchIndex(object):
                                 try:
                                         
                                         post_size = node["size"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_size = None
+
+                        if site_name == u"Monova":
+
+                                try:
+                                        post_size = node["enclosure"]["@length"]
 
                                 except (IndexError, AttributeError) as e:
                                         
@@ -4250,6 +4304,16 @@ class SearchIndex(object):
                                         
                                         post_date = None                        
 
+                        if site_name == u"Monova":
+                                
+                                try:
+                                        
+                                        post_date = node["pubDate"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_date = None                        
+
                         if post_date != None:
 
                                 post_date = re.sub(ur"\s?\+.*", "", post_date)
@@ -4272,9 +4336,30 @@ class SearchIndex(object):
                                 self.index_post_date_sort = 0
                                 mg_log.info(u"%s Index - Post date not found" % (site_name))
 
-                        #set post_nfo to empty string - not available
-                        self.index_post_nfo = ""
+                        #set post nfo to none
+                        post_nfo = None
 
+                        #generate post nfo
+                        if site_name == u"Newznab":
+                                
+                                try:
+                                        
+                                        post_nfo = node["comments"]
+                                        
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_nfo = None
+
+                        if post_nfo != None:
+
+                                self.index_post_nfo = post_nfo
+                                mg_log.info(u"%s Index - Post nfo url %s" % (site_name,self.index_post_nfo))
+                                
+                        else:
+                                
+                                self.index_post_nfo = ""
+                                mg_log.info(u"%s Index - Post nfo url not found" % (site_name))                                
+                                
                         #set post details to none
                         post_details = None
                         
@@ -4330,6 +4415,16 @@ class SearchIndex(object):
                                         post_details = None                                                
 
                         if site_name == u"ExtraTorrent":
+                                
+                                try:
+                                        
+                                        post_details = node["link"]
+
+                                except (IndexError, AttributeError) as e:
+                                        
+                                        post_details = None                                                
+
+                        if site_name == u"Monova":
                                 
                                 try:
                                         
@@ -5708,6 +5803,9 @@ class ConfigUsenet(object):
 
                         template.index_site_list = []
 
+                #define list of supported newznab index sites
+                template.add_index_site_list = ["nzbs.org","nzb.su","dognzb.cr","nzbs4u.net","nzb.ag","usenet-crawler.com","nmatrix.co.za","newzb.net","nzbplanet.net","nzbndx.com","nzbid.org","custom"]
+
                 header()
 
                 footer()
@@ -5722,7 +5820,7 @@ class ConfigUsenet(object):
                 add_newznab_site = kwargs["add_newznab_site2"]
 
                 site_index = 1
-                add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
+                add_newznab_site_index = "%s-%s" % (add_newznab_site,str(site_index))
 
                 if config_index_site:
 
@@ -5733,7 +5831,7 @@ class ConfigUsenet(object):
                         while add_newznab_site_index in config_index_site_list:
 
                                 site_index += 1
-                                add_newznab_site_index = "%s_%s" % (add_newznab_site,str(site_index))
+                                add_newznab_site_index = "%s-%s" % (add_newznab_site,str(site_index))
 
                         #check to make sure rule doesnt already exist
                         if add_newznab_site_index not in config_index_site_list:
@@ -5755,57 +5853,57 @@ class ConfigUsenet(object):
                         config_obj["usenet"]["index_site"] = add_newznab_site_index
 
                 #set hostname, path, and port number for known index sites
-                if add_newznab_site == "nzbs_org":
+                if add_newznab_site == "nzbs.org":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbs.org"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzb_su":
+                elif add_newznab_site == "nzb.su":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://api.nzb.su"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "dognzb_cr":
+                elif add_newznab_site == "dognzb.cr":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://api.dognzb.cr"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzbs4u_net":
+                elif add_newznab_site == "nzbs4u.net":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbs4u.net"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "usenet_crawler":
+                elif add_newznab_site == "usenet-crawler.com":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.usenet-crawler.com"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzb_ag":
+                elif add_newznab_site == "nzb.ag":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzb.ag"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nmatrix_co_za":
+                elif add_newznab_site == "nmatrix.co.za":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.nmatrix.co.za"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "newzb_net":
+                elif add_newznab_site == "newzb.net":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://newzb.net"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzbplanet_net":
+                elif add_newznab_site == "nzbplanet.net":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://nzbplanet.net"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzbndx_com":
+                elif add_newznab_site == "nzbndx.com":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "https://www.nzbndx.com"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "443"
 
-                elif add_newznab_site == "nzbid_org":
+                elif add_newznab_site == "nzbid.org":
 
                         config_obj["usenet"]["%s_hostname" % (add_newznab_site_index)] = "http://nzbid.org"
                         config_obj["usenet"]["%s_portnumber" % (add_newznab_site_index)] = "80"
@@ -5948,6 +6046,9 @@ class ConfigTorrent(object):
 
                         template.index_site_list = []
 
+                #define list of supported torrent index sites
+                template.add_index_site_list = ["kickasstorrents","thepiratebay","bitsnoop","extratorrent","demonoid","monova"]
+                
                 header()
 
                 footer()
@@ -5962,7 +6063,7 @@ class ConfigTorrent(object):
                 add_torrent_site = kwargs["add_torrent_site2"]
 
                 site_index = 1
-                add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
+                add_torrent_site_index = "%s-%s" % (add_torrent_site,str(site_index))
 
                 if config_index_site:
 
@@ -5973,7 +6074,7 @@ class ConfigTorrent(object):
                         while add_torrent_site_index in config_index_site_list:
 
                                 site_index += 1
-                                add_torrent_site_index = "%s_%s" % (add_torrent_site,str(site_index))
+                                add_torrent_site_index = "%s-%s" % (add_torrent_site,str(site_index))
 
                         #check to make sure rule doesnt already exist
                         if add_torrent_site_index not in config_index_site_list:
@@ -6001,7 +6102,7 @@ class ConfigTorrent(object):
                         config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #set hostname, path, and port number for known index sites
-                if add_torrent_site == "kat":
+                if add_torrent_site == "kickasstorrents":
 
                         config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://kickass.to"
                         config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "443"
@@ -6023,6 +6124,12 @@ class ConfigTorrent(object):
 
                         config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://extratorrent.cc"
                         config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
+
+                #set hostname, path, and port number for known index sites
+                if add_torrent_site == "monova":
+
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://www.monova.org"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "443"
 
                 #write default values to config.ini
                 config_obj["torrent"]["%s_cat" % (add_torrent_site_index)] = ""
@@ -7168,7 +7275,7 @@ class SearchIndexThread(object):
 
                                                         self.run()
                                                         
-                                        if "kat" in torrent_index_site_item:
+                                        if "kickasstorrents" in torrent_index_site_item:
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "kat_index"
@@ -7202,6 +7309,16 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "extratorrent_index"
+                                                self.download_method = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+
+                                        if "monova" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "monova_index"
                                                 self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:

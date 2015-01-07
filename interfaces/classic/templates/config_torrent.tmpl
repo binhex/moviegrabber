@@ -26,11 +26,11 @@ CREATE INDEX
 
 	<select name="add_torrent_site2" form="add_config_torrent_form">
 	
-		<option value="kat" selected>kickasstorrents</option>
-		<option value="piratebay">thepiratebay</option>
-		<option value="bitsnoop">bitsnoop</option>
-		<option value="extratorrent">extratorrent</option>
-		<option value="demonoid">demonoid</option>
+		<!--#for $add_index_site_item in $add_index_site_list#-->
+				
+			<option value="$add_index_site_item">$add_index_site_item</option>
+			
+		<!--#end for#-->
 		
 	</select>
 	
@@ -105,7 +105,7 @@ EDIT/DELETE INDEX
 		
 		<select name="torrent_cat2" form="$edit_config_torrent">		
 		
-			<!--#if "kat" in $index_site_item#-->
+			<!--#if "kickass" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "other", "divx/xvid", "hd/x264", "foreign"]#-->
 			<!--#end if#-->				
 			
@@ -123,6 +123,10 @@ EDIT/DELETE INDEX
 
 			<!--#if "demonoid" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
+			<!--#end if#-->				
+			
+			<!--#if "monova" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any"]#-->
 			<!--#end if#-->				
 			
 			<!--#for $torrent_cat_item in $torrent_cat_list#-->
@@ -146,7 +150,7 @@ EDIT/DELETE INDEX
 		
 		<select name="torrent_lang2" form="$edit_config_torrent">
 		
-			<!--#if "kat" in $index_site_item#-->
+			<!--#if "kickass" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]#-->
 			<!--#end if#-->				
 			
@@ -163,6 +167,10 @@ EDIT/DELETE INDEX
 			<!--#end if#-->				
 
 			<!--#if "demonoid" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->				
+
+			<!--#if "monova" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->				
 			
