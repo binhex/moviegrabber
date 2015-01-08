@@ -951,7 +951,7 @@ def cherrypy_logging():
         # error log
         
         #add the log message handler to the logger
-        cherrypy_error_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_log, 'a', maxBytes=10485760, backupCount=3, encoding = "utf-8")
+        cherrypy_error_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_log, 'a', maxBytes=10485760, backupCount=3, encoding="utf-8")
 
         #set logging level to debug
         cherrypy_error_rotatingfilehandler.setLevel(logging.DEBUG)
@@ -965,7 +965,7 @@ def cherrypy_logging():
         # access log
         
         #add the access message handler to the logger
-        cherrypy_access_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_access_log, 'a', maxBytes=10485760, backupCount=3, encoding = "utf-8")
+        cherrypy_access_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_access_log, 'a', maxBytes=10485760, backupCount=3, encoding="utf-8")
 
         #set logging level to debug
         cherrypy_access_rotatingfilehandler.setLevel(logging.DEBUG)
@@ -991,7 +991,7 @@ def moviegrabber_logging():
         moviegrabber_logger = logging.getLogger("moviegrabber")
 
         #add rotating log handler
-        moviegrabber_rotatingfilehandler = logging.handlers.RotatingFileHandler(moviegrabber_log, "a", maxBytes=10485760, backupCount=3, encoding = "utf-8")
+        moviegrabber_rotatingfilehandler = logging.handlers.RotatingFileHandler(moviegrabber_log, "a", maxBytes=10485760, backupCount=3, encoding="utf-8")
         
         #set formatter for moviegrabber
         moviegrabber_rotatingfilehandler.setFormatter(moviegrabber_formatter)
@@ -1051,7 +1051,7 @@ def sqlite_logging():
         sqlite_logger = logging.getLogger("sqlalchemy.engine")
 
         #add rotating log handler
-        sqlite_rotatingfilehandler = logging.handlers.RotatingFileHandler(sqlite_log, "a", maxBytes=10485760, backupCount=3, encoding = "utf-8")
+        sqlite_rotatingfilehandler = logging.handlers.RotatingFileHandler(sqlite_log, "a", maxBytes=10485760, backupCount=3, encoding="utf-8")
 
         #set formatter for sqlite
         sqlite_rotatingfilehandler.setFormatter(sqlite_formatter)
@@ -3345,9 +3345,9 @@ class SearchIndex(object):
                 #generate feed details
                 self.feed_details(site_name)
 
-        def kat_index(self):
+        def kickasstorrents_index(self):
 
-                site_name = u"KickAss"
+                site_name = u"KickAssTorrents"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
                 
@@ -3517,6 +3517,27 @@ class SearchIndex(object):
                 site_name = u"Monova"
                 
                 mg_log.info(u"%s Index - Search index started" % (site_name))
+
+                #substitute friendly names for real values for categories
+                if self.config_cat == u"any":
+
+                        self.config_cat = u"0"
+                        
+                if self.config_cat == u"all movies":
+
+                        self.config_cat = u"1"
+
+                if self.config_cat == u"dvdr":
+
+                        self.config_cat = u"3"
+
+                if self.config_cat == u"hd":
+
+                        self.config_cat = u"173"
+
+                if self.config_cat == u"other":
+
+                        self.config_cat = u"34"
                 
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3526,27 +3547,8 @@ class SearchIndex(object):
 
                         self.config_hostname = u"http://%s" % (self.config_hostname)
 
-                #use server side search term for rss feed
-                if self.config_search_and != "":
-
-                        search_term = self.config_search_and
-                        
-                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        search_term = [x.strip() for x in search_term.split(',')]
-
-                        #convert list back to string
-                        search_term = ','.join(search_term)
-
-                        #replace comma with spaces to seperate search terms
-                        search_term = re.sub(ur","," ", search_term)
-
-                        #generate url for site using search criteria only (does not support category)
-                        site_feed = u"%s:%s/rss.php?type=search&term=%s" % (self.config_hostname, self.config_portnumber, search_term)
-
-                else:
-
-                        #generate url for site using category only (category hard set to movies)
-                        site_feed = u"%s:%s/rss.php?type=catname&id=1" % (self.config_hostname, self.config_portnumber)
+                #generate url for site using category only (category hard set to movies)
+                site_feed = u"%s:%s/rss.php?type=catname&id=%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
                         
                 #convert to url for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?&')
@@ -3635,7 +3637,7 @@ class SearchIndex(object):
 
                                         post_title = None
 
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -3684,7 +3686,7 @@ class SearchIndex(object):
                                 except (IndexError, AttributeError) as e:
 
                                         post_title = None
-                                        
+
                         if post_title != None:
 
                                 #remove square brackets and content from start and end of post title
@@ -3693,7 +3695,7 @@ class SearchIndex(object):
                                 #remove round brackets and content from start and end of post title
                                 post_title = re.sub(ur"^\([^\)]+\)|\([^\(]+\)$", "", post_title)
 
-                                #remove .torrent from end of post title (kickass)
+                                #remove .torrent from end of post title (kat)
                                 post_title = re.sub(ur"\.torrent$", "", post_title)
 
                                 #remove .mkv from end of post title (newznab)
@@ -3721,7 +3723,7 @@ class SearchIndex(object):
 
                                 else:
                                         
-                                        self.index_post_group = ""
+                                        self.index_post_group = u""
                                         mg_log.info(u"%s Index - Post release group not found" % (site_name))
                                                 
                         else:
@@ -3765,7 +3767,7 @@ class SearchIndex(object):
 
                                         pass
                                 
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -3909,7 +3911,7 @@ class SearchIndex(object):
                                         
                                         post_peers = None
                         
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -4128,7 +4130,7 @@ class SearchIndex(object):
                                         
                                         post_size = None
 
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -4264,7 +4266,7 @@ class SearchIndex(object):
                                         
                                         post_date = None                        
 
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -4384,7 +4386,7 @@ class SearchIndex(object):
                                         
                                         post_details = None                                                
 
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -4468,7 +4470,7 @@ class SearchIndex(object):
                                         
                                         post_id = None
                         
-                        if site_name == u"KickAss":
+                        if site_name == u"KickAssTorrents":
                                 
                                 try:
                                         
@@ -7278,7 +7280,7 @@ class SearchIndexThread(object):
                                         if "kickasstorrents" in torrent_index_site_item:
 
                                                 self.index_site_item = torrent_index_site_item
-                                                self.search_index_function =  "kat_index"
+                                                self.search_index_function =  "kickasstorrents_index"
                                                 self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
