@@ -3695,17 +3695,20 @@ class SearchIndex(object):
                                 #remove round brackets and content from start and end of post title
                                 post_title = re.sub(ur"^\([^\)]+\)|\([^\(]+\)$", "", post_title)
 
-                                #remove .torrent from end of post title (kat)
-                                post_title = re.sub(ur"\.torrent$", "", post_title)
+                                #remove "<seperator>torrent" from end of post title (kat)
+                                post_title = re.sub(ur"[\s\.\_\-]+torrent$", "", post_title)
 
-                                #remove .mkv from end of post title (newznab)
-                                post_title = re.sub(ur"\.mkv$", "", post_title)
+                                #remove "<seperator>mkv" from end of post title (newznab)
+                                post_title = re.sub(ur"[\s\.\_\-]+mkv$", "", post_title)
 
-                                #remove .subs from end of post title (newznab)
-                                post_title = re.sub(ur"\.subs$", "", post_title)
+                                #remove "<seperator>subs" from end of post title (newznab)
+                                post_title = re.sub(ur"[\s\.\_\-]+subs$", "", post_title)
 
-                                #remove .rarbg from end of post title (torrents)
-                                post_title = re.sub(ur"\.rarbg$", "", post_title)
+                                #remove "<seperator>rarbg" from end of post title (torrents)
+                                post_title = re.sub(ur"[\s\.\_\-]+rarbg$", "", post_title)
+
+                                #remove "<seperator><single digit>" from end of post title (newznab)
+                                post_title = re.sub(ur"[\s\.\_\-]+\d$", "", post_title)
 
                                 #remove seperator from start and end of post title
                                 post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
