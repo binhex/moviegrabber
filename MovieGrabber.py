@@ -3980,7 +3980,7 @@ class SearchIndex(object):
                                 try:
 
                                         post_description = node["description"]
-                                        post_peers_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
+                                        post_peers_search = re.compile(ur"(?i)(?<=Peers:\s)[\d]+").search(post_description)
 
                                         if post_peers_search != None:
 
