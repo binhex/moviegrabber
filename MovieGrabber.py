@@ -82,7 +82,7 @@ except Exception:
         sys.stderr.write("WARNING - Required SQLite Python module missing, please install before running MovieGrabber\n")
         os._exit(1)
 
-config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+config_dir = os.path.join(moviegrabber_root_dir, u"configs")
 config_dir = os.path.normpath(config_dir)
 
 #set paths for configspec.ini
@@ -286,17 +286,17 @@ def byte_to_uni(name):
 
         #if type is byte string then decode to unicode, otherwise assume already unicode
         if isinstance(name, str) and name != None:
-                
+
                 try:
 
                         #linux default encode
                         name = name.decode('utf8')
-                        
+
                 except UnicodeDecodeError:
 
-                        #windows default encode 
+                        #windows default encode
                         name = name.decode('windows-1252')
-                        
+
         return name
 
 #used to encode unicode to byte strings, either utf-8 (normally used on linux) or cp1252 (windows)
@@ -304,17 +304,17 @@ def uni_to_byte(name):
 
         #if type is unicode then encode to byte string, otherwise assume already byte string
         if isinstance(name, unicode) and name != None:
-                
+
                 try:
 
                         #linux default encode
                         name = name.encode('utf8')
-                        
+
                 except UnicodeEncodeError:
 
-                        #windows default encode 
+                        #windows default encode
                         name = name.encode('windows-1252')
-                        
+
         return name
 
 #create decorator for exception retries
@@ -361,13 +361,13 @@ def urllib2_retry(url,user_agent):
                 #force HTTP/1.0 - used to prevent HTTP/1.1 chunked transfer encoding (not supported)
                 httplib.HTTPConnection._http_vsn = 10
                 httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
-                
+
                 #add headers for gzip support and custom user agent string
                 headers = {
                         'Accept-encoding': 'gzip',
                         'User-Agent': user_agent,
                 }
-                
+
                 #request url with headers
                 request = urllib2.Request(url,None,headers)
 
@@ -384,7 +384,7 @@ def urllib2_retry(url,user_agent):
                 else:
 
                         data = response.read()
-                        
+
                 return data
 
         except urllib2.HTTPError, e:
@@ -427,15 +427,15 @@ def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_ar
 
         #if not defined via webui and not defined via argument then set to default path
         if certs_dir == "" and certs_dir_arg == None:
-                
+
                 certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
 
         #if defined via argument then use this
         if certs_dir_arg != None and os.path.exists(certs_dir_arg):
 
                 certs_dir = certs_dir_arg
-                
-        config_obj["folders"]["certs_dir"] = certs_dir               
+
+        config_obj["folders"]["certs_dir"] = certs_dir
 
         #if not defined via webui and not defined via argument then set to default path
         if logs_dir == "" and logs_dir_arg == None:
@@ -446,8 +446,8 @@ def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_ar
         if logs_dir_arg != None and os.path.exists(logs_dir_arg):
 
                 logs_dir = logs_dir_arg
-                
-        config_obj["folders"]["logs_dir"] = logs_dir        
+
+        config_obj["folders"]["logs_dir"] = logs_dir
 
         #if not defined via webui and not defined via argument then set to default path
         if results_dir == "" and results_dir_arg == None:
@@ -458,10 +458,10 @@ def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_ar
         if results_dir_arg != None and os.path.exists(results_dir_arg):
 
                 results_dir = results_dir_arg
-                
-        config_obj["folders"]["results_dir"] = results_dir        
 
-        #if not defined via webui and not defined via argument then set to default path 
+        config_obj["folders"]["results_dir"] = results_dir
+
+        #if not defined via webui and not defined via argument then set to default path
         if webconfig_address == "" and webconfig_address_arg == None:
 
                 webconfig_address = u"0.0.0.0"
@@ -470,7 +470,7 @@ def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_ar
         if webconfig_address_arg != None:
 
                 webconfig_address = webconfig_address_arg
-                
+
         config_obj["webconfig"]["address"] = webconfig_address
 
         #if not defined via webui and not defined via argument then set to default path
@@ -482,8 +482,8 @@ def config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_ar
         if webconfig_port_arg != None:
 
                 webconfig_port = webconfig_port_arg
-                
-        config_obj["webconfig"]["port"] = webconfig_port        
+
+        config_obj["webconfig"]["port"] = webconfig_port
 
         config_obj["general"]["local_version"] = latest_mg_version
 
@@ -500,20 +500,20 @@ def config_validate():
 
         #loop over validator and fix any validation failures
         if val_result != True:
-                
+
                 for (section_list, key, _) in configobj.flatten_errors(config_obj, val_result):
 
                         if key is not None:
                                 print config_obj.restore_defaults
                                 #convert section list to str
                                 section_item = ', '.join(section_list)
-                                
+
                                 #get value from section and key
                                 config_bad_value = config_obj[section_item][key]
                                 print config_bad_value
                                 config_obj.restore_default(key)
 
-                                
+
                                 #if the bad value is list then convert
                                 if type(config_bad_value) is list:
 
@@ -524,7 +524,7 @@ def config_validate():
                                         config_obj[section_item][key] = config_bad_value_str
 
                                 sys.stdout.write(u"The '%s' key in the section '%s' failed validation" % (key, ', '.join(section_list)))
-        
+
 def cli_argparse():
 
         #if lib folder exists (not compiled windows binary) then enable argparse (py2exe doesnt allow arguments)
@@ -546,7 +546,7 @@ def cli_argparse():
                 commandline_parser.add_argument(u"--ip",  metavar=u"<ipaddress>", help=u"specify ip e.g. --ip 192.168.1.2")
                 commandline_parser.add_argument(u"--port", metavar=u"<port>", help=u"specify port e.g. --port 9191")
                 commandline_parser.add_argument(u"--config", metavar=u"<path>", help=u"specify path for config file e.g. --config /opt/moviegrabber/config/")
-                commandline_parser.add_argument(u"--certs", metavar=u"<path>", help=u"specify path for ssl cert files e.g. --certs /opt/moviegrabber/certs/")                
+                commandline_parser.add_argument(u"--certs", metavar=u"<path>", help=u"specify path for ssl cert files e.g. --certs /opt/moviegrabber/certs/")
                 commandline_parser.add_argument(u"--logs", metavar=u"<path>", help=u"specify path for log files e.g. --logs /opt/moviegrabber/logs/")
                 commandline_parser.add_argument(u"--db", metavar=u"<path>", help=u"specify path for database e.g. --db /opt/moviegrabber/db/")
                 commandline_parser.add_argument(u"--pidfile", metavar=u"<path>", help=u"specify path to pidfile e.g. --pid /var/run/moviegrabber/moviegrabber.pid")
@@ -562,49 +562,49 @@ def cli_argparse():
                 if args["config"] != None:
 
                         if not uni_to_byte(os.path.exists(args["config"])):
-                                
+
                                 try:
 
                                         #create path recursively
                                         os.makedirs(args["config"])
-                                        config_dir = os.path.normpath(args["config"])                                        
+                                        config_dir = os.path.normpath(args["config"])
 
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")                        
+                                        config_dir = os.path.join(moviegrabber_root_dir, u"configs")
                                         config_dir = os.path.normpath(config_dir)
-                                        
+
                         else:
 
                                 config_dir = os.path.normpath(args["config"])
-                                
+
                 #if not specified then use default - note config.ini path not specified in config.ini!
                 else:
 
-                        config_dir = None              
+                        config_dir = None
 
                 #if argument specified then use
                 if args["certs"] != None:
 
                         if not uni_to_byte(os.path.exists(args["certs"])):
-                                
+
                                 try:
 
                                         #create path recursively
                                         os.makedirs(args["certs"])
-                                        certs_dir = os.path.normpath(args["certs"])                                        
+                                        certs_dir = os.path.normpath(args["certs"])
 
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        certs_dir = os.path.join(moviegrabber_root_dir, u"certs")                        
+                                        certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
                                         certs_dir = os.path.normpath(certs_dir)
-                                        
+
                         else:
 
                                 certs_dir = os.path.normpath(args["certs"])
-                
+
                 #if not specified in config.ini then set to defaults
                 else:
 
@@ -614,23 +614,23 @@ def cli_argparse():
                 if args["logs"] != None:
 
                         if not uni_to_byte(os.path.exists(args["logs"])):
-                                
+
                                 try:
 
                                         #create path recursively
                                         os.makedirs(args["logs"])
-                                        logs_dir = os.path.normpath(args["logs"])                                        
+                                        logs_dir = os.path.normpath(args["logs"])
 
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")                        
+                                        logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
                                         logs_dir = os.path.normpath(logs_dir)
-                                        
+
                         else:
 
                                 logs_dir = os.path.normpath(args["logs"])
-                
+
                 #if not specified in config.ini then set to defaults
                 else:
 
@@ -640,28 +640,28 @@ def cli_argparse():
                 if args["db"] != None:
 
                         if not uni_to_byte(os.path.exists(args["db"])):
-                                
+
                                 try:
 
                                         #create path recursively
                                         os.makedirs(args["db"])
-                                        results_dir = os.path.normpath(args["db"])                                        
+                                        results_dir = os.path.normpath(args["db"])
 
                                 except WindowsError:
 
                                         #if cannot create then use default
-                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")                        
+                                        results_dir = os.path.join(moviegrabber_root_dir, u"db")
                                         results_dir = os.path.normpath(results_dir)
-                                        
+
                         else:
 
                                 results_dir = os.path.normpath(args["db"])
-                        
+
                 #if not specified in config.ini then set to defaults
                 else:
-                
-                        results_dir = None                 
-                
+
+                        results_dir = None
+
                 #if argument specified then use
                 if args["ip"] != None:
 
@@ -669,10 +669,10 @@ def cli_argparse():
 
                 #if not specified in config.ini then set to defaults
                 else:
-                        
+
                         webconfig_address = None
 
-                #if argument specified then use                        
+                #if argument specified then use
                 if args["port"] != None:
 
                         webconfig_port = args["port"]
@@ -711,9 +711,9 @@ def cli_argparse():
 
                 #set defaults
                 config_dir = None
-                certs_dir = None       
-                logs_dir = None                    
-                results_dir = None                        
+                certs_dir = None
+                logs_dir = None
+                results_dir = None
                 webconfig_address = None
                 webconfig_port = None
 
@@ -751,7 +751,7 @@ config_validate()
 
 #run function to write out default values for logs dir, db etc if not defined via arguments
 config_write(certs_dir_arg,logs_dir_arg,results_dir_arg,webconfig_address_arg,webconfig_port_arg)
-        
+
 #read values for logs and results db
 certs_dir = config_obj["folders"]["certs_dir"]
 logs_dir = config_obj["folders"]["logs_dir"]
@@ -906,7 +906,7 @@ class ResultsDBQueued(Base):
                 self.postdl = postdl
                 self.dlstatus = dlstatus
                 self.dlname = dlname
-                self.dltype = dltype                
+                self.dltype = dltype
                 self.procresult = procresult
                 self.procdate = procdate
                 self.procdatesort = procdatesort
@@ -943,13 +943,13 @@ def cherrypy_logging():
 
         #define cherrpy app log
         log = cherrypy.log
-        
+
         #remove error and access file, specified in rotatingfilehandler
         log.access_file = ""
         log.error_file = ""
-        
+
         # error log
-        
+
         #add the log message handler to the logger
         cherrypy_error_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_log, 'a', maxBytes=10485760, backupCount=3, encoding="utf-8")
 
@@ -963,14 +963,14 @@ def cherrypy_logging():
         log.error_log.addHandler(cherrypy_error_rotatingfilehandler)
 
         # access log
-        
+
         #add the access message handler to the logger
         cherrypy_access_rotatingfilehandler = logging.handlers.RotatingFileHandler(cherrypy_access_log, 'a', maxBytes=10485760, backupCount=3, encoding="utf-8")
 
         #set logging level to debug
         cherrypy_access_rotatingfilehandler.setLevel(logging.DEBUG)
 
-        #set formatting for access log  
+        #set formatting for access log
         cherrypy_access_rotatingfilehandler.setFormatter(cherrypy._cplogging.logfmt)
 
         #add RotatingFileHandler for access log
@@ -992,7 +992,7 @@ def moviegrabber_logging():
 
         #add rotating log handler
         moviegrabber_rotatingfilehandler = logging.handlers.RotatingFileHandler(moviegrabber_log, "a", maxBytes=10485760, backupCount=3, encoding="utf-8")
-        
+
         #set formatter for moviegrabber
         moviegrabber_rotatingfilehandler.setFormatter(moviegrabber_formatter)
 
@@ -1033,7 +1033,7 @@ def moviegrabber_logging():
         elif log_level == "exception":
 
                 console_streamhandler.setLevel(logging.ERROR)
-        
+
         return moviegrabber_logger
 
 def sqlite_logging():
@@ -1076,7 +1076,7 @@ def sqlite_logging():
 
 #store the logger instances
 mg_log = moviegrabber_logging()
-sql_log = sqlite_logging()        
+sql_log = sqlite_logging()
 cherry_log = cherrypy_logging()
 
 ################
@@ -1087,7 +1087,7 @@ def sqlite_check():
 
         """notes - The ALTER TABLE command in SQLite allows the user to rename a table or to add a new column to an existing table.
         It is not possible to rename a column, remove a column, or add or remove constraints from a table."""
-        
+
         #if db file doesnt exist then create from orm
         if not uni_to_byte(os.path.exists(results_db)):
 
@@ -1125,14 +1125,14 @@ def sqlite_check():
 
                         mg_log.warning(u"current database version %s is greater than latest version %s, please delete db" % (current_db_version,latest_db_version))
                         os._exit(1)
-                        
+
                 #if user version 0 or 1 then upgrade history and queued tables (add constraints and column postnamestrip)
                 elif current_db_version <= 1:
 
                         mg_log.info(u"database requires upgrade to schema...")
-                        
+
                         try:
-                                
+
                                 #rename existing tables, prefixing with old_
                                 sql_session.execute("ALTER TABLE history RENAME TO old_history;")
                                 sql_session.execute("ALTER TABLE queued RENAME TO old_queued;")
@@ -1146,7 +1146,7 @@ def sqlite_check():
                                 #copy all column data from old table to new table, use NULL for column that doest exist (postnamestrip)
                                 sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_history;")
                                 sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,NULL,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_queued;")
-                                                        
+
                                 #drop old tables if they exist
                                 sql_session.execute("DROP TABLE IF EXISTS old_history;")
                                 sql_session.execute("DROP TABLE IF EXISTS old_queued;")
@@ -1170,9 +1170,9 @@ def sqlite_check():
                 elif current_db_version == 2:
 
                         mg_log.info(u"database requires upgrade to schema...")
-                        
+
                         try:
-                                
+
                                 #rename existing tables, prefixing with "old_"
                                 sql_session.execute("ALTER TABLE history RENAME TO old_history;")
                                 sql_session.execute("ALTER TABLE queued RENAME TO old_queued;")
@@ -1186,7 +1186,7 @@ def sqlite_check():
                                 #copy all column data (excluding dltype) from old table to new table
                                 sql_session.execute("INSERT INTO history(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_history;")
                                 sql_session.execute("INSERT INTO queued(imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort) SELECT imdbposter,imdblink,imdbplot,imdbdirectors,imdbwriters,imdbactors,imdbcharacters,imdbgenre,imdbname,imdbyear,imdbruntime,imdbrating,imdbvotes,imdbcert,postdate,postdatesort,postsize,postsizesort,postnfo,postdetails,postname,postnamestrip,postdl,dlstatus,dlname,dltype,procresult,procdate,procdatesort FROM old_queued;")
-                                                        
+
                                 #drop old tables if they exist
                                 sql_session.execute("DROP TABLE IF EXISTS old_history;")
                                 sql_session.execute("DROP TABLE IF EXISTS old_queued;")
@@ -1267,17 +1267,17 @@ class DownloadWatched():
                                 if self.sqlite_row == None:
 
                                         continue
-                                
+
                         #iterate over list of items in dict getting download type and url
                         for self.download_type_item, self.download_url_item in self.sqlite_row.postdl.iteritems():
-                                
+
                                 if not download_poison_queue.empty():
 
                                         #send task done and exit function
                                         download_poison_queue.task_done()
                                         mg_log.info(u"Shutting down downloader")
                                         return
-                                        
+
                                 if self.download_type_item == "nzb":
 
                                         #read watch directory entries from config.ini
@@ -1286,7 +1286,7 @@ class DownloadWatched():
 
                                         #if nzb client defined self.download_nzb_client()
                                         #if readback from nzb client not succesfult then fallback to blackhole below
-                                        
+
                                         if config_watch_dir != "":
 
                                                 self.download_read_watched()
@@ -1302,8 +1302,8 @@ class DownloadWatched():
                                         config_watch_dir = os.path.normpath(config_watch_dir)
 
                                         #if torrent client defined self.download_torrent_client()
-                                        #if readback from nzb client not succesfult then fallback to blackhole below                                        
-                                        
+                                        #if readback from nzb client not succesfult then fallback to blackhole below
+
                                         if config_watch_dir != "":
 
                                                 self.download_read_watched()
@@ -1313,28 +1313,28 @@ class DownloadWatched():
                                                 return
 
                                 if self.download_type_item == "magnet":
-                                        
+
                                         pass
                                         #if torrent client defined self.download_torrent_client() else return
-                                
+
         def download_torrent_client(self):
-                
+
                 pass
-        
+
         def download_nzb_client(self):
-                
+
                 pass
-        
+
         def download_read_watched(self):
 
                 try:
 
                         #this reads the nzb/torrent file from the download link
-                        self.download_read = urllib2_retry(self.download_url_item,user_agent_moviegrabber)                        
+                        self.download_read = urllib2_retry(self.download_url_item,user_agent_moviegrabber)
                         mg_log.info(u"Read of nzb/torrent successful for url %s" % (self.download_url_item))
 
                 except Exception:
-                        
+
                         mg_log.info(u"Read of nzb/torrent failed for url %s" % (self.download_url_item))
                         return
 
@@ -1342,9 +1342,9 @@ class DownloadWatched():
                 self.download_write_watched()
 
                 mg_log.info(u"Download nzb/torrent to watched folder finished")
-                
+
         def download_write_watched(self):
-                
+
                 #check if download type is torrent or nzb
                 if self.download_type_item == "nzb":
 
@@ -1385,7 +1385,7 @@ class DownloadWatched():
                 if uni_to_byte(os.path.exists(download_path_filename)) and os.path.getsize(download_path_filename) == 0:
 
                         try:
-                                
+
                                 os.remove(download_path_filename)
                                 mg_log.info(u"Deleted zero byte file %s" % (download_path_filename))
 
@@ -1393,7 +1393,7 @@ class DownloadWatched():
 
                                 mg_log.info(u"Cannot delete zero byte file %s" % (download_path_filename))
                                 return
-                                
+
                 #check nzb/torrent does not exist in watched folder
                 if not uni_to_byte(os.path.exists(download_path_filename)):
 
@@ -1411,13 +1411,13 @@ class DownloadWatched():
 
                                 #run function to write status
                                 self.download_status()
-                                
+
                                 mg_log.info(u"write of nzb/torrent to %s failed" % (download_path_filename))
                                 return
 
                         #set result to downloaded for history/queue status
                         self.dlstatus_msg = "Downloaded"
-                        
+
                         #run function to write status
                         self.download_status()
 
@@ -1482,7 +1482,7 @@ class XBMC(object):
                 self.config_enable_xbmc = config_obj["switches"]["enable_xbmc"]
 
         def xbmc_gui_notify(self,imdb_movie_title_strip,imdb_movie_year_str,download_result_str):
-                
+
                 if self.config_enable_xbmc == "yes":
 
                         #split xbmc comma seperated hosts list and loop to send to all xbmc hosts
@@ -1501,7 +1501,7 @@ class XBMC(object):
                                         self.xbmc_send_request()
 
         def xbmc_library_update(self):
-                
+
                 if self.config_enable_xbmc == "yes":
 
                         #split xbmc comma seperated hosts list and loop to send to all xbmc hosts
@@ -1520,7 +1520,7 @@ class XBMC(object):
                                         self.xbmc_send_request()
 
         def xbmc_send_request(self):
-                
+
                 #create request and set content type to json - required
                 xbmc_request = urllib2.Request(self.xbmc_url, self.xbmc_jsonrpc, {'Content-Type': 'application/json'})
 
@@ -1554,7 +1554,7 @@ class SearchIndex(object):
                 self.config_watch_dir = config_obj["folders"]["%s_watch_dir" % (download_method)]
                 self.config_completed_dir = config_obj["folders"]["%s_completed_dir" % (download_method)]
                 self.config_torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
-                self.config_usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]            
+                self.config_usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
                 self.config_watch_dir = os.path.normpath(self.config_watch_dir)
                 self.config_completed_dir = os.path.normpath(self.config_completed_dir)
                 self.config_torrent_archive_dir = os.path.normpath(self.config_torrent_archive_dir)
@@ -1607,9 +1607,9 @@ class SearchIndex(object):
                 #read general settings from config.ini
                 self.config_movie_title_separator = config_obj["general"]["movie_title_separator"]
                 self.config_special_cut = config_obj["general"]["index_special_cut"]
-                self.config_preferred_group = config_obj["general"]["index_preferred_group"]        
+                self.config_preferred_group = config_obj["general"]["index_preferred_group"]
                 self.config_bad_group = config_obj["general"]["index_bad_group"]
-                self.config_bad_report = config_obj["general"]["index_bad_report"]    
+                self.config_bad_report = config_obj["general"]["index_bad_report"]
                 self.config_posts_to_process_int = int(config_obj["general"]["index_posts_to_process"])
 
                 if self.download_method == "usenet":
@@ -1624,7 +1624,7 @@ class SearchIndex(object):
                         self.config_lang = config_obj[download_method]["%s_lang" % (index_site_item)]
                         self.config_min_seeds_int = int(config_obj["general"]["min_seeds"])
                         self.config_min_peers_int = int(config_obj["general"]["min_peers"])
-                        
+
                 if self.config_movies_downloaded_dir:
 
                         #convert from unicode to byte string for root folders string, used for for os.walk
@@ -1634,7 +1634,7 @@ class SearchIndex(object):
                         movies_downloaded_dir_list = self.config_movies_downloaded_dir.split(",")
 
                         try:
-                                
+
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
                                 self.movies_downloaded_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_downloaded_dir_list))
 
@@ -1648,21 +1648,21 @@ class SearchIndex(object):
 
                         #convert from unicode to byte string for root folders string, used for for os.walk
                         self.config_movies_replace_dir = uni_to_byte(self.config_movies_replace_dir)
-                        
+
                         #convert comma seperated string into list - config parser cannot deal with lists
                         movies_replace_dir_list = self.config_movies_replace_dir.split(",")
-                        
+
                         try:
 
                                 #use itertools to chain multiple root folders and then use os.walk to produce generator output
                                 self.movies_replace_cache = list(itertools.chain.from_iterable(uni_to_byte(os.walk(root_path)) for root_path in movies_replace_dir_list))
-                                
+
                         except UnicodeDecodeError:
 
                                 #if cannot decode non ascii char then log error
                                 self.movies_replace_cache = u""
                                 mg_log.warning(ur"Cannot decode non ASCII movie titles in Movies to Replace folder, check locale is set correctly")
-                                
+
                 if self.config_enable_email_notify == "yes":
 
                         #run external_ip() and store return value
@@ -1717,7 +1717,7 @@ class SearchIndex(object):
         ##############
 
         def filter_os_queued(self):
-                
+
                 #check if post title is in queued table (case insensitive), if not then proceed
                 sqlite_post_name = sql_session.query(ResultsDBQueued).filter(ResultsDBQueued.postname==self.index_post_title).first()
 
@@ -1734,7 +1734,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_os_watched(self):
-                
+
                 #this is set to download only if the nzb/torrent file doesn't exist in the watch folder
                 if uni_to_byte(os.path.exists(os.path.join(self.config_watch_dir, u"%s.nzb" % (self.imdb_movie_title)))) or uni_to_byte(os.path.exists(os.path.join(self.config_watch_dir, u"%s.torrent" % (self.imdb_movie_title)))):
 
@@ -1748,7 +1748,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_os_archive(self):
-                
+
                 #this is set to download only if the nzb/torrent file doesn't exist in the nzb folder
                 if uni_to_byte(os.path.exists(os.path.join(self.config_usenet_archive_dir, u"%s.nzb.gz" % (self.imdb_movie_title)))) or uni_to_byte(os.path.exists(os.path.join(self.config_torrent_archive_dir, u"%s.torrent" % (self.imdb_movie_title)))):
 
@@ -1762,7 +1762,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_os_completed(self):
-                
+
                 #this is set to download only if the movie doesn't exist in the completed folder
                 if uni_to_byte(os.path.exists(os.path.join(self.config_completed_dir, self.imdb_movie_title))):
 
@@ -1776,7 +1776,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_os_movies_downloaded(self):
-                
+
                 if self.config_enable_downloaded == "yes" and self.movies_downloaded_cache:
 
                         #escape any regex characters such as brackets for year in title
@@ -1816,7 +1816,7 @@ class SearchIndex(object):
                        return 1
 
         def filter_os_movies_replace(self):
-                
+
                 if self.config_enable_replace == "yes" and self.movies_replace_cache:
 
                         #escape any regex characters such as brackets for year in title
@@ -1879,7 +1879,7 @@ class SearchIndex(object):
 
                         mg_log.info(u"Filter Index - Peer count not defined, proceed")
                         return 1
-                
+
                 #this is set to download movies with minimum defined seed count
                 elif self.index_min_peers_int >= self.config_min_peers_int:
 
@@ -1892,7 +1892,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_index_bad_report(self):
-                
+
                 if self.config_bad_report and self.index_post_id:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -1915,7 +1915,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_good_size(self):
-                
+
                 #if min and maxsize not defined then return 1config_enable_group_filter
                 if self.config_minsize_int == 0 and self.config_maxsize_int == 0:
 
@@ -1960,26 +1960,26 @@ class SearchIndex(object):
 
                                 mg_log.info(u"Filter Index - Post Size %s is NOT within thresholds, skip" % (self.index_post_size_int))
                                 return 0
-                        
+
         def filter_index_special_cut(self):
-                
+
                 #check special cut is enabled in switches and movies downloaded return value is zero (movie already downloaded)
                 if self.config_special_cut != "" and self.filter_os_movies_downloaded_result == 0:
 
                         #replace comma's with regex OR symbol
                         self.config_special_cut = re.sub(ur"[,\s?]+","|",self.config_special_cut)
-                                                
+
                         #search for special cut in post title
                         index_post_title_special_cut_search = re.compile(ur"(?<=\.|\s)(%s)(?=\.|\s)" % (self.config_special_cut), re.IGNORECASE).search(self.index_post_title)
-                        
+
                         if index_post_title_special_cut_search != None:
 
-                                index_post_title_special_cut = index_post_title_special_cut_search.group()                                
-                                
+                                index_post_title_special_cut = index_post_title_special_cut_search.group()
+
                                 movies_valid_extensions = [".mkv", ".avi", ".mp4", ".dvx", ".wmv", ".mov"]
 
                                 #loop over list of files in downloaded folder and check for valid file extensions
-                                for movies_downloaded_filename_item in self.movies_downloaded_filename_list:                                
+                                for movies_downloaded_filename_item in self.movies_downloaded_filename_list:
 
                                         #generate filename and file extension
                                         movies_downloaded_filename, movies_downloaded_extension = os.path.splitext(movies_downloaded_filename_item.lower())
@@ -1994,7 +1994,7 @@ class SearchIndex(object):
                                                 if movies_downloaded_special_cut_search != None:
 
                                                         movies_downloaded_special_cut = movies_downloaded_special_cut_search.group()
-                                                        
+
                                                         mg_log.info(u"Filter Index - Filename post title already contains special cut %s, skip" % (movies_downloaded_special_cut))
                                                         return 0
 
@@ -2005,9 +2005,9 @@ class SearchIndex(object):
                                                         return 1
 
                 return 0
-        
+
         def filter_index_preferred_group(self):
-                
+
                 #check preferred group is enabled in switches and movies downloaded return value is zero (movie already downloaded) and config preferred group and index post group are not empty
                 if self.config_enable_group_filter == "yes" and self.filter_os_movies_downloaded_result == 0 and self.config_preferred_group and self.index_post_group:
 
@@ -2027,7 +2027,7 @@ class SearchIndex(object):
 
                                         if movies_downloaded_group_search != None:
 
-                                                movies_downloaded_group = movies_downloaded_group_search.group()                                        
+                                                movies_downloaded_group = movies_downloaded_group_search.group()
 
                                                 #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
                                                 config_preferred_group_list = [x.strip() for x in self.config_preferred_group.split(',')]
@@ -2037,10 +2037,10 @@ class SearchIndex(object):
 
                                                 #look for case insensitive string in list using list comprehension
                                                 matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
-                                                
+
                                                 #if group name for downloaded movie filename is already in preferrred list then return
                                                 if matching_items:
-                                                        
+
                                                         mg_log.info(u"Filter Index - Filename post group %s is in config preferred group list, skip" % (movies_downloaded_group))
                                                         return 0
 
@@ -2066,7 +2066,7 @@ class SearchIndex(object):
                 return 0
 
         def filter_index_bad_group(self):
-                
+
                 #check bad group is enabled in switches and config bad group and index post group are not empty
                 if self.config_enable_group_filter == "yes" and (self.config_bad_group and self.index_post_group):
 
@@ -2090,7 +2090,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_and(self):
-                
+
                 if self.config_search_and:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2118,7 +2118,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_or(self):
-            
+
                 if self.config_search_or:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2146,7 +2146,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_index_search_not(self):
-                
+
                 if self.config_search_not:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2178,7 +2178,7 @@ class SearchIndex(object):
         ################
 
         def filter_imdb_good_ratings(self):
-                
+
                 #this is set to download movies if preferred genre matches and movie rating is greater than preferred rating
                 if self.config_enable_preferred == "yes" and self.filter_imdb_preferred_genre() == 1:
 
@@ -2212,7 +2212,7 @@ class SearchIndex(object):
                                 return 0
 
         def filter_imdb_good_votes(self):
-                
+
                 #this is set to download movies with minimum defined vote count
                 if self.imdb_movie_votes_int >= self.config_good_votes_int:
 
@@ -2226,7 +2226,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_good_date(self):
-                
+
                 #this is set to download movies with a minimum defined year
                 if self.imdb_movie_year_int >= self.config_good_date_int:
 
@@ -2240,7 +2240,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_good_genre(self):
-                
+
                 if self.config_good_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2271,7 +2271,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_dir(self):
-             
+
                 if self.config_enable_favorites == "yes" and self.config_fav_dir:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2300,7 +2300,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_writer(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_writer:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2329,7 +2329,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_actor(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_actor:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2358,7 +2358,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_char(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_char:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2387,7 +2387,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_fav_title(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_fav_title:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2410,7 +2410,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_bad_title(self):
-                
+
                 if self.config_enable_favorites == "yes" and self.config_bad_title:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2433,7 +2433,7 @@ class SearchIndex(object):
                         return 1
 
         def filter_imdb_preferred_genre(self):
-                
+
                 if self.config_enable_preferred == "yes" and self.config_preferred_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2461,7 +2461,7 @@ class SearchIndex(object):
                         return 0
 
         def filter_imdb_queue_date(self):
-                
+
                 #this is set to queue movies with a maximum defined year (min is GoodDate)
                 if self.config_enable_queuing == "yes":
 
@@ -2476,7 +2476,7 @@ class SearchIndex(object):
                                 return 0
 
         def filter_imdb_queue_genre(self):
-                
+
                 if self.config_enable_queuing == "yes" and self.config_queue_genre:
 
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
@@ -2511,8 +2511,8 @@ class SearchIndex(object):
 
                 #generate url to find imdb tt number using omdb
                 omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri,self.index_post_movie_year)
-                mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name,omdb_find_tt_json_url))              
-                
+                mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name,omdb_find_tt_json_url))
+
                 #pass to urllib2 retry function - decorator
                 try:
 
@@ -2527,21 +2527,21 @@ class SearchIndex(object):
 
                 #if resulting omdb json page is blank then return
                 if omdb_find_tt_json == {}:
-                        
+
                         mg_log.info(u"%s Index - No match for movie title %s on OMDb json" % (site_name,index_post_movie_title))
                         return None
 
                 #find imdb id
                 try:
-                        
+
                         imdb_tt_number = omdb_find_tt_json["imdbID"]
-                        mg_log.info(u"%s Index - IMDb ID from OMDb is %s" % (site_name,imdb_tt_number))                                                
+                        mg_log.info(u"%s Index - IMDb ID from OMDb is %s" % (site_name,imdb_tt_number))
 
                 except (IndexError, KeyError) as e:
 
                         mg_log.info(u"%s Index - Cannot find IMDb ID for movie" % (site_name))
                         return None
-                
+
                 return imdb_tt_number
 
         def find_imdb_id_tmdb(self,site_name):
@@ -2549,7 +2549,7 @@ class SearchIndex(object):
                 #generate url to find tmdb id number
                 tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=1d93addd6def495cec493845cd3b2788" % (self.index_post_movie_title_uri, self.index_post_movie_year)
                 mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name,tmdb_find_id_json_url))
-                
+
                 #pass to urllib2 retry function - decorator
                 try:
 
@@ -2564,13 +2564,13 @@ class SearchIndex(object):
 
                 #if resulting tmdb json page is blank then continue
                 if tmdb_find_id_json == {}:
-                        
+
                         mg_log.info(u"%s Index - No match for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
-                
+
                 #find tmdb id
                 try:
-                        
+
                         tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
                         mg_log.info(u"%s Index - TMDb id is %s" % (site_name,tmdb_movie_id))
 
@@ -2578,11 +2578,11 @@ class SearchIndex(object):
 
                         mg_log.info(u"%s Index - Cannot find TMDb ID for movie" % (site_name))
                         return None
-                
+
                 #generate url to find imdb tt number using tmdb id number from previous search
                 tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=7b5e30851a9285340e78c201c4e4ab99" % (tmdb_movie_id)
                 mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name,tmdb_find_tt_json_url))
-                
+
                 #pass to urllib2 retry function - decorator
                 try:
 
@@ -2594,18 +2594,18 @@ class SearchIndex(object):
 
                         mg_log.warning(u"%s Index - Failed to download TMDb json page %s" % (site_name,tmdb_find_tt_json_url))
                         return None
-                
+
                 #if resulting tmdb json page is blank then continue
                 if tmdb_find_tt_json == {}:
-                        
+
                         mg_log.info(u"%s Index - No IMDb ID for movie title %s on TMDb json" % (site_name,index_post_movie_title))
                         return None
-                
+
                 #find imdb id
                 try:
-                        
+
                         imdb_tt_number = tmdb_find_tt_json["imdb_id"]
-                        mg_log.info(u"%s Index - IMDb ID from TMDb is %s" % (site_name,imdb_tt_number))                                                
+                        mg_log.info(u"%s Index - IMDb ID from TMDb is %s" % (site_name,imdb_tt_number))
 
                 except KeyError:
 
@@ -2672,7 +2672,7 @@ class SearchIndex(object):
                 if self.config_enable_append_year == "yes":
 
                         self.imdb_movie_title = u"%s (%s)" % (self.imdb_movie_title, self.imdb_movie_year_str)
-                        
+
                 #create imdb name used for favorite title (append year, space for separator)
                 self.imdb_movie_title_year = u"%s (%s)" % (self.imdb_movie_title_strip, self.imdb_movie_year_str)
 
@@ -2881,7 +2881,7 @@ class SearchIndex(object):
                         self.imdb_movie_cert = "-"
 
                 mg_log.info(u"Cert System - IMDb certificate %s" % (self.imdb_movie_cert))
-                
+
         ###################
         # poster download #
         ###################
@@ -2901,14 +2901,14 @@ class SearchIndex(object):
                                         #download poster image from imdb
                                         poster_image = urllib2_retry(self.imdb_movie_poster,user_agent_iphone)
                                         self.poster_image_file = ""
-                                        
+
                                         mg_log.info(u"Poster Download - Downloaded succeeded, url %s" % (self.imdb_movie_poster))
 
                                 except Exception:
 
                                         self.poster_image_file = u"default.jpg"
-                                        
-                                        mg_log.info(u"Poster Download - Downloaded failed, url %s" % (self.imdb_movie_poster))                                  
+
+                                        mg_log.info(u"Poster Download - Downloaded failed, url %s" % (self.imdb_movie_poster))
                                         return
 
                                 self.poster_image_file = u"%s.jpg" % (imdb_movie_title_ascii)
@@ -2999,7 +2999,7 @@ class SearchIndex(object):
 
                                 #create url's for local and remote
                                 queue_release_external = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,self.external_ip_address,config_webconfig_port,str(self.sqlite_id_queued))
-                                queue_release_internal = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,config_webconfig_address,config_webconfig_port,str(self.sqlite_id_queued))                                        
+                                queue_release_internal = "%s%s:%s/queue/queue_release?queue_release_id=%s" % (webconfig_protocol,config_webconfig_address,config_webconfig_port,str(self.sqlite_id_queued))
                                 html = html + """
                                 <p>
                                 <b>Queue Release Links:</b> <a href=%s>Local</a> | <a href=%s>Remote</a>""" % (uni_to_byte(queue_release_internal),uni_to_byte(queue_release_external)) + """
@@ -3065,7 +3065,7 @@ class SearchIndex(object):
                 self.filter_os_archive_result = self.filter_os_archive()
                 self.filter_os_completed_result = self.filter_os_completed()
                 self.filter_imdb_bad_title_result = self.filter_imdb_bad_title()
-                self.filter_index_special_cut_result = self.filter_index_special_cut()                
+                self.filter_index_special_cut_result = self.filter_index_special_cut()
                 self.filter_index_preferred_group_result = self.filter_index_preferred_group()
                 self.filter_index_bad_group_result = self.filter_index_bad_group()
                 self.filter_imdb_good_ratings_result = self.filter_imdb_good_ratings()
@@ -3088,7 +3088,7 @@ class SearchIndex(object):
 
                 elif self.filter_index_special_cut_result == 1:
 
-                        self.filter_check_status = 1                        
+                        self.filter_check_status = 1
 
                 elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
 
@@ -3103,13 +3103,13 @@ class SearchIndex(object):
         ##########
 
         def sqlite_insert(self):
-                
+
                 #set last run time/date
-                last_run = time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())                
+                last_run = time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())
                 self.last_run = "%s %s" % (str(last_run), time.tzname[1])
-                
-                self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))                
-                
+
+                self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))
+
                 #insert details into history table (note sqlite requires decimal values as text)
                 sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
@@ -3204,9 +3204,9 @@ class SearchIndex(object):
         def newznab_index(self):
 
                 site_name = u"Newznab"
-                
+
                 mg_log.info(u"Newznab Index - Newznab search index started")
-                
+
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"all formats":
 
@@ -3227,7 +3227,7 @@ class SearchIndex(object):
                 if self.config_cat == u"hd/x264":
 
                         self.config_cat = u"2040"
-                        
+
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
@@ -3246,7 +3246,7 @@ class SearchIndex(object):
                         search_term = ""
 
                 if search_term != "":
-                        
+
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
                         search_term = [x.strip() for x in search_term.split(',')]
 
@@ -3260,7 +3260,7 @@ class SearchIndex(object):
 
                         #hard set spotweb posts to process to prevent page offset loop
                         self.config_posts_to_process_int = 50
-                        
+
                 for page_offset in range(0,self.config_posts_to_process_int,50):
 
                         #use server side for config search AND terms
@@ -3273,7 +3273,7 @@ class SearchIndex(object):
 
                                 #generate url for site with must exist search criteria
                                 site_feed = u"%s:%s%s/api?t=search&q=%s&apikey=%s&cat=%s&min=%s&max=%s&o=json&extended=1&offset=%s" % (self.config_hostname, self.config_portnumber, self.config_path, search_term, self.config_apikey, self.config_cat, self.config_minsize_int, self.config_maxsize_int, page_offset)
-                                
+
                         if self.config_spotweb_support == "yes":
 
                                 #generate spotweb api search url xml format
@@ -3292,14 +3292,14 @@ class SearchIndex(object):
         def bitsnoop_index(self):
 
                 site_name = u"BitSnoop"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                
+
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
 
                         self.config_cat = u"video"
-                
+
                 if self.config_cat == u"all movies":
 
                         self.config_cat = u"video-movies"
@@ -3322,7 +3322,7 @@ class SearchIndex(object):
                         search_term = ""
 
                 if search_term != "":
-                        
+
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
                         search_term = [x.strip() for x in search_term.split(',')]
 
@@ -3334,7 +3334,7 @@ class SearchIndex(object):
 
                 #generate url for site with must exist search criteria
                 site_feed = u"%s:%s/search/%s/%s/c/d/1/?fmt=rss" % (self.config_hostname, self.config_portnumber, self.config_cat, search_term)
-                        
+
                 #convert to url for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
@@ -3348,14 +3348,14 @@ class SearchIndex(object):
         def kickasstorrents_index(self):
 
                 site_name = u"KickAssTorrents"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                
+
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
 
                         self.config_cat = u"any"
-                
+
                 if self.config_cat == u"all movies":
 
                         self.config_cat = u"movies"
@@ -3382,7 +3382,7 @@ class SearchIndex(object):
                         search_term = ""
 
                 if search_term != "":
-                        
+
                         #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
                         search_term = [x.strip() for x in search_term.split(',')]
 
@@ -3394,7 +3394,7 @@ class SearchIndex(object):
 
                 #generate url for site with must exist search criteria
                 site_feed = u"%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
-                        
+
                 #convert to url for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
@@ -3408,14 +3408,14 @@ class SearchIndex(object):
         def piratebay_index(self):
 
                 site_name = u"PirateBay"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                
+
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
 
                         self.config_cat = u"0"
-                        
+
                 if self.config_cat == u"all movies":
 
                         self.config_cat = u"201"
@@ -3452,14 +3452,14 @@ class SearchIndex(object):
         def demonoid_index(self):
 
                 site_name = u"Demonoid"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                
+
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
 
                         self.config_cat = u"0"
-                        
+
                 if self.config_cat == u"all movies":
 
                         self.config_cat = u"1"
@@ -3474,10 +3474,10 @@ class SearchIndex(object):
 
                 #construct site rss feed, note demonoid does not support specification of port number
                 site_feed = u"%s/rss/%s.xml" % (self.config_hostname, self.config_cat)
-                
+
                 #convert to uri for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
-                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))                
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
 
                 #set user agent sent to index site
                 self.user_agent = user_agent_ie
@@ -3488,9 +3488,9 @@ class SearchIndex(object):
         def extratorrent_index(self):
 
                 site_name = u"ExtraTorrent"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
-                
+
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
@@ -3508,21 +3508,21 @@ class SearchIndex(object):
 
                 #set user agent sent to index site
                 self.user_agent = user_agent_moviegrabber
-                
+
                 #generate feed details
                 self.feed_details(site_name)
 
         def monova_index(self):
 
                 site_name = u"Monova"
-                
+
                 mg_log.info(u"%s Index - Search index started" % (site_name))
 
                 #substitute friendly names for real values for categories
                 if self.config_cat == u"any":
 
                         self.config_cat = u"0"
-                        
+
                 if self.config_cat == u"all movies":
 
                         self.config_cat = u"1"
@@ -3538,7 +3538,7 @@ class SearchIndex(object):
                 if self.config_cat == u"other":
 
                         self.config_cat = u"34"
-                
+
                 #remove slash at end of hostname if present
                 self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
 
@@ -3549,7 +3549,7 @@ class SearchIndex(object):
 
                 #generate url for site using category only (category hard set to movies)
                 site_feed = u"%s:%s/rss.php?type=catname&id=%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
-                        
+
                 #convert to url for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?&')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
@@ -3561,7 +3561,7 @@ class SearchIndex(object):
                 self.feed_details(site_name)
 
         def feed_details(self,site_name):
-                
+
                 #pass to urllib2 retry function - decorator
                 try:
 
@@ -3575,32 +3575,32 @@ class SearchIndex(object):
                 if site_name == u"Newznab":
 
                         try:
-                                
+
                                 #parse json formatted feed
                                 site_feed_parse = json.loads(site_feed)
                                 site_feed_parse = site_feed_parse["channel"]["item"]
-                                
+
                         except (ValueError, TypeError), e:
-                                
+
                                 mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
-                        
+
                 else:
 
                         try:
-                                
+
                                 #parse xml formatted feed
                                 site_feed_parse = xmltodict.parse(site_feed)
                                 site_feed_parse = site_feed_parse["rss"]["channel"]["item"]
-                                                                
+
                         except (xmltodict.expat.ExpatError, KeyError), e:
 
                                 mg_log.warning(u"%s Index - Site feed parse failed" % (site_name))
                                 return
-                                
+
                 #this breaks down the rss feed page into tag sections
                 for node in site_feed_parse:
-                        
+
                         if not search_index_poison_queue.empty():
 
                                 #get task from queue
@@ -3612,15 +3612,15 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Shutting down search index" % (site_name))
 
                                 return
-                        
-                        #set post title to none                
+
+                        #set post title to none
                         post_title = None
 
                         #generate post title
                         if site_name == u"Newznab":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3628,9 +3628,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3638,9 +3638,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["torrent:fileName"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3648,9 +3648,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3658,9 +3658,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"Demonoid":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3668,9 +3668,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3678,9 +3678,9 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"Monova":
-                                
+
                                 try:
-                                        
+
                                         post_title = node["title"]
 
                                 except (IndexError, AttributeError) as e:
@@ -3712,7 +3712,7 @@ class SearchIndex(object):
 
                                 #remove seperator from start and end of post title
                                 post_title = re.sub(ur"^[\s\.\_\-]+|[\s\.\_\-]+$", "", post_title)
-                                
+
                                 self.index_post_title = post_title
                                 mg_log.info(u"%s Index - Post title is %s" % (site_name,self.index_post_title))
 
@@ -3722,13 +3722,13 @@ class SearchIndex(object):
                                 if index_post_group_search != None:
 
                                         self.index_post_group = index_post_group_search.group()
-                                        mg_log.info(u"%s Index - Post release group %s" % (site_name,self.index_post_group))                                                
+                                        mg_log.info(u"%s Index - Post release group %s" % (site_name,self.index_post_group))
 
                                 else:
-                                        
+
                                         self.index_post_group = u""
                                         mg_log.info(u"%s Index - Post release group not found" % (site_name))
-                                                
+
                         else:
 
                                 mg_log.info(u"%s Index - Post title not found" % (site_name))
@@ -3736,7 +3736,7 @@ class SearchIndex(object):
 
                         #create empty dictionary for download url's
                         self.index_download_dict = {}
-                        
+
                         #generate download link
                         if site_name == u"Newznab":
 
@@ -3753,7 +3753,7 @@ class SearchIndex(object):
                         if site_name == u"BitSnoop":
 
                                 try:
-                                        
+
                                         self.index_download_dict["magnet"] = node["torrent"]["magnetURI"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["torrent"]["magnetURI"]))
 
@@ -3762,18 +3762,18 @@ class SearchIndex(object):
                                         pass
 
                                 try:
-                                        
+
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
                                 except (IndexError, AttributeError) as e:
 
                                         pass
-                                
+
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         self.index_download_dict["magnet"] = node["torrent:magnetURI"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["torrent:magnetURI"]))
 
@@ -3782,7 +3782,7 @@ class SearchIndex(object):
                                         pass
 
                                 try:
-                                        
+
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
@@ -3791,9 +3791,9 @@ class SearchIndex(object):
                                         pass
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         self.index_download_dict["magnet"] = node["link"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["link"]))
 
@@ -3805,10 +3805,10 @@ class SearchIndex(object):
                         if site_name == u"Demonoid":
 
                                 try:
-                                        
+
                                         index_details_link = node["link"]
                                         index_download_link = re.sub(ur"details","download",index_details_link)
-                                        
+
                                         self.index_download_dict["torrent"] = index_download_link
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,index_download_link))
 
@@ -3820,7 +3820,7 @@ class SearchIndex(object):
                         if site_name == u"ExtraTorrent":
 
                                 try:
-                                        
+
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
@@ -3832,7 +3832,7 @@ class SearchIndex(object):
                         if site_name == u"Monova":
 
                                 try:
-                                        
+
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
 
@@ -3857,7 +3857,7 @@ class SearchIndex(object):
                         if sqlite_postnamestrip != None:
 
                                 mg_log.info(u"%s Index - Post title %s in db history table" % (site_name,self.index_post_title))
-                                
+
                                 #get dict of postdl links for current postname in db
                                 sqlite_postnamestrip_postdl =  sqlite_postnamestrip.postdl
 
@@ -3869,22 +3869,22 @@ class SearchIndex(object):
 
                                         #add download link dict to db postdl dict
                                         sqlite_postnamestrip_postdl.update(self.index_download_dict)
-                                        
+
                                         #commit download url append to history table
                                         sql_session.commit()
 
                                         mg_log.info(u"%s Index - Download link(s) appended to db postdl dict" % (site_name))
-                                        
+
                                 else:
-                                        
+
                                         mg_log.info(u"%s Index - Download link(s) already in db postdl dict, skipping" % (site_name))
-                                        
+
                                 continue
 
                         else:
-                                
+
                                 mg_log.info(u"%s Index - Post title %s NOT in db history table, proceed" % (site_name,self.index_post_title))
-                        
+
                         #if post title filters are not 0 then continue to next post
                         if self.filter_index_search_and() != 1 or self.filter_index_search_or() != 1 or self.filter_index_search_not() != 1:
 
@@ -3897,57 +3897,57 @@ class SearchIndex(object):
 
                         #generate post seeders/peers
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_seeders = node["numSeeders"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_seeders = None
 
                                 try:
-                                        
+
                                         post_peers = node["numLeechers"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_peers = None
-                        
+
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_seeders = node["torrent:seeds"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_seeders = None
 
                                 try:
-                                        
+
                                         post_peers = node["torrent:peers"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_peers = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_seeders = node["seeders"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_seeders = None
 
                                 try:
-                                        
+
                                         post_peers = node["leechers"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_peers = None
 
                                 if post_seeders == u"---":
@@ -3959,14 +3959,14 @@ class SearchIndex(object):
                                         post_peers = u"0"
 
                         if site_name == u"Monova":
-                                
+
                                 try:
-                                        
+
                                         post_description = node["description"]
                                         post_seeders_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
 
                                         if post_seeders_search != None:
-                                                
+
                                                 post_seeders = post_seeders_search.group()
 
                                         else:
@@ -3974,7 +3974,7 @@ class SearchIndex(object):
                                                 post_seeders = None
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_seeders = None
 
                                 try:
@@ -3983,7 +3983,7 @@ class SearchIndex(object):
                                         post_peers_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
 
                                         if post_peers_search != None:
-                                                
+
                                                 post_peers = post_peers_search.group()
 
                                         else:
@@ -3991,20 +3991,20 @@ class SearchIndex(object):
                                                 post_peers = None
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_peers = None
-                                        
+
                         if post_seeders != None:
 
                                 self.index_min_seeds = post_seeders
-                                self.index_min_seeds_int = int(post_seeders)                                
+                                self.index_min_seeds_int = int(post_seeders)
                                 mg_log.info(u"%s Index - Post seed count %s" % (site_name,self.index_min_seeds))
 
                                 #run function to check if seed count above threshold
                                 if self.filter_index_min_seeds() != 1:
 
                                         continue
-                                
+
                         else:
 
                                 self.index_min_seeds = u""
@@ -4013,7 +4013,7 @@ class SearchIndex(object):
                         if post_peers != None:
 
                                 self.index_min_peers = post_peers
-                                self.index_min_peers_int = int(post_peers)                                
+                                self.index_min_peers_int = int(post_peers)
                                 mg_log.info(u"%s Index - Post peer count %s" % (site_name,self.index_min_peers))
 
                                 #run function to check if peer count above threshold
@@ -4031,45 +4031,45 @@ class SearchIndex(object):
 
                         #generate imdb id
                         if site_name == u"Newznab":
-                                
+
                                 try:
 
                                         self.imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         self.imdb_tt_number = None
 
                         if self.imdb_tt_number != None:
-                                
+
                                 #if length is equal to 7 then prefix with tt
                                 if len(self.imdb_tt_number) == 7:
 
                                         self.imdb_tt_number = u"tt%s" % (self.imdb_tt_number)
                                         mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
-                                        
-                                #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)                                                                
+
+                                #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
                                 elif len(self.imdb_tt_number) == 6:
 
 
                                         self.imdb_tt_number = u"tt0%s" % (self.imdb_tt_number)
                                         mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
-                                
+
                                 #if any other length then mark as none
                                 else:
-                                        
+
                                         mg_log.info(u"%s Index - Malformed IMDb number %s from index site" % (site_name,self.imdb_tt_number))
                                         self.imdb_tt_number = None
-                                        
-                        else:
-                                        
-                                mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))                                                
 
-                        #if imdb id not found from index site or post description then use omdb or tmdb                                       
+                        else:
+
+                                mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))
+
+                        #if imdb id not found from index site or post description then use omdb or tmdb
                         if self.imdb_tt_number == None:
 
                                 mg_log.info(u"%s Index - Cannot find IMDb number from index site, using OMDb/TMDb to generate IMDb number" % (site_name))
-                                
+
                                 #remove everything from movie year in post title
                                 index_post_movie_title = re.sub(ur"[\.\-\_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
@@ -4088,7 +4088,7 @@ class SearchIndex(object):
 
                                         self.index_post_movie_year = ""
                                         mg_log.info(u"%s Index - Cannot generate movie year from post %s" % (site_name,self.index_post_title))
-                                        
+
                                 #convert to uri for html find_id
                                 self.index_post_movie_title_uri = urllib.quote(uni_to_byte(index_post_movie_title))
 
@@ -4099,12 +4099,12 @@ class SearchIndex(object):
                                 if self.imdb_tt_number == None:
 
                                         mg_log.info(u"%s Index - Failed to get IMDb number from OMDb for post %s, falling back to TMDb" % (site_name,self.index_post_title))
-                                        
+
                                         #attempt to get imdb id using tmdb
                                         self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
 
                                         #if no imdb id from omdb or tmdb then skip post
-                                        if self.imdb_tt_number == None:                                                                
+                                        if self.imdb_tt_number == None:
 
                                                 mg_log.warning(u"%s Index - Failed to get IMDb number for post %s, skipping post" % (site_name,self.index_post_title))
                                                 continue
@@ -4114,52 +4114,55 @@ class SearchIndex(object):
 
                         #generate post size
                         if site_name == u"Newznab":
-                                
+
                                 try:
 
                                         post_size = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "size").next()
-                                        
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
-                                        
+
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_size = node["size"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
 
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_size = node["torrent:contentLength"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         post_size = node["torrent"]["contentLength"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
 
                         if site_name == u"Demonoid":
-                                
+
                                 try:
 
+                                        #get description content, used for size of post
+                                        post_description = node["description"]
+                                        
                                         #use regex to construct scale and value
                                         post_size_desc = re.compile("(?<=Size:\s)[^<]+", re.IGNORECASE).search(post_description).group()
-                                        post_size_scale = re.compile("[a-zA-Z]+$", re.IGNORECASE).search(post_size_desc).group()                                
+                                        post_size_scale = re.compile("[a-zA-Z]+$", re.IGNORECASE).search(post_size_desc).group()
                                         post_size_value_str = re.compile("[\d\.\,]+", re.IGNORECASE).search(post_size_desc).group()
 
                                         #limit decimal precision to x.xx
@@ -4168,7 +4171,7 @@ class SearchIndex(object):
                                         if post_size_scale == "MB":
 
                                                 #convert from MB to KB
-                                                post_size = int(decimal.Decimal(post_size_value_str) * 1000000) 
+                                                post_size = int(decimal.Decimal(post_size_value_str) * 1000000)
 
                                         elif post_size_scale == "GB":
 
@@ -4178,19 +4181,19 @@ class SearchIndex(object):
                                         else:
 
                                                 post_size = None
-                                                
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_size = node["size"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
 
                         if site_name == u"Monova":
@@ -4199,9 +4202,9 @@ class SearchIndex(object):
                                         post_size = node["enclosure"]["@length"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_size = None
-                                        
+
                         if post_size != None:
 
                                 #generate size for history/queue sort order
@@ -4218,7 +4221,7 @@ class SearchIndex(object):
 
                                         #generate size in gb
                                         post_size_int = decimal.Decimal(int(post_size)) / 1000000000
-                                        
+
                                         #append string GB for History/Queue
                                         self.index_post_size = u"%s GB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
@@ -4227,7 +4230,7 @@ class SearchIndex(object):
 
                                         #generate size in mb
                                         post_size_int = int(post_size) / 1000000
-                                        
+
                                         #append string mb for History/Queue
                                         self.index_post_size = u"%s MB" % (str(post_size_int))
                                         mg_log.info(u"%s Index - Post size %s" % (site_name,self.index_post_size))
@@ -4238,7 +4241,7 @@ class SearchIndex(object):
                                 self.index_post_size_sort = 0
                                 self.index_post_size_int = 0
                                 mg_log.info(u"%s Index - Post size not found" % (site_name))
-                        
+
                         #if size is below min/max then continue to next post
                         if self.filter_index_good_size() != 1:
 
@@ -4247,77 +4250,77 @@ class SearchIndex(object):
 
                         #set post data to none
                         post_date = None
-                        
+
                         #generate post date
                         if site_name == u"Newznab":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
-                                        
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_date = None
 
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if site_name == u"Demonoid":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if site_name == u"Monova":
-                                
+
                                 try:
-                                        
+
                                         post_date = node["pubDate"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_date = None                        
+
+                                        post_date = None
 
                         if post_date != None:
 
@@ -4327,7 +4330,7 @@ class SearchIndex(object):
                                 #reformat time to correct string format
                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                 post_date_string = u"%s UTC" % (post_date_string)
-                                
+
                                 self.index_post_date = post_date_string
                                 mg_log.info(u"%s Index - Post date %s" % (site_name,self.index_post_date))
 
@@ -4346,98 +4349,98 @@ class SearchIndex(object):
 
                         #generate post nfo
                         if site_name == u"Newznab":
-                                
+
                                 try:
-                                        
+
                                         post_nfo = node["comments"]
-                                        
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_nfo = None
 
                         if post_nfo != None:
 
                                 self.index_post_nfo = post_nfo
                                 mg_log.info(u"%s Index - Post nfo url %s" % (site_name,self.index_post_nfo))
-                                
+
                         else:
-                                
+
                                 self.index_post_nfo = ""
-                                mg_log.info(u"%s Index - Post nfo url not found" % (site_name))                                
-                                
+                                mg_log.info(u"%s Index - Post nfo url not found" % (site_name))
+
                         #set post details to none
                         post_details = None
-                        
+
                         #generate post details
                         if site_name == u"Newznab":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["comments"]
-                                        
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_details = None
 
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["comments"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if site_name == u"Demonoid":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if site_name == u"Monova":
-                                
+
                                 try:
-                                        
+
                                         post_details = node["link"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
-                                        post_details = None                                                
+
+                                        post_details = None
 
                         if post_details != None:
 
@@ -4451,56 +4454,56 @@ class SearchIndex(object):
 
                         #set post id to none
                         post_id = None
-                        
+
                         #generate post id
                         if site_name == u"Newznab":
-                                
+
                                 try:
-                                        
+
                                         post_id = node["guid"]
-                                        
+
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_id = None
 
                         if site_name == u"BitSnoop":
-                                
+
                                 try:
-                                        
+
                                         post_id = node["torrent"]["infoHash"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_id = None
-                        
+
                         if site_name == u"KickAssTorrents":
-                                
+
                                 try:
-                                        
+
                                         post_id = node["torrent:infoHash"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_id = None
 
                         if site_name == u"PirateBay":
-                                
+
                                 try:
-                                        
+
                                         post_id = node["torrent"]["infoHash"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_id = None
 
                         if site_name == u"ExtraTorrent":
-                                
+
                                 try:
-                                        
+
                                         post_id = node["info_hash"]
 
                                 except (IndexError, AttributeError) as e:
-                                        
+
                                         post_id = None
 
                         if post_id != None:
@@ -4517,7 +4520,7 @@ class SearchIndex(object):
                         self.imdb_details_json()
 
         def imdb_details_json(self):
-                
+
                 #create imdb json feed (used for iphone/android)
                 imdb_json = u"http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % (self.imdb_tt_number)
                 mg_log.info(u"IMDb JSON URL is %s" % (imdb_json))
@@ -4574,7 +4577,7 @@ class SearchIndex(object):
 
                                 #run function to send xbmc gui notification for queued/downloaded
                                 XBMC().xbmc_gui_notify(self.imdb_movie_title_strip,self.imdb_movie_year_str,self.download_result_str)
-                                        
+
 ###################
 # post processing #
 ###################
@@ -4588,7 +4591,7 @@ class PostProcessing(object):
                         #read config.ini entries
                         self.config_post_rename_files = config_obj["general"]["post_rename_files"]
                         self.config_post_rule = config_obj["post_processing"]["post_rule"]
-                        self.config_post_replace_existing = config_obj["general"]["post_replace_existing"]                   
+                        self.config_post_replace_existing = config_obj["general"]["post_replace_existing"]
                         self.config_movie_title_separator = config_obj["general"]["movie_title_separator"]
                         self.config_completed_dir = config_obj["folders"]["usenet_completed_dir"]
                         self.config_completed_dir = os.path.normpath(self.config_completed_dir)
@@ -4664,13 +4667,13 @@ class PostProcessing(object):
                                                         #run method to move all files to root movie folder
                                                         mg_log.info(u"Running move to completed movie root folder")
                                                         self.move()
-                                                        
+
                                                         #if rename defined then run method
                                                         if self.config_post_rename_files != "existing":
-                                                                
+
                                                                 mg_log.info(u"Running rename movie file to imdb/postname")
-                                                                self.rename()                                                                
-                                                        
+                                                                self.rename()
+
                                                         #if rules defined then run method
                                                         if self.config_post_rule:
 
@@ -4681,7 +4684,7 @@ class PostProcessing(object):
 
                         #walk completed dir and imdb movie title
                         for folder, subs, files in uni_to_byte(os.walk(self.os_movie_path_folder, topdown=False)):
-                                
+
                                 for os_movie_files_item in files:
 
                                         source_path_with_filename = os.path.join(folder, os_movie_files_item)
@@ -4699,11 +4702,11 @@ class PostProcessing(object):
 
                                                         mg_log.warning(u"Cannot move filename to %s" % (dest_path_with_filename))
 
-                                #remove all sub directories from movie folder (excluding movie folder root)                                                                                       
+                                #remove all sub directories from movie folder (excluding movie folder root)
                                 if os.path.isdir(folder) and folder != self.os_movie_path_folder:
-                                                
+
                                         shutil.rmtree(folder)
-                                                                                                                                                        
+
                 def rename(self):
 
                         #create list of valid movie file extensions
@@ -4711,7 +4714,7 @@ class PostProcessing(object):
 
                         #walk completed dir and imdb movie title
                         for folder, subs, files in uni_to_byte(os.walk(self.os_movie_path_folder, topdown=False)):
-                                
+
                                 for os_movie_files_item in files:
 
                                         #generate filename and file extension
@@ -4720,7 +4723,7 @@ class PostProcessing(object):
                                         #check file extension in valid movie file extension list
                                         if os_movie_files_ext in valid_extensions_list:
 
-                                                source_path_with_filename = os.path.join(folder, os_movie_files_item)                                                
+                                                source_path_with_filename = os.path.join(folder, os_movie_files_item)
 
                                                 #if post rename set to imdb then set destination filename to imdb name
                                                 if self.config_post_rename_files == "imdb":
@@ -4729,7 +4732,7 @@ class PostProcessing(object):
 
                                                 #if post rename set to postname then set destination filename to post title
                                                 elif self.config_post_rename_files == "postname":
-                                                        
+
                                                         dest_path_with_filename = os.path.join(self.os_movie_path_folder, u"%s%s" % (self.sqlite_history_downloaded_postname,os_movie_files_ext))
 
                                                 if not uni_to_byte(os.path.exists(dest_path_with_filename)):
@@ -4742,7 +4745,7 @@ class PostProcessing(object):
                                                         except IOError:
 
                                                                 mg_log.warning(u"Cannot rename filename to %s" % (dest_path_with_filename))
-                                                                
+
                 def rules(self):
 
                         #this is set to check the completed folder for movie downloaded exists
@@ -4832,7 +4835,7 @@ class PostProcessing(object):
                 def rules_filename(self):
 
                         self.files_to_process = []
-                        
+
                         #loop over list of files in folders
                         for os_movie_filenames in self.os_movie_filenames_list:
 
@@ -4862,7 +4865,7 @@ class PostProcessing(object):
                                                 self.files_to_process.append(os_movie_path_filenames)
 
                         if self.files_to_process:
-                                
+
                                 return 1
 
                         else:
@@ -4872,7 +4875,7 @@ class PostProcessing(object):
                 def rules_extension(self):
 
                         self.files_to_process = []
-                        
+
                         #loop over list of files in folders
                         for os_movie_filenames in self.os_movie_filenames_list:
 
@@ -4902,7 +4905,7 @@ class PostProcessing(object):
                                                 self.files_to_process.append(os_movie_path_filenames)
 
                         if self.files_to_process:
-                                
+
                                 return 1
 
                         else:
@@ -4912,7 +4915,7 @@ class PostProcessing(object):
                 def rules_size(self):
 
                         self.files_to_process = []
-                        
+
                         #loop over list of files in folders
                         for os_movie_filenames in self.os_movie_filenames_list:
 
@@ -4941,7 +4944,7 @@ class PostProcessing(object):
                                         self.files_to_process.append(os_movie_path_filenames)
 
                         if self.files_to_process:
-                                
+
                                 return 1
 
                         else:
@@ -4968,7 +4971,7 @@ class PostProcessing(object):
                         else:
 
                                 if self.config_post_rule_dropdown2 == "not equal to":
-                                        
+
                                         self.files_to_process = self.os_movie_filenames_list
                                         return 1
 
@@ -5029,7 +5032,7 @@ class PostProcessing(object):
 
                                 mg_log.info(u"Cannot move folder %s as destination already exist at %s" % (self.os_movie_path_folder,destination_move_path))
 
-                        else:        
+                        else:
 
                                 try:
 
@@ -5043,7 +5046,7 @@ class PostProcessing(object):
 
                                         mg_log.warning(u"Cannot delete existing destination folder %s" % (destination_move_path))
                                         return
-                                
+
                                 try:
 
                                         #move movie folder to desination
@@ -5061,12 +5064,12 @@ class PostProcessing(object):
 
                                 #run xbmc functions
                                 self.xbmc_proceed()
-                                
+
                 def rules_delete(self):
 
                         #loop over list of files in folders
                         for os_movie_filenames in self.files_to_process:
-                                
+
                                 #create absolute path for files
                                 os_movie_path_filenames = os.path.join(self.os_movie_path_folder,os_movie_filenames)
                                 os_movie_path_filenames = os.path.normpath(os_movie_path_filenames)
@@ -5142,7 +5145,7 @@ def footer():
 
         #if remove version and remote download url are not empty then check local vs remote
         if remote_version and remote_download:
-                
+
                 #strip non numeric characters from version number
                 local_version_int = int(re.sub(ur"[^0-9]+","" ,local_version))
                 remote_version_int = int(re.sub(ur"[^0-9]+","" ,remote_version))
@@ -5157,12 +5160,12 @@ def footer():
 
                         template.update_available = "no"
                         template.update_url = ""
-                        
+
         else:
 
                 template.update_available = "no"
                 template.update_url = ""
-                
+
 #####################
 # webgui subfolders #
 #####################
@@ -5350,13 +5353,13 @@ class ConfigGeneral(object):
                 template.check_version_list = ["off", "daily", "weekly"]
                 template.movie_title_separator = config_obj["general"]["movie_title_separator"]
                 template.index_preferred_group = config_obj["general"]["index_preferred_group"]
-                template.index_special_cut = config_obj["general"]["index_special_cut"]                           
+                template.index_special_cut = config_obj["general"]["index_special_cut"]
                 template.index_bad_group = config_obj["general"]["index_bad_group"]
-                template.index_bad_report = config_obj["general"]["index_bad_report"]            
+                template.index_bad_report = config_obj["general"]["index_bad_report"]
                 template.index_posts_to_process = config_obj["general"]["index_posts_to_process"]
                 template.min_seeds = config_obj["general"]["min_seeds"]
                 template.min_peers = config_obj["general"]["min_peers"]
-                
+
                 #substitute real values for friendly names
                 if template.movie_title_separator == "<>":
 
@@ -5399,7 +5402,7 @@ class ConfigGeneral(object):
                 config_obj["general"]["index_bad_report"] = kwargs["index_bad_report2"]
                 config_obj["general"]["log_level"] = kwargs["log_level2"]
                 config_obj["general"]["check_version"] = kwargs["check_version2"]
-		
+
                 #contruct logger instance and new logging level
                 logging_level = getattr(logging, kwargs["log_level2"])
 
@@ -5474,7 +5477,7 @@ class ConfigGeneral(object):
                         except ValueError:
 
                                 pass
-                        
+
                 else:
 
                         config_obj["general"]["min_peers"] = "0"
@@ -5562,9 +5565,9 @@ class ConfigPost(object):
                 template.config_obj = config_obj
 
                 template.post_rename_files = config_obj["general"]["post_rename_files"]
-                template.post_replace_existing = config_obj["general"]["post_replace_existing"]                               
+                template.post_replace_existing = config_obj["general"]["post_replace_existing"]
                 template.post_cert_system = config_obj["general"]["post_cert_system"]
-                template.xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]               
+                template.xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]
                 template.color_scheme = config_obj["general"]["color_scheme"]
 
                 template.post_rename_files_list = ["existing", "imdb", "postname"]
@@ -5577,7 +5580,7 @@ class ConfigPost(object):
                 if config_post_rule:
 
                         #convert comma seperated string into list - config parser cannot deal with lists
-                        template.post_config_rule_list = [x.strip() for x in config_post_rule.split(",")]                        
+                        template.post_config_rule_list = [x.strip() for x in config_post_rule.split(",")]
 
                 else:
 
@@ -5596,9 +5599,9 @@ class ConfigPost(object):
                 #write values to config.ini
                 config_obj["general"]["post_cert_system"] = kwargs["post_cert_system2"]
                 config_obj["general"]["post_rename_files"] = kwargs["post_rename_files2"]
-                config_obj["general"]["post_replace_existing"] = kwargs["post_replace_existing2"]            
+                config_obj["general"]["post_replace_existing"] = kwargs["post_replace_existing2"]
 		config_obj["xbmc"]["xbmc_library_update"] = kwargs["xbmc_library_update2"]
-		
+
                 config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
@@ -6046,14 +6049,14 @@ class ConfigTorrent(object):
 
                         #convert comma seperated string into list - config parser cannot deal with lists
                         template.index_site_list = [x.strip() for x in template.index_site.split(",")]
-                                                
+
                 else:
 
                         template.index_site_list = []
 
                 #define list of supported torrent index sites
                 template.add_index_site_list = ["kickasstorrents","thepiratebay","bitsnoop","extratorrent","demonoid","monova"]
-                
+
                 header()
 
                 footer()
@@ -6145,7 +6148,7 @@ class ConfigTorrent(object):
                 config_obj["torrent"]["%s_minsize" % (add_torrent_site_index)] = "0"
                 config_obj["torrent"]["%s_maxsize" % (add_torrent_site_index)] = "0"
                 config_obj["torrent"]["%s_enabled" % (add_torrent_site_index)] = "yes"
-                
+
                 config_obj.write()
 
                 raise cherrypy.HTTPRedirect(".")
@@ -6251,7 +6254,7 @@ class ConfigDirectories(object):
                 template.torrent_archive_dir = config_obj["folders"]["torrent_archive_dir"]
                 template.torrent_completed_dir = config_obj["folders"]["torrent_completed_dir"]
                 template.certs_dir = config_obj["folders"]["certs_dir"]
-                template.results_dir = config_obj["folders"]["results_dir"]              
+                template.results_dir = config_obj["folders"]["results_dir"]
                 template.logs_dir = config_obj["folders"]["logs_dir"]
                 header()
 
@@ -6487,7 +6490,7 @@ class HistoryRoot(object):
 
                         #convert comma seperated sort order to list
                         history_sort_order_list = [x.strip() for x in history_sort_order.split(",")]
-                        
+
                         history_sort_order_scale = history_sort_order_list[0]
                         history_sort_order_column = history_sort_order_list[1]
 
@@ -7148,7 +7151,7 @@ def start_webgui():
                         'tools.sessions.on' : True,
                         'tools.sessions.secure' : True,
                         'tools.sessions.httponly' : True,
-                        'tools.encode.on' : True,             
+                        'tools.encode.on' : True,
                         'tools.encode.encoding' : "utf-8",
                         'tools.gzip.on' : True
                 }
@@ -7187,7 +7190,7 @@ class DownloadThread(object):
 class PostProcessingThread(object):
 
         def checks(self):
-                
+
                 self.enable_post_processing = config_obj["switches"]["enable_post_processing"]
 
                 if self.enable_post_processing == "yes":
@@ -7199,7 +7202,7 @@ class PostProcessingThread(object):
                         if not any("post_processing_thread" in item.getName() for item in thread_list):
 
                                 self.run()
-                                
+
                 #read scheduler from config.ini for post processing and convert to seconds
                 post_processing_schedule_hour = int(config_obj["general"]["post_schedule_hour"])
                 post_processing_schedule_minute = int(config_obj["general"]["post_schedule_minute"])
@@ -7211,7 +7214,7 @@ class PostProcessingThread(object):
                 post_processing_schedule.start()
 
         def run(self):
-                
+
                 #start post processing thread
                 post_processing_thread = threading.Thread(name="post_processing_thread", target=PostProcessing().run, args=())
                 post_processing_thread.start()
@@ -7279,7 +7282,7 @@ class SearchIndexThread(object):
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
                                                         self.run()
-                                                        
+
                                         if "kickasstorrents" in torrent_index_site_item:
 
                                                 self.index_site_item = torrent_index_site_item
@@ -7612,7 +7615,7 @@ class CherrypySearchPlugin(cherrypy.process.plugins.SimplePlugin):
 
 #secure cherrypy headers from attack
 def secure_headers():
-        
+
         headers = cherrypy.response.headers
         headers['X-Frame-Options'] = 'DENY'
         headers['X-XSS-Protection'] = '1; mode=block'
@@ -7620,11 +7623,11 @@ def secure_headers():
 
         #if ssl enabled and defined then enable strict transport headers, age to 1 year
         if (cherrypy.server.ssl_certificate != None and cherrypy.server.ssl_private_key != None):
-        
+
                 headers['Strict-Transport-Security'] = 'max-age=31536000'
-                
+
 cherrypy.tools.secureheaders = cherrypy.Tool('before_finalize', secure_headers, priority=60)
-                
+
 #run default client browser on startup
 def launch_default_browser():
 
@@ -7699,14 +7702,14 @@ if __name__ == '__main__':
 
         #check if ssl is enabled
         webui_ssl = config_obj["webconfig"]["enable_ssl"]
-        
+
         if webui_ssl == "yes":
 
                 ssl_host_cert = os.path.join(certs_dir, u"host.cert")
                 ssl_host_key = os.path.join(certs_dir, u"host.key")
-                
+
                 if os.path.exists(ssl_host_cert) and os.path.exists(ssl_host_key):
-                        
+
                         try:
 
                                 #attempt to import openssl module, if error then disable ssl and log warning
@@ -7715,7 +7718,7 @@ if __name__ == '__main__':
                                 #set path to ssl cert and key to enable strict transport headers
                                 cherrypy.server.ssl_certificate = ssl_host_cert
                                 cherrypy.server.ssl_private_key = ssl_host_key
-                                
+
                         except Exception:
 
                                 #if openssl not installed, disable ssl
@@ -7723,13 +7726,13 @@ if __name__ == '__main__':
 
                                 #write settings to config.ini
                                 config_obj.write()
-        
+
                                 #set path to ssl cert and key to none to disable strict transport headers
                                 cherrypy.server.ssl_certificate = None
                                 cherrypy.server.ssl_private_key = None
 
                                 sys.stderr.write(u"WARNING - SSL disabled, you must install OpenSSL and pyOpenSSL to use HTTPS\n")
-                                
+
                 else:
 
                         #if path not found, disable ssl
@@ -7743,7 +7746,7 @@ if __name__ == '__main__':
                         cherrypy.server.ssl_private_key = None
 
                         sys.stderr.write(u"WARNING - SSL disabled, certificate and key not found in specified folder %s\n" % (certs_dir,))
-                        
+
         #run secure headers function
         secure_headers()
 
@@ -7773,8 +7776,8 @@ if __name__ == '__main__':
 
                 #hook browser launch into the cherrypy engine start
                 cherrypy.engine.subscribe('start', launch_default_browser, priority=150)
-                
+
                 mg_log.info(u"Launch browser on startup enabled")
-                
+
         #start cherrypy webui
         start_webgui()
