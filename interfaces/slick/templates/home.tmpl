@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>$title</title>
+  
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+  
+	<script src="/javascript/jquery.min.js"></script>
+	<script src="/javascript/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="jumbotron">
+	<h1>MovieGrabber.</h1> 
+	<p>Fully automated movie downloader for usenet and torrents.</p> 
+</div>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">MovieGrabber</a>
+    </div>
+    <div>
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+        <li><a href="#">Queue</a></li>
+        <li><a href="#">Configuration</a></li> 
+        <li><a href="#">History</a></li> 
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="myCarousel" class="carousel slide" data-ride="carousel">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#myCarousel" data-slide-to="1"></li>
+    <li data-target="#myCarousel" data-slide-to="2"></li>
+    <li data-target="#myCarousel" data-slide-to="3"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    <div class="item active">
+      <img src="img_chania.jpg" alt="Chania">
+      <div class="carousel-caption">
+        <h3>Chania</h3>
+        <p>The atmosphere in Chania has a touch of Florence and Venice.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <img src="img_chania2.jpg" alt="Chania">
+      <div class="carousel-caption">
+        <h3>Chania</h3>
+        <p>The atmosphere in Chania has a touch of Florence and Venice.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <img src="http://www.foxmovies.com/images/film/tak3n/tak3n_header_mobile_02.jpg" alt="Flower">
+      <div class="carousel-caption">
+        <h3>Flowers</h3>
+        <p>Beatiful flowers in Kolymbari, Crete.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <img src="http://zerosumo.files.wordpress.com/2014/10/fury-6.jpg" alt="Flower">
+      <div class="carousel-caption">
+        <h3>Flowers</h3>
+        <p>Beatiful flowers in Kolymbari, Crete.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left and right controls -->
+  <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+
+#set global $usenet_config_complete="no"
+#set global $torrent_config_complete="no"
+#set global $usenet_config_defined="no"	
+#set global $torrent_config_defined="no"	
+#set global $imdb_config_defined="no"
+#set global $statpath="/"
+
+<!--#if $usenet_index_site != ""#-->
+
+	<!--#set global $usenet_config_defined="yes"#-->
+	
+	<b>Usenet</b><br>
+	
+	<!--#if $usenet_watch_dir != "" and $usenet_archive_dir != "" and $usenet_completed_dir != ""#-->
+		<!--#set global $usenet_config_complete="yes"#-->			
+	<!--#end if#-->	
+	
+	<!--#if $usenet_watch_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Watched Folder</a></span><br>
+	<!--#end if#-->		
+
+	<!--#if $usenet_archive_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Archive Folder</a></span><br>
+	<!--#end if#-->		
+	
+	<!--#if $usenet_completed_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the SABnzbd+ <a href="$statpath/config/directories/">Completed Folder</a></span><br>
+	<!--#end if#-->		
+	
+<!--#end if#-->				
+
+<!--#if ($usenet_config_defined == "yes" and $usenet_config_complete == "yes")#-->
+	<button type="button" class="btn btn-success">Ready</button><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
+<!--#end if#-->				
+
+<!--#if $torrent_index_site != ""#-->
+
+	#set global $torrent_config_defined="yes"	
+	
+	<b>Torrent</b><br>
+	
+	<!--#if $torrent_watch_dir != "" and $torrent_archive_dir != "" and $torrent_completed_dir != ""#-->		
+		<!--#set global $torrent_config_complete="yes"#-->
+	<!--#end if#-->	
+	
+	<!--#if $torrent_watch_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Watched Folder</a></span><br>
+	<!--#end if#-->	
+
+	<!--#if $torrent_archive_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Archive Folder</a></span><br>
+	<!--#end if#-->	
+
+	<!--#if $torrent_completed_dir == ""#-->
+		<button type="button" class="btn btn-danger">Incomplete</button><span class="home_status_text">Please specify the Torrent <a href="$statpath/config/directories/">Completed Folder</a></span><br>
+	<!--#end if#-->	
+	
+<!--#end if#-->				
+
+<!--#if ($torrent_config_defined == "yes" and $torrent_config_complete == "yes")#-->
+	<button type="button" class="btn btn-success">Ready</button><span class="home_status_text">Please click on <a href="$statpath/run_now">Run Now</a> or <a href="$statpath/config/scheduling">Schedule</a> the downloader.</span><br>
+<!--#end if#-->				
+
+<!--#if $usenet_config_defined == "no" and $torrent_config_defined == "no"#-->
+	<button type="button" class="btn btn-danger">Create Index</button><span class="home_status_text">Please add a <a href="$statpath/config/usenet">Usenet Index</a> or <a href="$statpath/config/torrent">Torrent Index</a></span><br>
+<!--#end if#-->
+
+<b>IMDb</b><br>
+
+<!--#if $good_rating != "0.0" and $good_votes != "0"#-->
+	<!--#set global $imdb_config_defined="yes"#-->
+<!--#end if#-->
+	
+<!--#if $good_rating == "0.0"#-->
+	<button type="button" class="btn btn-warning">Warning</button><span class="home_status_text">IMDb rating is currently set to defaults, this will result in large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Rating</a></span><br>
+<!--#end if#-->	
+
+<!--#if $good_votes == "0"#-->
+	<button type="button" class="btn btn-warning">Warning</button><span class="home_status_text">IMDb votes is currently set to defaults, this will result in a large number of nzb's downloaded, please configure <a href="$statpath/config/imdb/">IMDb Good Votes</a></span><br>
+<!--#end if#-->	
+
+<!--#if ($imdb_config_defined == "yes")#-->
+	<button type="button" class="btn btn-success">Ready</button><h5>IMDb criteria defined.</h5><br>
+<!--#end if#-->
+
+</body>
+</html>
