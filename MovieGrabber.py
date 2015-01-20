@@ -5339,7 +5339,8 @@ class ConfigGeneral(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.color_scheme_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
-                template.max_items_shown = config_obj["general"]["max_items_shown"]
+                template.max_items_shown_history = config_obj["general"]["max_items_shown_history"]
+                template.max_items_shown_queued = config_obj["general"]["max_items_shown_queued"]                                
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
                 template.launch_browser = config_obj["general"]["launch_browser"]
                 template.address = config_obj["webconfig"]["address"]
@@ -5392,7 +5393,8 @@ class ConfigGeneral(object):
                 #write values to config.ini
                 config_obj["general"]["color_scheme"] = kwargs["color_scheme2"]
                 config_obj["general"]["launch_browser"] = kwargs["launch_browser2"]
-                config_obj["general"]["max_items_shown"] = kwargs["max_items_shown2"]
+                config_obj["general"]["max_items_shown_history"] = kwargs["max_items_shown_history2"]
+                config_obj["general"]["max_items_shown_queued"] = kwargs["max_items_shown_queued2"]            
                 config_obj["webconfig"]["username"] = kwargs["username2"]
                 config_obj["webconfig"]["password"] = kwargs["password2"]
                 config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"]
@@ -6464,7 +6466,7 @@ class HistoryRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.history_sort_order = config_obj["general"]["history_sort_order"]
+                template.sort_order_history = config_obj["general"]["sort_order_history"]
 
                 header()
 
@@ -6479,8 +6481,8 @@ class HistoryRoot(object):
 
                 else:
 
-                        history_sort_order = config_obj["general"]["history_sort_order"]
-                        max_items_shown = config_obj["general"]["max_items_shown"]
+                        sort_order_history = config_obj["general"]["sort_order_history"]
+                        max_items_shown_history = config_obj["general"]["max_items_shown_history"]
 
                         #select all rows from history table
                         template.sqlite_history_count = sql_session.query(ResultsDBHistory).count()
@@ -6489,33 +6491,33 @@ class HistoryRoot(object):
                         sql_session.remove()
 
                         #convert comma seperated sort order to list
-                        history_sort_order_list = [x.strip() for x in history_sort_order.split(",")]
+                        sort_order_history_list = [x.strip() for x in sort_order_history.split(",")]
 
-                        history_sort_order_scale = history_sort_order_list[0]
-                        history_sort_order_column = history_sort_order_list[1]
+                        sort_order_history_scale = sort_order_history_list[0]
+                        sort_order_history_column = sort_order_history_list[1]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_history == "all":
 
-                                max_items_shown = None
+                                max_items_shown_history = None
 
                         #convert string asc desc to object
-                        if history_sort_order_scale == "asc":
+                        if sort_order_history_scale == "asc":
 
-                                history_sort_order_scale = asc
+                                sort_order_history_scale = asc
 
                         else:
 
-                                history_sort_order_scale = desc
+                                sort_order_history_scale = desc
 
                         #contruct table and column name
-                        history_sort_order_column_attr = getattr(ResultsDBHistory, history_sort_order_column)
+                        sort_order_history_column_attr = getattr(ResultsDBHistory, sort_order_history_column)
 
                         #if history table column is type integer then do not do case insensitive sort order
-                        if history_sort_order_column == "imdbyear" or history_sort_order_column == "imdbruntime" or history_sort_order_column == "imdbvotes" or history_sort_order_column == "postdatesort" or history_sort_order_column == "postsizesort" or history_sort_order_column == "procdatesort":
+                        if sort_order_history_column == "imdbyear" or sort_order_history_column == "imdbruntime" or sort_order_history_column == "imdbvotes" or sort_order_history_column == "postdatesort" or sort_order_history_column == "postsizesort" or sort_order_history_column == "procdatesort":
 
                                 #select max items shown from history table with selected sort order
-                                template.lines = sql_session.query(ResultsDBHistory).order_by(history_sort_order_scale(history_sort_order_column_attr)).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(sort_order_history_column_attr)).limit(max_items_shown_history)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6523,7 +6525,7 @@ class HistoryRoot(object):
                         else:
 
                                 #select max items shown from history table with selected sort order
-                                template.lines = sql_session.query(ResultsDBHistory).order_by(history_sort_order_scale(func.lower(history_sort_order_column_attr))).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(func.lower(sort_order_history_column_attr))).limit(max_items_shown_history)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6536,7 +6538,7 @@ class HistoryRoot(object):
         @cherrypy.expose
         def history_sort_order(self, **kwargs):
 
-                config_obj["general"]["history_sort_order"] = kwargs["sort_order"]
+                config_obj["general"]["sort_order_history"] = kwargs["sort_order"]
 
                 #write settings to config.ini
                 config_obj.write()
@@ -6763,7 +6765,7 @@ class QueueRoot(object):
                 #read values from config.ini
                 template.color_scheme = config_obj["general"]["color_scheme"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
-                template.queued_sort_order = config_obj["general"]["queued_sort_order"]
+                template.sort_order_queued = config_obj["general"]["sort_order_queued"]
 
                 header()
 
@@ -6778,13 +6780,13 @@ class QueueRoot(object):
 
                 else:
 
-                        queued_sort_order = config_obj["general"]["queued_sort_order"]
-                        max_items_shown = config_obj["general"]["max_items_shown"]
+                        sort_order_queued = config_obj["general"]["sort_order_queued"]
+                        max_items_shown_queued = config_obj["general"]["max_items_shown_queued"]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_queued == "all":
 
-                                max_items_shown = None
+                                max_items_shown_queued = None
 
                         #select all rows from queued table
                         template.sqlite_queue_count = sql_session.query(ResultsDBQueued).count()
@@ -6793,33 +6795,33 @@ class QueueRoot(object):
                         sql_session.remove()
 
                         #convert comma seperated sort order to list
-                        queued_sort_order_list = [x.strip() for x in queued_sort_order.split(",")]
+                        sort_order_queued_list = [x.strip() for x in sort_order_queued.split(",")]
 
-                        queued_sort_order_scale = queued_sort_order_list[0]
-                        queued_sort_order_column = queued_sort_order_list[1]
+                        sort_order_queued_scale = sort_order_queued_list[0]
+                        sort_order_queued_column = sort_order_queued_list[1]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_queued == "all":
 
-                                max_items_shown = None
+                                max_items_shown_queued = None
 
                         #convert string asc desc to object
-                        if queued_sort_order_scale == "asc":
+                        if sort_order_queued_scale == "asc":
 
-                                queued_sort_order_scale = asc
+                                sort_order_queued_scale = asc
 
                         else:
 
-                                queued_sort_order_scale = desc
+                                sort_order_queued_scale = desc
 
                         #contruct table and column name
-                        queued_sort_order_column_attr = getattr(ResultsDBQueued, queued_sort_order_column)
+                        sort_order_queued_column_attr = getattr(ResultsDBQueued, sort_order_queued_column)
 
                         #if queued table column is type integer then do not do case insensitive sort order
-                        if queued_sort_order_column == "postsizesort" or queued_sort_order_column == "imdbruntime" or queued_sort_order_column == "imdbvotes" or queued_sort_order_column == "postdatesort" or queued_sort_order_column == "postsizesort" or queued_sort_order_column == "procdatesort":
+                        if sort_order_queued_column == "postsizesort" or sort_order_queued_column == "imdbruntime" or sort_order_queued_column == "imdbvotes" or sort_order_queued_column == "postdatesort" or sort_order_queued_column == "postsizesort" or sort_order_queued_column == "procdatesort":
 
                                 #select max items shown from queued table with selected sort order
-                                template.lines = sql_session.query(ResultsDBQueued).order_by(queued_sort_order_scale(queued_sort_order_column_attr)).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(sort_order_queued_column_attr)).limit(max_items_shown_queued)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6827,7 +6829,7 @@ class QueueRoot(object):
                         else:
 
                                 #select max items shown from queued table with selected sort order
-                                template.lines = sql_session.query(ResultsDBQueued).order_by(queued_sort_order_scale(func.lower(queued_sort_order_column_attr))).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(func.lower(sort_order_queued_column_attr))).limit(max_items_shown_queued)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6840,7 +6842,7 @@ class QueueRoot(object):
         @cherrypy.expose
         def queue_sort_order(self, **kwargs):
 
-                config_obj["general"]["queued_sort_order"] = kwargs["sort_order"]
+                config_obj["general"]["sort_order_queued"] = kwargs["sort_order"]
 
                 #write settings to config.ini
                 config_obj.write()
