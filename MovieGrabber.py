@@ -913,11 +913,11 @@ class ResultsDBQueued(Base):
 
 #---------------------- paths ----------------------------------
 
-#read theme name and pass to paths
-theme = config_obj["general"]["theme"]
+#read skin_theme name and pass to paths
+skin_theme = config_obj["general"]["skin_theme"]
 
 #define path to cheetah templates
-templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (theme))
+templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % (skin_theme))
 templates_dir = os.path.normpath(templates_dir)
 
 #encode templates directory - required for cherrypy
@@ -5130,7 +5130,7 @@ def header():
         template.local_version = config_obj["general"]["local_version"]
         template.title = "MovieGrabber %s - %s" % (template.local_version,section_name)
         template.strapline = "The only truly automated movie downloader"
-        template.color_scheme_file = "%s.css" % (template.color_scheme)
+        template.skin_color_file = "%s.css" % (template.skin_color)
 
 def footer():
 
@@ -5184,7 +5184,7 @@ class ConfigIMDB(object):
                 template = Template(file = os.path.join(templates_dir, "config_imdb.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.good_rating = float(config_obj["imdb"]["good_rating"])
                 template.good_date = int(config_obj["imdb"]["good_date"])
                 template.good_votes = config_obj["imdb"]["good_votes"]
@@ -5337,8 +5337,18 @@ class ConfigGeneral(object):
                 template = Template(file = os.path.join(templates_dir, "config_general.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
-                template.color_scheme_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
+                template.skin_theme = config_obj["general"]["skin_theme"]
+                template.skin_theme_list = ["classic", "slick"]
+                template.skin_color = config_obj["general"]["skin_color"]
+
+                if template.skin_theme == "classic":
+                        
+                        template.skin_color_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
+
+                else:
+                        
+                        template.skin_color_list = ["default"]
+                        
                 template.max_items_shown = config_obj["general"]["max_items_shown"]
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
                 template.launch_browser = config_obj["general"]["launch_browser"]
@@ -5390,7 +5400,7 @@ class ConfigGeneral(object):
         def save_config_general(self, **kwargs):
 
                 #write values to config.ini
-                config_obj["general"]["color_scheme"] = kwargs["color_scheme2"]
+                config_obj["general"]["skin_color"] = kwargs["skin_color2"]
                 config_obj["general"]["launch_browser"] = kwargs["launch_browser2"]
                 config_obj["general"]["max_items_shown"] = kwargs["max_items_shown2"]
                 config_obj["webconfig"]["username"] = kwargs["username2"]
@@ -5486,6 +5496,17 @@ class ConfigGeneral(object):
 
                 raise cherrypy.HTTPRedirect(".")
 
+        #save config general skin theme form
+        @cherrypy.expose
+        def save_config_general_skin_theme(self, **kwargs):
+
+                config_obj["general"]["skin_theme"] = kwargs["skin_theme2"]
+
+                #write settings to config.ini
+                config_obj.write()
+
+                raise cherrypy.HTTPRedirect(".")
+
 class ConfigSwitches(object):
 
         #read config switches page
@@ -5500,7 +5521,7 @@ class ConfigSwitches(object):
                 template = Template(file = os.path.join(templates_dir, "config_switches.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
                 template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
                 template.email_server = config_obj["email_settings"]["email_server"]
@@ -5568,7 +5589,7 @@ class ConfigPost(object):
                 template.post_replace_existing = config_obj["general"]["post_replace_existing"]
                 template.post_cert_system = config_obj["general"]["post_cert_system"]
                 template.xbmc_library_update = config_obj["xbmc"]["xbmc_library_update"]
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
 
                 template.post_rename_files_list = ["existing", "imdb", "postname"]
                 template.dropdown1_list = ["select", "filename", "extension", "size", "genre", "certificate"]
@@ -5751,7 +5772,7 @@ class ConfigScheduling(object):
                 template = Template(file = os.path.join(templates_dir, "config_scheduling.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
                 template.index_schedule_minute = int(config_obj["general"]["index_schedule_minute"])
                 template.post_schedule_hour = int(config_obj["general"]["post_schedule_hour"])
@@ -5799,7 +5820,7 @@ class ConfigUsenet(object):
                 template.config_obj = config_obj
 
                 template.index_site = config_obj["usenet"]["index_site"]
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.newznab_cat_list = ["all formats", "other", "divx/xvid", "hd/x264", "foreign"]
 
                 if template.index_site:
@@ -6043,7 +6064,7 @@ class ConfigTorrent(object):
                 template.config_obj = config_obj
 
                 template.index_site = config_obj["torrent"]["index_site"]
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
 
                 if template.index_site:
 
@@ -6244,7 +6265,7 @@ class ConfigDirectories(object):
                 template = Template(file = os.path.join(templates_dir, "config_directories.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
                 template.movies_replace_dir = config_obj["folders"]["movies_replace_dir"]
                 template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
@@ -6367,7 +6388,7 @@ class ConfigNotification(object):
                 template = Template(file = os.path.join(templates_dir, "config_notification.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.email_server = config_obj["email_settings"]["email_server"]
                 template.email_server_port = config_obj["email_settings"]["email_server_port"]
                 template.email_server_ssl = config_obj["email_settings"]["email_server_ssl"]
@@ -6438,7 +6459,7 @@ class ConfigRoot(object):
                 template = Template(file = os.path.join(templates_dir, "config.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
 
                 header()
 
@@ -6462,7 +6483,7 @@ class HistoryRoot(object):
                 template = Template(file = os.path.join(templates_dir, "history.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
                 template.history_sort_order = config_obj["general"]["history_sort_order"]
 
@@ -6761,7 +6782,7 @@ class QueueRoot(object):
                 template = Template(file = os.path.join(templates_dir, "queue.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
                 template.queued_sort_order = config_obj["general"]["queued_sort_order"]
 
@@ -7076,7 +7097,7 @@ class HomeRoot(object):
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
 
                 #read values from config.ini
-                template.color_scheme = config_obj["general"]["color_scheme"]
+                template.skin_color = config_obj["general"]["skin_color"]
                 template.usenet_index_site = config_obj["usenet"]["index_site"]
                 template.usenet_watch_dir = config_obj["folders"]["usenet_watch_dir"]
                 template.usenet_archive_dir = config_obj["folders"]["usenet_archive_dir"]
@@ -7125,12 +7146,12 @@ def start_webgui():
 
                 '/stylesheets' : {
                         'tools.staticdir.on' : True,
-                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/stylesheets" % (theme))
+                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/stylesheets" % (skin_theme))
                 },
 
                 '/javascript' : {
                         'tools.staticdir.on' : True,
-                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/javascript" % (theme))
+                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/javascript" % (skin_theme))
                 },
 
                 '/images' : {

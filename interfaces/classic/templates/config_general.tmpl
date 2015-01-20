@@ -66,16 +66,31 @@
 
 	<fieldset class="EntryFieldSet">
 		<legend>Web Server Interface</legend>
+
+		<a title="Allows you to choose the skin theme for the web interface."><strong>(?)</strong></a><strong>Skin Theme:</strong><br>
+		Choose skin theme.<br/>
+
+		<select name="skin_theme2" onchange="window.location='./save_config_general_skin_theme?skin_theme2=' + this.value;">
+			<!--#for $skin_theme_item in $skin_theme_list#-->
+				<!--#if $skin_theme_item.lower() == $skin_theme.lower()#-->
+					<option value="$skin_theme_item" selected>$skin_theme_item</option>
+				<!--#else#-->
+					<option value="$skin_theme_item">$skin_theme_item</option>
+				<!--#end if#-->
+			<!--#end for#-->
+		</select>
+		<br>
+		<br>
 		
-		<a title="Allows you to choose the skin for the web interface."><strong>(?)</strong></a><strong>Skin:</strong><br>
+		<a title="Allows you to choose the skin for the web interface."><strong>(?)</strong></a><strong>Skin Color:</strong><br>
 		Choose skin colour.<br/>
 
-		<select name="color_scheme2">
-			<!--#for $color_scheme_item in $color_scheme_list#-->
-				<!--#if $color_scheme_item.lower() == $color_scheme.lower()#-->
-					<option value="$color_scheme_item" selected>$color_scheme_item</option>
+		<select name="skin_color2">
+			<!--#for $skin_color_item in $skin_color_list#-->
+				<!--#if $skin_color_item.lower() == $skin_color.lower()#-->
+					<option value="$skin_color_item" selected>$skin_color_item</option>
 				<!--#else#-->
-					<option value="$color_scheme_item">$color_scheme_item</option>
+					<option value="$skin_color_item">$skin_color_item</option>
 				<!--#end if#-->
 			<!--#end for#-->
 		</select>
