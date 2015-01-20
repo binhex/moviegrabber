@@ -5349,7 +5349,8 @@ class ConfigGeneral(object):
                         
                         template.skin_color_list = ["default"]
                         
-                template.max_items_shown = config_obj["general"]["max_items_shown"]
+                template.max_items_shown_queued = config_obj["general"]["max_items_shown_queued"]
+                template.max_items_shown_history = config_obj["general"]["max_items_shown_history"]                
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
                 template.launch_browser = config_obj["general"]["launch_browser"]
                 template.address = config_obj["webconfig"]["address"]
@@ -5402,7 +5403,8 @@ class ConfigGeneral(object):
                 #write values to config.ini
                 config_obj["general"]["skin_color"] = kwargs["skin_color2"]
                 config_obj["general"]["launch_browser"] = kwargs["launch_browser2"]
-                config_obj["general"]["max_items_shown"] = kwargs["max_items_shown2"]
+                config_obj["general"]["max_items_shown_queued"] = kwargs["max_items_shown_queued2"]
+                config_obj["general"]["max_items_shown_history"] = kwargs["max_items_shown_history2"]
                 config_obj["webconfig"]["username"] = kwargs["username2"]
                 config_obj["webconfig"]["password"] = kwargs["password2"]
                 config_obj["webconfig"]["enable_ssl"] = kwargs["enable_ssl2"]
@@ -6501,7 +6503,7 @@ class HistoryRoot(object):
                 else:
 
                         sort_order_history = config_obj["general"]["sort_order_history"]
-                        max_items_shown = config_obj["general"]["max_items_shown"]
+                        max_items_shown_history = config_obj["general"]["max_items_shown_history"]
 
                         #select all rows from history table
                         template.sqlite_history_count = sql_session.query(ResultsDBHistory).count()
@@ -6516,9 +6518,9 @@ class HistoryRoot(object):
                         sort_order_history_column = sort_order_history_list[1]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_history == "all":
 
-                                max_items_shown = None
+                                max_items_shown_history = None
 
                         #convert string asc desc to object
                         if sort_order_history_scale == "asc":
@@ -6536,7 +6538,7 @@ class HistoryRoot(object):
                         if sort_order_history_column == "imdbyear" or sort_order_history_column == "imdbruntime" or sort_order_history_column == "imdbvotes" or sort_order_history_column == "postdatesort" or sort_order_history_column == "postsizesort" or sort_order_history_column == "procdatesort":
 
                                 #select max items shown from history table with selected sort order
-                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(sort_order_history_column_attr)).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(sort_order_history_column_attr)).limit(max_items_shown_history)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6544,7 +6546,7 @@ class HistoryRoot(object):
                         else:
 
                                 #select max items shown from history table with selected sort order
-                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(func.lower(sort_order_history_column_attr))).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBHistory).order_by(sort_order_history_scale(func.lower(sort_order_history_column_attr))).limit(max_items_shown_history)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6800,12 +6802,12 @@ class QueueRoot(object):
                 else:
 
                         sort_order_queued = config_obj["general"]["sort_order_queued"]
-                        max_items_shown = config_obj["general"]["max_items_shown"]
+                        max_items_shown_queued = config_obj["general"]["max_items_shown_queued"]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_queued == "all":
 
-                                max_items_shown = None
+                                max_items_shown_queued = None
 
                         #select all rows from queued table
                         template.sqlite_queue_count = sql_session.query(ResultsDBQueued).count()
@@ -6820,9 +6822,9 @@ class QueueRoot(object):
                         sort_order_queued_column = sort_order_queued_list[1]
 
                         #remove limit if max items shown is string all
-                        if max_items_shown == "all":
+                        if max_items_shown_queued == "all":
 
-                                max_items_shown = None
+                                max_items_shown_queued = None
 
                         #convert string asc desc to object
                         if sort_order_queued_scale == "asc":
@@ -6840,7 +6842,7 @@ class QueueRoot(object):
                         if sort_order_queued_column == "postsizesort" or sort_order_queued_column == "imdbruntime" or sort_order_queued_column == "imdbvotes" or sort_order_queued_column == "postdatesort" or sort_order_queued_column == "postsizesort" or sort_order_queued_column == "procdatesort":
 
                                 #select max items shown from queued table with selected sort order
-                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(sort_order_queued_column_attr)).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(sort_order_queued_column_attr)).limit(max_items_shown_queued)
 
                                 #remove scoped session
                                 sql_session.remove()
@@ -6848,7 +6850,7 @@ class QueueRoot(object):
                         else:
 
                                 #select max items shown from queued table with selected sort order
-                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(func.lower(sort_order_queued_column_attr))).limit(max_items_shown)
+                                template.lines = sql_session.query(ResultsDBQueued).order_by(sort_order_queued_scale(func.lower(sort_order_queued_column_attr))).limit(max_items_shown_queued)
 
                                 #remove scoped session
                                 sql_session.remove()
