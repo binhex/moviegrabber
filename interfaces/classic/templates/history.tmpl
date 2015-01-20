@@ -24,12 +24,12 @@
 <!--#else#-->
 	
 	<b>Sort Order: </b>
-	<select name="history_sort_order" onchange="window.location='./history_sort_order?sort_order=' + this.value;">
+	<select name="sort_order_history" onchange="window.location='./history_sort_order?sort_order=' + this.value;">
 
-		<!--#if $history_sort_order == "asc,imdbrating"#-->
+		<!--#if $sort_order_history == "asc,imdbrating"#-->
 			<option value="asc,imdbrating" selected>imdb ratings asc</option>
 			<option value="desc,imdbrating">imdb ratings desc</option>		
-		<!--#elif $history_sort_order == "desc,imdbrating"#-->	
+		<!--#elif $sort_order_history == "desc,imdbrating"#-->	
 			<option value="asc,imdbrating">imdb ratings asc</option>		
 			<option value="desc,imdbrating" selected>imdb ratings desc</option>
 		<!--#else#-->		
@@ -37,10 +37,10 @@
 			<option value="desc,imdbrating">imdb ratings desc</option>
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "asc,imdbvotes"#-->
+		<!--#if $sort_order_history == "asc,imdbvotes"#-->
 			<option value="asc,imdbvotes" selected>imdb votes asc</option>
 			<option value="desc,imdbvotes">imdb votes desc</option>		
-		<!--#elif $history_sort_order == "desc,imdbvotes"#-->		
+		<!--#elif $sort_order_history == "desc,imdbvotes"#-->		
 			<option value="asc,imdbvotes">imdb votes asc</option>		
 			<option value="desc,imdbvotes" selected>imdb votes desc</option>	
 		<!--#else#-->		
@@ -48,10 +48,10 @@
 			<option value="desc,imdbvotes">imdb votes desc</option>
 		<!--#end if#-->
 		
-		<!--#if $history_sort_order == "desc,imdbname"#-->
+		<!--#if $sort_order_history == "desc,imdbname"#-->
 			<option value="desc,imdbname" selected>imdb title asc</option>
 			<option value="asc,imdbname">imdb title desc</option>		
-		<!--#elif $history_sort_order == "asc,imdbname"#-->		
+		<!--#elif $sort_order_history == "asc,imdbname"#-->		
 			<option value="desc,imdbname">imdb title asc</option>			
 			<option value="asc,imdbname" selected>imdb title desc</option>
 		<!--#else#-->		
@@ -59,10 +59,10 @@
 			<option value="asc,imdbname">imdb title desc</option>
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "desc,imdbyear"#-->
+		<!--#if $sort_order_history == "desc,imdbyear"#-->
 			<option value="asc,imdbyear">imdb year asc</option>
 			<option value="desc,imdbyear" selected>imdb year desc</option>		
-		<!--#elif $history_sort_order == "asc,imdbyear"#-->		
+		<!--#elif $sort_order_history == "asc,imdbyear"#-->		
 			<option value="asc,imdbyear" selected>imdb year asc</option>			
 			<option value="desc,imdbyear">imdb year desc</option>
 		<!--#else#-->		
@@ -70,10 +70,10 @@
 			<option value="desc,imdbyear">imdb year desc</option>
 		<!--#end if#-->
 		
-		<!--#if $history_sort_order == "desc,postname"#-->
+		<!--#if $sort_order_history == "desc,postname"#-->
 			<option value="desc,postname" selected>post title asc</option>
 			<option value="asc,postname">post title desc</option>		
-		<!--#elif $history_sort_order == "asc,postname"#-->		
+		<!--#elif $sort_order_history == "asc,postname"#-->		
 			<option value="desc,postname">post title asc</option>		
 			<option value="asc,postname" selected>post title desc</option>	
 		<!--#else#-->		
@@ -81,10 +81,10 @@
 			<option value="asc,postname">post title desc</option>
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "asc,postsizesort"#-->		
+		<!--#if $sort_order_history == "asc,postsizesort"#-->		
 			<option value="asc,postsizesort" selected>post size asc</option>	
 			<option value="desc,postsizesort">post size desc</option>			
-		<!--#elif $history_sort_order == "desc,postsizesort"#-->
+		<!--#elif $sort_order_history == "desc,postsizesort"#-->
 			<option value="asc,postsizesort">post size asc</option>					
 			<option value="desc,postsizesort" selected>post size desc</option>
 		<!--#else#-->		
@@ -92,10 +92,10 @@
 			<option value="desc,postsizesort">post size desc</option>			
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "asc,postdatesort"#-->
+		<!--#if $sort_order_history == "asc,postdatesort"#-->
 			<option value="asc,postdatesort" selected>post date asc</option>
 			<option value="desc,postdatesort">post date desc</option>		
-		<!--#elif $history_sort_order == "desc,postdatesort"#-->		
+		<!--#elif $sort_order_history == "desc,postdatesort"#-->		
 			<option value="asc,postdatesort">post date asc</option>	
 			<option value="desc,postdatesort" selected>post date desc</option>		
 		<!--#else#-->		
@@ -103,10 +103,10 @@
 			<option value="desc,postdatesort">post date desc</option>
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "asc,procdatesort"#-->
+		<!--#if $sort_order_history == "asc,procdatesort"#-->
 			<option value="asc,procdatesort" selected>process date asc</option>
 			<option value="desc,procdatesort">process date desc</option>		
-		<!--#elif $history_sort_order == "desc,procdatesort"#-->		
+		<!--#elif $sort_order_history == "desc,procdatesort"#-->		
 			<option value="asc,procdatesort">process date asc</option>	
 			<option value="desc,procdatesort" selected>process date desc</option>		
 		<!--#else#-->		
@@ -114,10 +114,10 @@
 			<option value="desc,procdatesort">process date desc</option>
 		<!--#end if#-->
 		
-		<!--#if $history_sort_order == "desc,dlstatus"#-->
+		<!--#if $sort_order_history == "desc,dlstatus"#-->
 			<option value="desc,dlstatus" selected>result status asc</option>
 			<option value="asc,dlstatus">result status desc</option>		
-		<!--#elif $history_sort_order == "asc,dlstatus"#-->		
+		<!--#elif $sort_order_history == "asc,dlstatus"#-->		
 			<option value="desc,dlstatus">result status asc</option>	
 			<option value="asc,dlstatus" selected>result status desc</option>		
 		<!--#else#-->		
@@ -125,10 +125,10 @@
 			<option value="asc,dlstatus">result status desc</option>
 		<!--#end if#-->
 
-		<!--#if $history_sort_order == "desc,dltype"#-->
+		<!--#if $sort_order_history == "desc,dltype"#-->
 			<option value="desc,dltype" selected>download type asc</option>
 			<option value="asc,dltype">download type desc</option>		
-		<!--#elif $history_sort_order == "asc,dltype"#-->
+		<!--#elif $sort_order_history == "asc,dltype"#-->
 			<option value="desc,dltype">download type asc</option>	
 			<option value="asc,dltype" selected>download type desc</option>		
 		<!--#else#-->		
