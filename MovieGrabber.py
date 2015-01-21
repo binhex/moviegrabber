@@ -3696,16 +3696,13 @@ class SearchIndex(object):
                                 post_title = re.sub(ur"^\([^\)]+\)|\([^\(]+\)$", "", post_title)
 
                                 #remove "<seperator>torrent" from end of post title (kat)
-                                post_title = re.sub(ur"[\s\.\_\-]+torrent$", "", post_title)
+                                post_title = re.sub(ur"(?i)[\s\.\_\-]+torrent$", "", post_title)
 
                                 #remove "<seperator>mkv" from end of post title (newznab)
-                                post_title = re.sub(ur"[\s\.\_\-]+mkv$", "", post_title)
+                                post_title = re.sub(ur"(?i)[\s\.\_\-]+mkv$", "", post_title)
 
                                 #remove "<seperator>subs" from end of post title (newznab)
-                                post_title = re.sub(ur"[\s\.\_\-]+subs$", "", post_title)
-
-                                #remove "<seperator>rarbg" from end of post title (torrents)
-                                post_title = re.sub(ur"[\s\.\_\-]+rarbg$", "", post_title)
+                                post_title = re.sub(ur"(?i)[\s\.\_\-]+subs$", "", post_title)
 
                                 #remove "<seperator><single digit>" from end of post title (newznab)
                                 post_title = re.sub(ur"[\s\.\_\-]+\d$", "", post_title)
