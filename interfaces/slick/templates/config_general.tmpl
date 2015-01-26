@@ -1,0 +1,68 @@
+#include "%s/head.tmpl" % ($templates_dir)
+#include "%s/top.tmpl" % ($templates_dir)
+#include "%s/nav.tmpl" % ($templates_dir)
+
+
+    <div class="container">
+      <h2>Web Server Interface</h2>
+      <form role="save_config_general">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" class="form-control" id="email" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+          <label for="pwd">Password:</label>
+          <input type="password" class="form-control" id="pwd" placeholder="Enter password">
+        </div>
+        <div class="checkbox">
+          <label><input type="checkbox"> Remember me</label>
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+    </div>
+
+
+
+
+
+
+
+
+
+<form action="save_config_general" method="post">
+
+	<a title="Allows you to choose the skin theme for the web interface."><strong>(?)</strong></a><strong>Skin Theme:</strong><br>
+	Choose skin theme.<br/>
+
+	<select name="skin_theme2" onchange="window.location='./save_config_general_skin_theme?skin_theme2=' + this.value;">
+		<!--#for $skin_theme_item in $skin_theme_list#-->
+			<!--#if $skin_theme_item.lower() == $skin_theme.lower()#-->
+				<option value="$skin_theme_item" selected>$skin_theme_item</option>
+			<!--#else#-->
+				<option value="$skin_theme_item">$skin_theme_item</option>
+			<!--#end if#-->
+		<!--#end for#-->
+	</select>
+	<br>
+	<br>
+
+	<a title="Allows you to choose the skin for the web interface."><strong>(?)</strong></a><strong>Skin Color:</strong><br>
+	Choose skin colour.<br/>
+
+	<select name="skin_color2">
+		<!--#for $skin_color_item in $skin_color_list#-->
+			<!--#if $skin_color_item.lower() == $skin_color.lower()#-->
+				<option value="$skin_color_item" selected>$skin_color_item</option>
+			<!--#else#-->
+				<option value="$skin_color_item">$skin_color_item</option>
+			<!--#end if#-->
+		<!--#end for#-->
+	</select>
+	<br>
+	<br>
+
+	<input type="submit" value="Save Changes">
+
+</form>
+
+#include "%s/bottom.tmpl" % ($templates_dir)

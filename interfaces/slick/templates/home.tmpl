@@ -1,50 +1,7 @@
 #include "%s/head.tmpl" % ($templates_dir)
-
-<body>
-
 #include "%s/top.tmpl" % ($templates_dir)
 #include "%s/nav.tmpl" % ($templates_dir)
-
-<!-- Carousel -->
-
-<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
-  <!-- Indicators -->
-  <ol class="carousel-indicators">
-    <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-    <li data-target="#carousel-example-generic" data-slide-to="1"></li>
-    <li data-target="#carousel-example-generic" data-slide-to="2"></li>
-  </ol>
- 
-  <!-- Wrapper for slides -->
-  <div class="carousel-inner">
-    <div class="item active">
-      <img src="http://www.blastr.com/sites/blastr/files/matrix2bAIRwC77pGMxIuegcqmt88FJ7G.jpg" alt="...">
-      <div class="carousel-caption">
-          <h3>Latest Queued - Movie1 name</h3>
-      </div>
-    </div>
-    <div class="item">
-      <img src="http://www.screenrelish.com/wp-content/uploads/2014/07/fury_ver2_xlg.jpg" alt="...">
-      <div class="carousel-caption">
-          <h3>Latest Queued - Movie2 name</h3>
-      </div>
-    </div>
-    <div class="item">
-      <img src="http://s3.amazonaws.com/digitaltrends-uploads-prod/2013/11/star-wars-games-x-341135.jpg" alt="...">
-      <div class="carousel-caption">
-          <h3>Latest Queued - Movie3 name</h3>
-      </div>
-    </div>
-  </div>
- 
-  <!-- Controls -->
-  <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-    <span class="glyphicon glyphicon-chevron-left"></span>
-  </a>
-  <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-    <span class="glyphicon glyphicon-chevron-right"></span>
-  </a>
-</div> <!-- Carousel -->
+#include "%s/carousel.tmpl" % ($templates_dir)
 
 #set global $usenet_config_complete="no"
 #set global $torrent_config_complete="no"
@@ -130,6 +87,3 @@
 <!--#if ($imdb_config_defined == "yes")#-->
 	<button type="button" class="btn btn-success">Ready</button><h5>IMDb criteria defined.</h5><br>
 <!--#end if#-->
-
-</body>
-</html>

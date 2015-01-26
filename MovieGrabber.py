@@ -7153,6 +7153,11 @@ def start_webgui():
                         'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/javascript" % (skin_theme))
                 },
 
+                '/fonts' : {
+                        'tools.staticdir.on' : True,
+                        'tools.staticdir.dir' : os.path.normpath(r"interfaces/%s/templates/static/fonts" % (skin_theme))
+                },
+
                 '/images' : {
                         'tools.staticdir.on' : True,
                         'tools.staticdir.dir' : os.path.normpath(r"images")

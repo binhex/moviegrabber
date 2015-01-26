@@ -1,0 +1,14 @@
+/* potentially not required */
+.btn .glyphicon {
+	margin-right: 4px;
+	vertical-align: middle;
+}
+ 
+.btn.btn-icon .glyphicon {
+	margin-right: 0;
+}
+
+/* increase spacing for glyphicons in dropdown nav bar */
+ul.dropdown-menu > li span.glyphicon {
+    width: 18px;
+}

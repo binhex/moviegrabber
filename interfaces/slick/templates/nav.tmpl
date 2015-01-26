@@ -1,16 +1,27 @@
-<!-- navbar -->
-
 <nav class="navbar navbar-inverse">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">MovieGrabber</a>
+      <a class="navbar-brand" href="/">MovieGrabber</a>
     </div>
     <div>
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Home</a></li>
-        <li><a href="#">Queue</a></li>
-        <li><a href="#">Configuration</a></li> 
-        <li><a href="#">History</a></li> 
+      <ul class="nav navbar-nav nav-pills">
+        <li class="active"><a href="/" data-toggle="pill">Home</a></li>
+        <li><a href="/queue/" data-toggle="pill">Queue</a></li>
+		<li><a href="/history/" data-toggle="pill">History</a></li>		
+        <li class="dropdown">		
+          <a class="dropdown-toggle" data-toggle="dropdown" href="/config/">Configuration<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+			<li><a href="/config/general/" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span>General</a></li>
+			<li><a href="/config/switches/" data-toggle="tab"><span class="glyphicon glyphicon-retweet"></span>Switches</a></li>
+			<li><a href="/config/directories/" data-toggle="tab"><span class="glyphicon glyphicon-folder-close"></span>Folders</a></li>			
+			<li><a href="/config/imdb/" data-toggle="tab"><span class="glyphicon glyphicon-film"></span>IMDb</a></li>						
+			<li><a href="/config/usenet/" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span>Usenet</a></li>									
+			<li><a href="/config/torrents/" data-toggle="tab"><span class="glyphicon glyphicon-tint"></span>Torrents</a></li>												
+			<li><a href="/config/post/" data-toggle="tab"><span class="glyphicon glyphicon-check"></span>Post Processing</a></li>															
+			<li><a href="/config/notification/" data-toggle="tab"><span class="glyphicon glyphicon-comment"></span>Notification</a></li>
+			<li><a href="/config/schedule/" data-toggle="tab"><span class="glyphicon glyphicon-time"></span>Scheduling</a></li>
+          </ul>
+		</li>
       </ul>
     </div>
   </div>
