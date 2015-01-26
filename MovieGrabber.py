@@ -4024,46 +4024,60 @@ class SearchIndex(object):
                                 mg_log.info(u"%s Index - Post peer count not found" % (site_name))
 
                         #set imdb tt number to none
-                        self.imdb_tt_number = None
+                        imdb_tt_number = None
 
-                        #generate imdb id
+                        #generate imdb id from index sites
                         if site_name == u"Newznab":
 
                                 try:
 
-                                        self.imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
+                                        imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
 
                                 except (IndexError, AttributeError) as e:
 
-                                        self.imdb_tt_number = None
+                                        imdb_tt_number = None
 
-                        if self.imdb_tt_number != None:
+                        if site_name == u"Monova":
+
+                                try:
+                                        
+                                        post_description = node["description"]
+                                        imdb_tt_number_search = re.compile(ur"(?i)(?<=title/tt)[\d]+").search(post_description)
+
+                                        if imdb_tt_number_search != None:
+
+                                                imdb_tt_number = imdb_tt_number_search.group()
+
+                                        else:
+
+                                                imdb_tt_number = None
+
+                                except (IndexError, AttributeError) as e:
+
+                                        imdb_tt_number = None
+
+                        if imdb_tt_number != None:
 
                                 #if length is equal to 7 then prefix with tt
-                                if len(self.imdb_tt_number) == 7:
+                                if len(imdb_tt_number) == 7:
 
-                                        self.imdb_tt_number = u"tt%s" % (self.imdb_tt_number)
-                                        mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
+                                        self.imdb_tt_number = u"tt%s" % (imdb_tt_number)
+                                        mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,imdb_tt_number))
 
                                 #if length is 6 then try prefixing with 0 (some posters dont add the leading zero)
-                                elif len(self.imdb_tt_number) == 6:
+                                elif len(imdb_tt_number) == 6:
 
-
-                                        self.imdb_tt_number = u"tt0%s" % (self.imdb_tt_number)
-                                        mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,self.imdb_tt_number))
+                                        self.imdb_tt_number = u"tt0%s" % (imdb_tt_number)
+                                        mg_log.info(u"%s Index - IMDb number from index site is %s" % (site_name,imdb_tt_number))
 
                                 #if any other length then mark as none
                                 else:
 
-                                        mg_log.info(u"%s Index - Malformed IMDb number %s from index site" % (site_name,self.imdb_tt_number))
                                         self.imdb_tt_number = None
-
-                        else:
-
-                                mg_log.info(u"%s Index - IMDb number from index site not found" % (site_name))
+                                        mg_log.info(u"%s Index - Malformed IMDb number %s from index site" % (site_name,imdb_tt_number))
 
                         #if imdb id not found from index site or post description then use omdb or tmdb
-                        if self.imdb_tt_number == None:
+                        else:
 
                                 mg_log.info(u"%s Index - Cannot find IMDb number from index site, using OMDb/TMDb to generate IMDb number" % (site_name))
 
@@ -4105,7 +4119,7 @@ class SearchIndex(object):
 
                                                 mg_log.warning(u"%s Index - Failed to get IMDb number for post %s, skipping post" % (site_name,self.index_post_title))
                                                 continue
-
+                                
                         #set post size to none
                         post_size = None
 
