@@ -1381,8 +1381,8 @@ class DownloadWatched():
                         mg_log.info(u"Watched folder does not exist %s" % (config_watch_dir))
                         return 0
 
-                #if nzb/torrent does exist in watched folder and 0 bytes in size (failed download) then delete
-                if uni_to_byte(os.path.exists(download_path_filename)) and os.path.getsize(download_path_filename) == 0:
+                #if nzb/torrent does exist in watched folder and 0 bytes in size (failed download) or has a ".invalid" extension (invalid torrent download) then delete
+                if uni_to_byte(os.path.exists(download_path_filename)) and (os.path.getsize(download_path_filename) == 0 or os.path.splitext(download_path_filename)[-1].lower() == ".invalid"):
 
                         try:
 
