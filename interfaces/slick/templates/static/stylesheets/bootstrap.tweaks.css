@@ -12,3 +12,20 @@
 ul.dropdown-menu > li span.glyphicon {
     width: 18px;
 }
+
+/* navbar hack to allow dropdown menu on hover over */
+ul.nav li.dropdown:hover > ul.dropdown-menu {
+    display: block;    
+}
+
+/* increase spacing for caret for navbar */
+span.caret {
+    margin-left: 6px;
+	border-width:4px;
+}
+
+/* change navbar dropdown color */
+.navbar-default .navbar-nav .open .dropdown-menu>li>a,.navbar-default .navbar-nav .open .dropdown-menu {
+  	background-color: #222;
+    color:#fff;
+}
