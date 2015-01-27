@@ -100,9 +100,9 @@
 		<a title="Allows you to specify the max number of items shown for History."><strong>(?)</strong></a><strong>History Max Items:</strong><br>
 		Max number of history items shown.<br/>
 
-		<select name="max_items_shown_history2">
+		<select name="history_max_items_shown2">
 			<!--#for $max_items_shown_item in $max_items_shown_list#-->
-				<!--#if $max_items_shown_item == $max_items_shown_history#-->
+				<!--#if $max_items_shown_item == $history_max_items_shown#-->
 					<option value="$max_items_shown_item" selected>$max_items_shown_item</option>
 				<!--#else#-->
 					<option value="$max_items_shown_item">$max_items_shown_item</option>
@@ -115,9 +115,9 @@
 		<a title="Allows you to specify the max number of items shown for Queue."><strong>(?)</strong></a><strong>Queue Max Items:</strong><br>
 		Max number of queue items shown.<br/>
 
-		<select name="max_items_shown_queued2">
+		<select name="queue_max_items_shown2">
 			<!--#for $max_items_shown_item in $max_items_shown_list#-->
-				<!--#if $max_items_shown_item == $max_items_shown_queued#-->
+				<!--#if $max_items_shown_item == $queue_max_items_shown#-->
 					<option value="$max_items_shown_item" selected>$max_items_shown_item</option>
 				<!--#else#-->
 					<option value="$max_items_shown_item">$max_items_shown_item</option>
