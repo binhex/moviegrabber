@@ -5139,7 +5139,7 @@ def header():
         #header information
         template.templates_dir = templates_dir
         template.local_version = config_obj["general"]["local_version"]
-        template.title = "MovieGrabber %s - %s" % (template.local_version,section_name)
+        template.title = "MovieGrabber %s - %s" % (template.local_version,template.section_name)
         template.strapline = "The only truly automated movie downloader"
         template.skin_color_file = "%s.css" % (template.skin_color)
 
@@ -5190,10 +5190,9 @@ class ConfigIMDB(object):
                 global section_name
                 global template
 
-                section_name = "Config IMDb"
-
                 template = Template(file = os.path.join(templates_dir, "config_imdb.tmpl"))
-
+                template.section_name = "Config IMDb"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.good_rating = float(config_obj["imdb"]["good_rating"])
@@ -5342,11 +5341,10 @@ class ConfigGeneral(object):
 
                 global section_name
                 global template
-
-                section_name = "Config General"
-
+                
                 template = Template(file = os.path.join(templates_dir, "config_general.tmpl"))
-
+                template.section_name = "Config General"
+                
                 #read values from config.ini
                 template.skin_theme = config_obj["general"]["skin_theme"]
                 template.skin_theme_list = ["classic", "slick"]
@@ -5529,10 +5527,9 @@ class ConfigSwitches(object):
                 global section_name
                 global template
 
-                section_name = "Config Switches"
-
                 template = Template(file = os.path.join(templates_dir, "config_switches.tmpl"))
-
+                template.section_name = "Config Switches"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
@@ -5591,10 +5588,9 @@ class ConfigPost(object):
                 global section_name
                 global template
 
-                section_name = "Config Post Processing"
-
                 template = Template(file = os.path.join(templates_dir, "config_post.tmpl"))
-
+                template.section_name = "Config Post Processing"
+                
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -5780,10 +5776,9 @@ class ConfigScheduling(object):
                 global section_name
                 global template
 
-                section_name = "Config Scheduling"
-
                 template = Template(file = os.path.join(templates_dir, "config_scheduling.tmpl"))
-
+                template.section_name = "Config Scheduling"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
@@ -5825,10 +5820,9 @@ class ConfigUsenet(object):
                 global section_name
                 global template
 
-                section_name = "Config Usenet"
-
                 template = Template(file = os.path.join(templates_dir, "config_usenet.tmpl"))
-
+                template.section_name = "Config Usenet"
+                
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -6069,10 +6063,9 @@ class ConfigTorrent(object):
                 global section_name
                 global template
 
-                section_name = "Config Torrent"
-
                 template = Template(file = os.path.join(templates_dir, "config_torrent.tmpl"))
-
+                template.section_name = "Config Torrent"
+                
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -6273,10 +6266,9 @@ class ConfigDirectories(object):
                 global section_name
                 global template
 
-                section_name = "Config Folders"
-
                 template = Template(file = os.path.join(templates_dir, "config_directories.tmpl"))
-
+                template.section_name = "Config Folders"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
@@ -6396,10 +6388,9 @@ class ConfigNotification(object):
                 global section_name
                 global template
 
-                section_name = "Config Notification"
-
                 template = Template(file = os.path.join(templates_dir, "config_notification.tmpl"))
-
+                template.section_name = "Config Notification"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.email_server = config_obj["email_settings"]["email_server"]
@@ -6467,10 +6458,9 @@ class ConfigRoot(object):
                 global section_name
                 global template
 
-                section_name = "Config"
-
                 template = Template(file = os.path.join(templates_dir, "config.tmpl"))
-
+                template.section_name = "Config"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
 
@@ -6491,10 +6481,9 @@ class HistoryRoot(object):
                 global section_name
                 global template
 
-                section_name = "History"
-
                 template = Template(file = os.path.join(templates_dir, "history.tmpl"))
-
+                template.section_name = "History"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
@@ -6790,10 +6779,9 @@ class QueueRoot(object):
                 global section_name
                 global template
 
-                section_name = "View Queue"
-
                 template = Template(file = os.path.join(templates_dir, "queue.tmpl"))
-
+                template.section_name = "View Queue"
+                
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
@@ -7104,10 +7092,9 @@ class HomeRoot(object):
 
                 global section_name
                 global template
-
-                section_name = "Home"
-
+                
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
+                template.section_name = "Home"                
 
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]

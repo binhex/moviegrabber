@@ -1,27 +1,43 @@
 <nav class="navbar navbar-inverse">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="/">MovieGrabber</a>
+	  <a class="navbar-brand" href="/">MovieGrabber</a>
     </div>
     <div>
-      <ul class="nav navbar-nav nav-pills">
-        <li class="active"><a href="/" data-toggle="pill">Home</a></li>
-        <li><a href="/queue/" data-toggle="pill">Queue</a></li>
-		<li><a href="/history/" data-toggle="pill">History</a></li>		
-        <li class="dropdown">		
+      <ul class="nav navbar-nav">
+		<!--#if "Home" in $section_name#-->
+		  <li class="active"><a href="/">Home</a></li>
+		<!--#else#-->
+		  <li><a href="/">Home</a></li>
+		<!--#end if#-->
+		<!--#if "Queued" in $section_name#-->
+		  <li class="active"><a href="/queue/">Queue</a></li>
+		<!--#else#-->
+		  <li><a href="/queue/">Queue</a></li>
+		<!--#end if#-->
+		<!--#if "History" in $section_name#-->
+		  <li class="active"><a href="/history/">History</a></li>
+		<!--#else#-->
+		  <li><a href="/history/">History</a></li>
+		<!--#end if#-->		
+		<!--#if "Config" in $section_name#-->
+          <li class="active" class="dropdown">
+		<!--#else#-->		  
+          <li class="dropdown">
+		<!--#end if#-->		  		
           <a class="dropdown-toggle" data-toggle="dropdown" href="/config/">Configuration<span class="caret"></span></a>
           <ul class="dropdown-menu">
-			<li><a href="/config/general/" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span>General</a></li>
-			<li><a href="/config/switches/" data-toggle="tab"><span class="glyphicon glyphicon-retweet"></span>Switches</a></li>
-			<li><a href="/config/directories/" data-toggle="tab"><span class="glyphicon glyphicon-folder-close"></span>Folders</a></li>			
-			<li><a href="/config/imdb/" data-toggle="tab"><span class="glyphicon glyphicon-film"></span>IMDb</a></li>						
-			<li><a href="/config/usenet/" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span>Usenet</a></li>									
-			<li><a href="/config/torrents/" data-toggle="tab"><span class="glyphicon glyphicon-tint"></span>Torrents</a></li>												
-			<li><a href="/config/post/" data-toggle="tab"><span class="glyphicon glyphicon-check"></span>Post Processing</a></li>															
-			<li><a href="/config/notification/" data-toggle="tab"><span class="glyphicon glyphicon-comment"></span>Notification</a></li>
-			<li><a href="/config/schedule/" data-toggle="tab"><span class="glyphicon glyphicon-time"></span>Scheduling</a></li>
+            <li><a href="/config/general/"><span class="glyphicon glyphicon-cog"></span>General</a></li>
+            <li><a href="/config/switches/"><span class="glyphicon glyphicon-retweet"></span>Switches</a></li>
+            <li><a href="/config/directories/"><span class="glyphicon glyphicon-folder-close"></span>Folders</a></li>			
+            <li><a href="/config/imdb/"><span class="glyphicon glyphicon-film"></span>IMDb</a></li>						
+            <li><a href="/config/usenet/"><span class="glyphicon glyphicon-list-alt"></span>Usenet</a></li>									
+            <li><a href="/config/torrents/"><span class="glyphicon glyphicon-tint"></span>Torrents</a></li>												
+            <li><a href="/config/post/"><span class="glyphicon glyphicon-check"></span>Post Processing</a></li>															
+            <li><a href="/config/notification/"><span class="glyphicon glyphicon-comment"></span>Notification</a></li>
+            <li><a href="/config/schedule/"><span class="glyphicon glyphicon-time"></span>Scheduling</a></li>
           </ul>
-		</li>
+        </li>
       </ul>
     </div>
   </div>
