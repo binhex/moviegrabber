@@ -3473,7 +3473,7 @@ class SearchIndex(object):
                         self.config_hostname = u"http://%s" % (self.config_hostname)
 
                 #construct site rss feed, note demonoid does not support specification of port number
-                site_feed = u"%s/rss/%s.xml" % (self.config_hostname, self.config_cat)
+                site_feed = u"%s:%s/rss/%s.xml" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
                 #convert to uri for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
@@ -3556,6 +3556,63 @@ class SearchIndex(object):
 
                 #set user agent sent to index site
                 self.user_agent = user_agent_moviegrabber
+
+                #generate feed details
+                self.feed_details(site_name)
+
+        def limetorrents_index(self):
+
+                site_name = u"LimeTorrents"
+
+                mg_log.info(u"%s Index - Search index started" % (site_name))
+
+                #substitute friendly names for real values for categories
+                if self.config_cat == u"all movies":
+
+                        self.config_cat = u"16"
+
+                #remove slash at end of hostname if present
+                self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+                #add http:// to hostname if hostname not prefixed with either http or https
+                if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
+
+                        self.config_hostname = u"http://%s" % (self.config_hostname)
+
+                #use server side search term for rss feed
+                if self.config_search_and != "":
+
+                        search_term = self.config_search_and
+
+                else:
+
+                        search_term = ""
+
+                if search_term != "":
+
+                        #convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                        search_term = [x.strip() for x in search_term.split(',')]
+
+                        #convert list back to string
+                        search_term = ','.join(search_term)
+
+                        #replace comma with spaces to seperate search terms
+                        search_term = re.sub(ur","," ", search_term)
+
+                        #construct site rss feed
+                        site_feed = u"%s:%s/searchrss/%s" % (self.config_hostname, self.config_portnumber, search_term)
+                        
+                else:
+                        
+                        #construct site rss feed
+                        site_feed = u"%s:%s/rss/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+
+                #convert to uri for feed
+                self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
+                mg_log.info(u"%s Index - Site feed %s" % (site_name,self.site_feed))
+
+                #set user agent sent to index site
+                self.user_agent = user_agent_ie
 
                 #generate feed details
                 self.feed_details(site_name)
@@ -3678,6 +3735,16 @@ class SearchIndex(object):
                                         post_title = None
 
                         if site_name == u"Monova":
+
+                                try:
+
+                                        post_title = node["title"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_title = None
+
+                        if site_name == u"LimeTorrents":
 
                                 try:
 
@@ -3828,6 +3895,18 @@ class SearchIndex(object):
 
                         if site_name == u"Monova":
 
+                                try:
+
+                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
+
+                                except (IndexError, AttributeError) as e:
+
+                                        mg_log.info(u"%s Index - Post download link not found" % (site_name))
+                                        continue
+
+                        if site_name == u"LimeTorrents":
+                                
                                 try:
 
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
@@ -6082,7 +6161,7 @@ class ConfigTorrent(object):
                         template.index_site_list = []
 
                 #define list of supported torrent index sites
-                template.add_index_site_list = ["kickasstorrents","thepiratebay","bitsnoop","extratorrent","demonoid","monova"]
+                template.add_index_site_list = ["kickasstorrents","thepiratebay","bitsnoop","extratorrent","demonoid","monova","limetorrents"]
 
                 header()
 
@@ -6165,6 +6244,12 @@ class ConfigTorrent(object):
 
                         config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://www.monova.org"
                         config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "443"
+
+                #set hostname, path, and port number for known index sites
+                if add_torrent_site == "limetorrents":
+
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://www.limetorrents.cc"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
 
                 #write default values to config.ini
                 config_obj["torrent"]["%s_cat" % (add_torrent_site_index)] = ""
@@ -7353,6 +7438,16 @@ class SearchIndexThread(object):
 
                                                 self.index_site_item = torrent_index_site_item
                                                 self.search_index_function =  "monova_index"
+                                                self.download_method = "torrent"
+
+                                                if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                                                        self.run()
+
+                                        if "limetorrents" in torrent_index_site_item:
+
+                                                self.index_site_item = torrent_index_site_item
+                                                self.search_index_function =  "limetorrents_index"
                                                 self.download_method = "torrent"
 
                                                 if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
