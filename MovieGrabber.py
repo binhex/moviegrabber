@@ -2983,7 +2983,7 @@ class SearchIndex(object):
                         </p>
 
                         <p>
-                        <b>Size:</b> %s""" % (self.index_post_size) + """
+                        <b>Size:</b> %s""" % (uni_to_byte(self.index_post_size)) + """
                         </p>"""
 
                         #check to make sure movie is queue and not download (queue release not required if set to download)
