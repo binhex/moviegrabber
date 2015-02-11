@@ -1335,6 +1335,12 @@ class DownloadWatched():
 
                 except Exception:
 
+                        #set result to downloaded for history/queue status
+                        self.dlstatus_msg = "Failed"
+
+                        #run function to write status
+                        self.download_status()
+
                         mg_log.info(u"Read of nzb/torrent failed for url %s" % (self.download_url_item))
                         return
 
@@ -1390,6 +1396,12 @@ class DownloadWatched():
                                 mg_log.info(u"Deleted zero byte file %s" % (download_path_filename))
 
                         except Exception:
+
+                                #set result to downloaded for history/queue status
+                                self.dlstatus_msg = "Failed"
+
+                                #run function to write status
+                                self.download_status()
 
                                 mg_log.info(u"Cannot delete zero byte file %s" % (download_path_filename))
                                 return
@@ -4070,6 +4082,42 @@ class SearchIndex(object):
 
                                         post_peers = None
 
+                        if site_name == u"LimeTorrents":
+
+                                try:
+
+                                        post_description = node["description"]
+                                        post_seeders_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
+
+                                        if post_seeders_search != None:
+
+                                                post_seeders = post_seeders_search.group()
+
+                                        else:
+
+                                                post_seeders = None
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_seeders = None
+
+                                try:
+
+                                        post_description = node["description"]
+                                        post_peers_search = re.compile(ur"(?i)(?<=Leechers\s)[\d]+").search(post_description)
+
+                                        if post_peers_search != None:
+
+                                                post_peers = post_peers_search.group()
+
+                                        else:
+
+                                                post_peers = None
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_peers = None
+
                         if post_seeders != None:
 
                                 self.index_min_seeds = post_seeders
@@ -4295,6 +4343,16 @@ class SearchIndex(object):
 
                                         post_size = None
 
+                        if site_name == u"LimeTorrents":
+
+                                try:
+
+                                        post_size = node["size"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_size = None
+
                         if post_size != None:
 
                                 #generate size for history/queue sort order
@@ -4412,11 +4470,27 @@ class SearchIndex(object):
 
                                         post_date = None
 
+                        if site_name == u"LimeTorrents":
+
+                                try:
+
+                                        post_date = node["pubDate"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_date = None
+
                         if post_date != None:
 
                                 post_date = re.sub(ur"\s?\+.*", "", post_date)
-                                post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
+                                
+                                if site_name == u"LimeTorrents":
 
+                                        post_date_tuple = time.strptime(post_date, "%d %b %Y %H:%M:%S")
+                                else:
+                                        
+                                        post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
+                                        
                                 #reformat time to correct string format
                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                 post_date_string = u"%s UTC" % (post_date_string)
@@ -4523,6 +4597,16 @@ class SearchIndex(object):
                                         post_details = None
 
                         if site_name == u"Monova":
+
+                                try:
+
+                                        post_details = node["link"]
+
+                                except (IndexError, AttributeError) as e:
+
+                                        post_details = None
+
+                        if site_name == u"LimeTorrents":
 
                                 try:
 
@@ -6248,8 +6332,8 @@ class ConfigTorrent(object):
                 #set hostname, path, and port number for known index sites
                 if add_torrent_site == "limetorrents":
 
-                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "http://www.limetorrents.cc"
-                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "80"
+                        config_obj["torrent"]["%s_hostname" % (add_torrent_site_index)] = "https://www.limetorrents.cc"
+                        config_obj["torrent"]["%s_portnumber" % (add_torrent_site_index)] = "443"
 
                 #write default values to config.ini
                 config_obj["torrent"]["%s_cat" % (add_torrent_site_index)] = ""
