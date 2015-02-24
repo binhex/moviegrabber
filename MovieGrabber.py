@@ -3613,9 +3613,9 @@ class SearchIndex(object):
 
                         #construct site rss feed
                         site_feed = u"%s:%s/searchrss/%s" % (self.config_hostname, self.config_portnumber, search_term)
-                        
+
                 else:
-                        
+
                         #construct site rss feed
                         site_feed = u"%s:%s/rss/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
@@ -3909,8 +3909,11 @@ class SearchIndex(object):
 
                                 try:
 
-                                        self.index_download_dict["torrent"] = node["enclosure"]["@url"]
-                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,node["enclosure"]["@url"]))
+                                        # need to prepend https: to url
+                                        download_link = u"https:%s" % node["enclosure"]["@url"]
+
+                                        self.index_download_dict["torrent"] = download_link
+                                        mg_log.info(u"%s Index - Post download link %s" % (site_name,download_link))
 
                                 except (IndexError, AttributeError) as e:
 
@@ -3918,7 +3921,7 @@ class SearchIndex(object):
                                         continue
 
                         if site_name == u"LimeTorrents":
-                                
+
                                 try:
 
                                         self.index_download_dict["torrent"] = node["enclosure"]["@url"]
@@ -4167,7 +4170,7 @@ class SearchIndex(object):
                         if site_name == u"Monova":
 
                                 try:
-                                        
+
                                         post_description = node["description"]
                                         imdb_tt_number_search = re.compile(ur"(?i)(?<=title/tt)[\d]+").search(post_description)
 
@@ -4246,7 +4249,7 @@ class SearchIndex(object):
 
                                                 mg_log.warning(u"%s Index - Failed to get IMDb number for post %s, skipping post" % (site_name,self.index_post_title))
                                                 continue
-                                
+
                         #set post size to none
                         post_size = None
 
@@ -4297,7 +4300,7 @@ class SearchIndex(object):
 
                                         #get description content, used for size of post
                                         post_description = node["description"]
-                                        
+
                                         #use regex to construct scale and value
                                         post_size_desc = re.compile("(?<=Size:\s)[^<]+", re.IGNORECASE).search(post_description).group()
                                         post_size_scale = re.compile("[a-zA-Z]+$", re.IGNORECASE).search(post_size_desc).group()
@@ -4483,14 +4486,14 @@ class SearchIndex(object):
                         if post_date != None:
 
                                 post_date = re.sub(ur"\s?\+.*", "", post_date)
-                                
+
                                 if site_name == u"LimeTorrents":
 
                                         post_date_tuple = time.strptime(post_date, "%d %b %Y %H:%M:%S")
                                 else:
-                                        
+
                                         post_date_tuple = time.strptime(post_date, "%a, %d %b %Y %H:%M:%S")
-                                        
+
                                 #reformat time to correct string format
                                 post_date_string = time.strftime("%d-%m-%Y %H:%M:%S", post_date_tuple)
                                 post_date_string = u"%s UTC" % (post_date_string)
@@ -5355,7 +5358,7 @@ class ConfigIMDB(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_imdb.tmpl"))
                 template.section_name = "Config IMDb"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.good_rating = float(config_obj["imdb"]["good_rating"])
@@ -5504,25 +5507,25 @@ class ConfigGeneral(object):
 
                 global section_name
                 global template
-                
+
                 template = Template(file = os.path.join(templates_dir, "config_general.tmpl"))
                 template.section_name = "Config General"
-                
+
                 #read values from config.ini
                 template.skin_theme = config_obj["general"]["skin_theme"]
                 template.skin_theme_list = ["classic", "slick"]
                 template.skin_color = config_obj["general"]["skin_color"]
 
                 if template.skin_theme == "classic":
-                        
+
                         template.skin_color_list = ["darkblue", "black", "classic", "green", "lightblue", "red", "white-black"]
 
                 else:
-                        
+
                         template.skin_color_list = ["default"]
-                        
+
                 template.queue_max_items_shown = config_obj["general"]["queue_max_items_shown"]
-                template.history_max_items_shown = config_obj["general"]["history_max_items_shown"]                
+                template.history_max_items_shown = config_obj["general"]["history_max_items_shown"]
                 template.max_items_shown_list = ["10", "20", "50", "100", "all"]
                 template.launch_browser = config_obj["general"]["launch_browser"]
                 template.address = config_obj["webconfig"]["address"]
@@ -5692,7 +5695,7 @@ class ConfigSwitches(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_switches.tmpl"))
                 template.section_name = "Config Switches"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
@@ -5753,7 +5756,7 @@ class ConfigPost(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_post.tmpl"))
                 template.section_name = "Config Post Processing"
-                
+
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -5941,7 +5944,7 @@ class ConfigScheduling(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_scheduling.tmpl"))
                 template.section_name = "Config Scheduling"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.index_schedule_hour = int(config_obj["general"]["index_schedule_hour"])
@@ -5985,7 +5988,7 @@ class ConfigUsenet(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_usenet.tmpl"))
                 template.section_name = "Config Usenet"
-                
+
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -6228,7 +6231,7 @@ class ConfigTorrent(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_torrent.tmpl"))
                 template.section_name = "Config Torrent"
-                
+
                 #create variable for templates to read config entries
                 template.config_obj = config_obj
 
@@ -6437,7 +6440,7 @@ class ConfigDirectories(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_directories.tmpl"))
                 template.section_name = "Config Folders"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.movies_downloaded_dir = config_obj["folders"]["movies_downloaded_dir"]
@@ -6559,7 +6562,7 @@ class ConfigNotification(object):
 
                 template = Template(file = os.path.join(templates_dir, "config_notification.tmpl"))
                 template.section_name = "Config Notification"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.email_server = config_obj["email_settings"]["email_server"]
@@ -6629,7 +6632,7 @@ class ConfigRoot(object):
 
                 template = Template(file = os.path.join(templates_dir, "config.tmpl"))
                 template.section_name = "Config"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
 
@@ -6652,7 +6655,7 @@ class HistoryRoot(object):
 
                 template = Template(file = os.path.join(templates_dir, "history.tmpl"))
                 template.section_name = "History"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
@@ -6950,7 +6953,7 @@ class QueueRoot(object):
 
                 template = Template(file = os.path.join(templates_dir, "queue.tmpl"))
                 template.section_name = "View Queue"
-                
+
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
                 template.enable_posters = config_obj["switches"]["enable_posters"]
@@ -7261,9 +7264,9 @@ class HomeRoot(object):
 
                 global section_name
                 global template
-                
+
                 template = Template(file = os.path.join(templates_dir, "home.tmpl"))
-                template.section_name = "Home"                
+                template.section_name = "Home"
 
                 #read values from config.ini
                 template.skin_color = config_obj["general"]["skin_color"]
