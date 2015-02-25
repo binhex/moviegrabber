@@ -4340,6 +4340,7 @@ class SearchIndex(object):
                         if site_name == u"Monova":
 
                                 try:
+
                                         post_size = node["enclosure"]["@length"]
 
                                 except (IndexError, AttributeError) as e:
@@ -4603,7 +4604,8 @@ class SearchIndex(object):
 
                                 try:
 
-                                        post_details = node["link"]
+                                        # need to prepend https: to url
+                                        post_details = u"https:%s" % node["link"]
 
                                 except (IndexError, AttributeError) as e:
 
