@@ -128,18 +128,13 @@ import base64
 import configobj
 import validate
 import xmltodict
-# noinspection PyUnresolvedReferences
 import cherrypy
-# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
 from Cheetah.Template import Template
-# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
-from sqlalchemy import create_engine, ForeignKey, exc, Table, Column, Integer, String, Numeric, MetaData, ForeignKey, desc, asc, func, PickleType, event
-# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
+from sqlalchemy import create_engine, exc, Column, Integer, String, desc, asc, func, PickleType
 from sqlalchemy.orm import sessionmaker, scoped_session
-# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
 from sqlalchemy.ext.declarative import declarative_base
-# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
-from sqlalchemy.sql import collate, text
+
+from sqlalchemy.sql import text
 
 # ---------------------- py2exe -------------------------------
 
@@ -359,7 +354,6 @@ def _retry(exceptiontocheck, tries=4, delay=3, backoff=2):
 @_retry((urllib2.URLError, urllib2.HTTPError, httplib.HTTPException), tries=4, delay=3, backoff=2)
 def urllib2_retry(url, user_agent):
 
-        # noinspection PyUnresolvedReferences
         try:
 
                 # force HTTP/1.0 - used to prevent HTTP/1.1 chunked transfer encoding (not supported)
@@ -987,12 +981,10 @@ queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
 images_dir = os.path.join(moviegrabber_root_dir, u"images")
 images_dir = os.path.normpath(images_dir)
 
-# # # # # # # # # # #
-# logging #
-# # # # # # # # # # #
+# logging
+###
 
 
-# noinspection PyProtectedMember,PyProtectedMember
 def cherrypy_logging():
 
         # define cherrpy app log
@@ -1129,9 +1121,8 @@ mg_log = moviegrabber_logging()
 sql_log = sqlite_logging()
 cherrypy_logging()
 
-# # # # # # # # # # # # # # # #
-# sqlite check #
-# # # # # # # # # # # # # # # #
+# sqlite check
+###
 
 
 def sqlite_check():
@@ -1529,9 +1520,8 @@ class DownloadWatched():
                         # remove scoped session
                         sql_session.remove()
 
-# # # # # # # # # # # # # # # # # # # # #
-# xbmc notification #
-# # # # # # # # # # # # # # # # # # # # #
+# xbmc notification
+###
 
 
 class XBMC(object):
@@ -1735,7 +1725,6 @@ class SearchIndex(object):
                         # run external_ip() and store return value
                         self.external_ip_address = external_ip()
 
-
         # os filters
         ###
 
@@ -1871,7 +1860,6 @@ class SearchIndex(object):
                 else:
 
                     return 0
-
 
         # index filters
         ###
@@ -2196,10 +2184,8 @@ class SearchIndex(object):
 
                         return 1
 
-
         # imdb filters
         ###
-
 
         def filter_imdb_good_ratings(self):
 
@@ -2527,9 +2513,8 @@ class SearchIndex(object):
 
                         return 0
 
-        # # # # # # # # # # # # # # # #
-        # Find IMDb ID #
-        # # # # # # # # # # # # # # # #
+        # Find IMDb ID
+        ###
 
         def find_imdb_id_omdb(self, site_name):
 
@@ -2638,9 +2623,8 @@ class SearchIndex(object):
 
                 return imdb_tt_number
 
-        # # # # # # # # # # # # # # # # # # # # # #
-        # IMDb Movie Details #
-        # # # # # # # # # # # # # # # # # # # # # #
+        # IMDb Movie Details
+        ###
 
         def imdb(self):
 
@@ -2848,9 +2832,8 @@ class SearchIndex(object):
 
                         self.imdb_movie_cert = "-"
 
-        # # # # # # # # # # # # # # # # # # # # # #
-        # certificate system #
-        # # # # # # # # # # # # # # # # # # # # # #
+        # certificate system
+        ###
 
         def cert_system(self):
 
@@ -2906,9 +2889,8 @@ class SearchIndex(object):
 
                 mg_log.info(u"Cert System - IMDb certificate %s" % self.imdb_movie_cert)
 
-        # # # # # # # # # # # # # # # # # # #
-        # poster download #
-        # # # # # # # # # # # # # # # # # # #
+        # poster download
+        ###
 
         def poster_download(self):
 
@@ -2953,9 +2935,8 @@ class SearchIndex(object):
 
                         self.poster_image_file = u"default.jpg"
 
-        # # # # # # # # # # # # # # # # # # # # # #
-        # email notification #
-        # # # # # # # # # # # # # # # # # # # # # #
+        # email notification
+        ###
 
         def email_notify(self):
 
@@ -3072,9 +3053,8 @@ class SearchIndex(object):
 
                                 mg_log.warning(u"SMTP socket error, response - %s" % (str(e)))
 
-        # # # # # # # # # # # # # # # # # # # # # # #
-        # check filter values #
-        # # # # # # # # # # # # # # # # # # # # # # #
+        # check filter values
+        ###
 
         def filter_check(self):
 
@@ -3122,9 +3102,8 @@ class SearchIndex(object):
 
                         self.filter_check_status = 0
 
-        # # # # # # # # # #
-        # Sqlite #
-        # # # # # # # # # #
+        # Sqlite
+        ##
 
         def sqlite_insert(self):
 
@@ -3202,9 +3181,8 @@ class SearchIndex(object):
                         # remove scoped session
                         sql_session.remove()
 
-        # # # # # # # # # # # # # # # # # # #
-        # download result #
-        # # # # # # # # # # # # # # # # # # #
+        # download result
+        ###
 
         def download_result(self):
 
@@ -3221,9 +3199,8 @@ class SearchIndex(object):
 
                         self.download_result_str = "Downloading"
 
-        # # # # # # # # # # # # # # #
-        # index sites #
-        # # # # # # # # # # # # # # #
+        # index sites
+        ###
 
         def newznab_index(self):
 
@@ -4770,9 +4747,9 @@ class SearchIndex(object):
                                 # run function to send xbmc gui notification for queued/downloaded
                                 XBMC().xbmc_gui_notify(self.imdb_movie_title_strip, self.imdb_movie_year_str, self.download_result_str)
 
-# # # # # # # # # # # # # # # # # # #
-# post processing #
-# # # # # # # # # # # # # # # # # # #
+
+# post processing
+###
 
 
 class PostProcessing(object):
@@ -5296,7 +5273,6 @@ class PostProcessing(object):
                         # call move function
                         self.rules_move()
 
-        # noinspection PyMethodMayBeStatic
         def xbmc_proceed(self):
 
                 # read xbmc settings
@@ -5310,9 +5286,8 @@ class PostProcessing(object):
                         XBMC().xbmc_library_update()
 
 
-# # # # # # # # #
-# webui #
-# # # # # # # # #
+# webui
+###
 
 def header():
 
@@ -5358,9 +5333,8 @@ def footer():
                 template.update_available = "no"
                 template.update_url = ""
 
-# # # # # # # # # # # # # # # # # # # # #
-# webgui subfolders #
-# # # # # # # # # # # # # # # # # # # # #
+# webgui subfolders
+###
 
 
 class ConfigIMDB(object):
@@ -6622,9 +6596,8 @@ class ConfigNotification(object):
 
                 raise cherrypy.HTTPRedirect(".")
 
-# # # # # # # # # # # # # # # # # # # # # # #
-# webgui root folders #
-# # # # # # # # # # # # # # # # # # # # # # #
+# webgui root folders
+###
 
 
 class ConfigRoot(object):
@@ -7395,7 +7368,6 @@ def start_webgui():
 # download thread class
 class DownloadThread(object):
 
-        # noinspection PyMethodMayBeStatic
         def run(self):
 
                 # define download thread
