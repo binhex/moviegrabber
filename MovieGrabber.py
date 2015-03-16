@@ -147,7 +147,7 @@ import email.iterators
 socket.setdefaulttimeout(240)
 
 # user agent strings
-user_agent_ie = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)"
+user_agent_chrome = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36"
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % latest_mg_version
 
@@ -1252,7 +1252,7 @@ def sqlite_check():
         sql_session.remove()
 
 
-class DownloadWatched():
+class Download():
 
         # create instance variables to pass between download methods
         def __init__(self):
@@ -3341,7 +3341,7 @@ class SearchIndex(object):
                 mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
                 # set user agent sent to index site
-                self.user_agent = user_agent_ie
+                self.user_agent = user_agent_chrome
 
                 # generate feed details
                 self.feed_details(site_name)
@@ -3481,7 +3481,7 @@ class SearchIndex(object):
                 mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
                 # set user agent sent to index site
-                self.user_agent = user_agent_ie
+                self.user_agent = user_agent_chrome
 
                 # generate feed details
                 self.feed_details(site_name)
@@ -3613,7 +3613,7 @@ class SearchIndex(object):
                 mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
                 # set user agent sent to index site
-                self.user_agent = user_agent_ie
+                self.user_agent = user_agent_chrome
 
                 # generate feed details
                 self.feed_details(site_name)
@@ -7371,7 +7371,7 @@ class DownloadThread(object):
         def run(self):
 
                 # define download thread
-                download_thread = threading.Thread(name="download_thread", target=DownloadWatched().download_read, args=())
+                download_thread = threading.Thread(name="download_thread", target=Download().download_read, args=())
                 download_thread.start()
 
 
