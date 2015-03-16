@@ -1263,7 +1263,7 @@ class Download():
                 self.download_url_item = None
                 self.download_type_item = None
                 self.dlstatus_msg = None
-                self.download_read = None
+                self.download_read_url = None
 
         def download_read(self):
 
@@ -1374,7 +1374,7 @@ class Download():
                 try:
 
                         # this reads the nzb/torrent file from the download link
-                        self.download_read = urllib2_retry(self.download_url_item, user_agent_moviegrabber)
+                        self.download_read_url = urllib2_retry(self.download_url_item, user_agent_moviegrabber)
                         mg_log.info(u"Read of nzb/torrent successful for url %s" % self.download_url_item)
 
                 except Exception:
@@ -1457,7 +1457,7 @@ class Download():
 
                                 # write nzb/torrent to file in watched folder
                                 download_write = open(download_path_filename, "wb")
-                                download_write.write(self.download_read)
+                                download_write.write(self.download_read_url)
                                 download_write.close()
 
                         except Exception:
@@ -3473,15 +3473,15 @@ class SearchIndex(object):
 
                         self.config_hostname = u"http://%s" % self.config_hostname
 
-                # construct site rss feed, note demonoid does not support specification of port number
-                site_feed = u"%s:%s/rss/%s.xml" % (self.config_hostname, self.config_portnumber, self.config_cat)
+                # construct site rss feed, note demonoid does NOT support specification of port number
+                site_feed = u"%s/rss/%s.xml" % (self.config_hostname, self.config_cat)
 
                 # convert to uri for feed
                 self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
                 mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
                 # set user agent sent to index site
-                self.user_agent = user_agent_chrome
+                self.user_agent = user_agent_moviegrabber
 
                 # generate feed details
                 self.feed_details(site_name)

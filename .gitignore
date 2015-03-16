@@ -1,4 +1,5 @@
 # Ignore comments file
 todo.txt
+.idea
 # Ignore compiled Python scripts
 *.pyc
