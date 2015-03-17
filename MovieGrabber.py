@@ -3898,8 +3898,12 @@ class SearchIndex(object):
 
                                 try:
 
-                                        # need to prepend https: to url
-                                        download_link = u"https:%s" % node["enclosure"]["@url"]
+                                        download_link = node["enclosure"]["@url"]
+
+                                        if not "https" in download_link:
+
+                                                # need to prepend https: to url
+                                                download_link = u"https:%s" % download_link
 
                                         self.index_download_dict["torrent"] = download_link
                                         mg_log.info(u"%s Index - Post download link %s" % (site_name, download_link))
@@ -4594,8 +4598,12 @@ class SearchIndex(object):
 
                                 try:
 
-                                        # need to prepend https: to url
-                                        post_details = u"https:%s" % node["link"]
+                                        post_details = node["link"]
+
+                                        if not "https" in post_details:
+
+                                                # need to prepend https: to url
+                                                post_details = u"https:%s" % post_details
 
                                 except (IndexError, AttributeError):
 
