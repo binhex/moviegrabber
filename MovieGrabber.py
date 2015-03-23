@@ -3788,7 +3788,7 @@ class SearchIndex(object):
                                         mg_log.info(u"%s Index - Post release group %s" % (site_name, self.index_post_group))
 
                                         # if post release group in list then skip
-                                        if self.filter_index_bad_group == 0:
+                                        if self.filter_index_bad_group() == 0:
 
                                                 continue
 
