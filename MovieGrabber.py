@@ -2087,7 +2087,6 @@ class SearchIndex(object):
                         # look for matching item in list
                         if self.index_post_group.lower() in config_bad_group_list:
 
-                                self.download_details_dict["filter_index_bad_group_result"] = [0, "Bad Group", "Index - Post group is in Bad list"]
                                 mg_log.info(u"Filter Index - Index post group %s is in Bad list, skip" % self.index_post_group)
                                 return 0
 
@@ -3071,7 +3070,6 @@ class SearchIndex(object):
                 self.filter_imdb_bad_title_result = self.filter_imdb_bad_title()
                 self.filter_index_special_cut_result = self.filter_index_special_cut()
                 self.filter_index_preferred_group_result = self.filter_index_preferred_group()
-                self.filter_index_bad_group_result = self.filter_index_bad_group()
                 self.filter_imdb_good_ratings_result = self.filter_imdb_good_ratings()
                 self.filter_imdb_good_votes_result = self.filter_imdb_good_votes()
                 self.filter_imdb_good_genre_result = self.filter_imdb_good_genre()
@@ -3094,7 +3092,7 @@ class SearchIndex(object):
 
                         self.filter_check_status = 1
 
-                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1 and self.filter_index_bad_group_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
+                elif (self.filter_os_movies_downloaded_result == 1 and self.filter_os_archive_result == 1 and self.filter_os_watched_result == 1 and self.filter_os_queued_result == 1 and self.filter_os_completed_result == 1 and self.filter_imdb_bad_title_result == 1 and self.filter_index_bad_report_result == 1) and ((self.filter_imdb_good_ratings_result == 1 and self.filter_imdb_good_votes_result == 1 and self.filter_imdb_good_genre_result == 1 and self.filter_imdb_good_date_result == 1) or (self.filter_imdb_fav_dir_result == 1 or self.filter_imdb_fav_writer_result == 1 or self.filter_imdb_fav_actor_result == 1 or self.filter_imdb_fav_char_result == 1 or self.filter_imdb_fav_title_result == 1)):
 
                         self.filter_check_status = 1
 
@@ -3788,6 +3786,11 @@ class SearchIndex(object):
 
                                         self.index_post_group = index_post_group_search.group()
                                         mg_log.info(u"%s Index - Post release group %s" % (site_name, self.index_post_group))
+
+                                        # if post release group in list then skip
+                                        if self.filter_index_bad_group == 0:
+
+                                                continue
 
                                 else:
 
