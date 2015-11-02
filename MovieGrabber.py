@@ -3582,7 +3582,7 @@ class SearchIndex(object):
                 site_feed_parse = json.loads(site_feed)
                 site_feed_parse = site_feed_parse["channel"]["item"]
 
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, KeyError):
 
                 mg_log.warning(u"%s Index - Site feed parse failed" % site_name)
                 return
