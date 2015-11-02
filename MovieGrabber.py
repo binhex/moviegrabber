@@ -443,20 +443,12 @@ class Config(object):
 
     def __init__(self):
 
-        # create full path to config.ini
-        self.config_ini = os.path.join(config_dir, u"config.ini")
-        self.config_ini = os.path.normpath(self.config_ini)
-
-        # create configobj instance, set config.ini file, set encoding and set configspec.ini file
-        self.config_obj = configobj.ConfigObj(self.config_ini, list_values=False, write_empty_values=True, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
-
-        # read values from config.ini
-        #self.certs_dir = self.config_obj["folders"]["certs_dir"]
-        #self.logs_dir = self.config_obj["folders"]["logs_dir"]
-        #self.results_dir = self.config_obj["folders"]["results_dir"]
-        #self.webconfig_address = self.config_obj["webconfig"]["address"]
-        #self.webconfig_port = self.config_obj["webconfig"]["port"]
-        #self.config_dir = ""
+        self.config_dir = None
+        self.certs_dir = None
+        self.logs_dir = None
+        self.results_dir = None
+        self.webconfig_address = None
+        self.webconfig_port = None
 
     def config_cli(self):
 
@@ -502,6 +494,10 @@ class Config(object):
                         os.makedirs(args["config"])
                         self.config_dir = os.path.normpath(args["config"])
 
+                        # create full path to config.ini
+                        self.config_ini = os.path.join(self.config_dir, u"config.ini")
+                        self.config_ini = os.path.normpath(self.config_ini)
+
                     except WindowsError:
 
                         # if cannot create then use default
@@ -512,10 +508,22 @@ class Config(object):
 
                     self.config_dir = os.path.normpath(args["config"])
 
-            # if not specified then use default - note config.ini path not specified in config.ini!
+                    # create full path to config.ini
+                    self.config_ini = os.path.join(self.config_dir, u"config.ini")
+                    self.config_ini = os.path.normpath(self.config_ini)
+
             else:
 
-                self.config_dir = None
+                # if not defined then use default
+                self.config_dir = os.path.join(moviegrabber_root_dir, u"configs")
+                self.config_dir = os.path.normpath(self.config_dir)
+
+                # create full path to config.ini
+                self.config_ini = os.path.join(self.config_dir, u"config.ini")
+                self.config_ini = os.path.normpath(self.config_ini)
+
+            # create configobj instance, set config.ini file, set encoding and set configspec.ini file
+            self.config_obj = configobj.ConfigObj(self.config_ini, list_values=False, write_empty_values=True, encoding='UTF-8', default_encoding='UTF-8', configspec=configspec_ini)
 
             # if argument specified then use
             if args["certs"] is not None:
@@ -538,11 +546,6 @@ class Config(object):
 
                     self.certs_dir = os.path.normpath(args["certs"])
 
-            # if not specified in config.ini then set to defaults
-            else:
-
-                self.certs_dir = None
-
             # if argument specified then use
             if args["logs"] is not None:
 
@@ -563,11 +566,6 @@ class Config(object):
                 else:
 
                     self.logs_dir = os.path.normpath(args["logs"])
-
-            # if not specified in config.ini then set to defaults
-            else:
-
-                self.logs_dir = None
 
             # if argument specified then use
             if args["db"] is not None:
@@ -590,30 +588,15 @@ class Config(object):
 
                     self.results_dir = os.path.normpath(args["db"])
 
-            # if not specified in config.ini then set to defaults
-            else:
-
-                self.results_dir = None
-
             # if argument specified then use
             if args["ip"] is not None:
 
                 self.webconfig_address = args["ip"]
 
-            # if not specified in config.ini then set to defaults
-            else:
-
-                self.webconfig_address = None
-
             # if argument specified then use
             if args["port"] is not None:
 
                 self.webconfig_port = args["port"]
-
-            # if not specified in config.ini then set to defaults
-            else:
-
-                self.webconfig_port = None
 
             # check os is not windows and then create pidfile for cherrypy forked process
             if args["pidfile"] is not None and os.name != "nt":
@@ -639,16 +622,64 @@ class Config(object):
 
                 os.remove(results_db)
 
-        # windows compiled binary cannot define arguments
-        else:
+    # read defined values to config.ini, if not defined then set to None
+    def config_read(self):
 
-            # set defaults
-            self.config_dir = None
-            self.certs_dir = None
-            self.logs_dir = None
-            self.results_dir = None
-            self.webconfig_address = None
-            self.webconfig_port = None
+        # if not defined via cli then read existing config.ini entry
+        if self.certs_dir is not None:
+
+            # read values from config.ini, if key doesnt exist then assume blank config.ini
+            try:
+
+                self.certs_dir = self.config_obj["folders"]["certs_dir"]
+
+            except KeyError:
+
+                self.certs_dir = None
+
+        # if not defined via cli then read existing config.ini entry
+        if self.logs_dir is not None:
+
+            try:
+
+                self.logs_dir = self.config_obj["folders"]["logs_dir"]
+
+            except KeyError:
+
+                self.logs_dir = None
+
+        # if not defined via cli then read existing config.ini entry
+        if self.results_dir is not None:
+
+            try:
+
+                self.results_dir = self.config_obj["folders"]["results_dir"]
+
+            except KeyError:
+
+                self.results_dir = None
+
+        # if not defined via cli then read existing config.ini entry
+        if self.webconfig_address is not None:
+
+            try:
+
+                self.webconfig_address = self.config_obj["webconfig"]["address"]
+
+            except KeyError:
+
+                self.webconfig_address = None
+
+        # if not defined via cli then read existing config.ini entry
+        if self.webconfig_port is not None:
+
+            try:
+
+                self.webconfig_port = self.config_obj["webconfig"]["port"]
+
+            except KeyError:
+
+                self.webconfig_port = None
 
     # write out argument defined values to config.ini, if not defined then write defaults
     def config_write(self):
@@ -659,10 +690,18 @@ class Config(object):
             self.config_dir = os.path.join(moviegrabber_root_dir, u"configs")
             self.config_obj["folders"]["config_dir"] = self.config_dir
 
+        else:
+
+            self.config_obj["folders"]["config_dir"] = self.config_dir
+
         # check if defined and valid
         if self.certs_dir is None or not os.path.exists(self.certs_dir):
 
             self.certs_dir = os.path.join(moviegrabber_root_dir, u"certs")
+            self.config_obj["folders"]["certs_dir"] = self.certs_dir
+
+        else:
+
             self.config_obj["folders"]["certs_dir"] = self.certs_dir
 
         # check if defined and valid
@@ -671,10 +710,18 @@ class Config(object):
             self.logs_dir = os.path.join(moviegrabber_root_dir, u"logs")
             self.config_obj["folders"]["logs_dir"] = self.logs_dir
 
+        else:
+
+            self.config_obj["folders"]["logs_dir"] = self.logs_dir
+
         # check if defined and valid
         if self.results_dir is None or not os.path.exists(self.results_dir):
 
             self.results_dir = os.path.join(moviegrabber_root_dir, u"db")
+            self.config_obj["folders"]["results_dir"] = self.results_dir
+
+        else:
+
             self.config_obj["folders"]["results_dir"] = self.results_dir
 
         # check if defined
@@ -683,10 +730,18 @@ class Config(object):
             self.webconfig_address = u"0.0.0.0"
             self.config_obj["webconfig"]["address"] = self.webconfig_address
 
+        else:
+
+            self.config_obj["webconfig"]["address"] = self.webconfig_address
+
         # if not defined via webui and not defined via argument then set to default path
         if self.webconfig_port is None:
 
             self.webconfig_port = u"9191"
+            self.config_obj["webconfig"]["port"] = self.webconfig_port
+
+        else:
+
             self.config_obj["webconfig"]["port"] = self.webconfig_port
 
         # set local version
@@ -734,8 +789,9 @@ class Config(object):
 # create Config class instance
 config_instance = Config()
 
-# run function to write out default values for logs dir, db etc if not defined via arguments
+# run methods to read cli, read config.ini, validate entries and write out
 config_instance.config_cli()
+config_instance.config_read()
 config_instance.config_validate()
 config_instance.config_write()
 
@@ -745,7 +801,7 @@ cherrypy_access_log = os.path.join(config_instance.logs_dir, u"cherrypy_access.l
 cherrypy_error_log = os.path.join(config_instance.logs_dir, u"cherrypy_error.log")
 moviegrabber_log = os.path.join(config_instance.logs_dir, u"moviegrabber.log")
 sqlite_log = os.path.join(config_instance.logs_dir, u"sqlite.log")
-results_db = os.path.join(config_instance.results_dir, u"results.db")
+results_db = os.path.join(config_instance.results_dir, "results.db")
 
 # create connection to sqlite db using sqlalchemy
 engine = create_engine("sqlite:///%s" % results_db, echo=False)
@@ -895,29 +951,6 @@ class ResultsDBQueued(Base):
         self.procdate = procdate
         self.procdatesort = procdatesort
 
-# ---------------------- paths ----------------------------------
-
-# read skin_theme name and pass to paths
-skin_theme = config_instance.config_obj["general"]["skin_theme"]
-
-# define path to cheetah templates
-templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % skin_theme)
-templates_dir = os.path.normpath(templates_dir)
-
-# encode templates directory - required for cherrypy
-templates_dir = uni_to_byte(templates_dir)
-
-# define path to history thumbnail images
-history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
-history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
-
-# define path to queued thumbnail images
-queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
-queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
-
-# define path to static images
-images_dir = os.path.join(moviegrabber_root_dir, u"images")
-images_dir = os.path.normpath(images_dir)
 
 # logging
 ###
@@ -1133,7 +1166,7 @@ def sqlite_check():
                 sql_session.execute("DROP TABLE IF EXISTS old_history;")
                 sql_session.execute("DROP TABLE IF EXISTS old_queued;")
 
-                # set db to latest db version
+                # set db to current+1 db version
                 sql_session.execute("PRAGMA user_version = 2")
 
                 sql_session.execute("VACUUM")
@@ -1173,7 +1206,7 @@ def sqlite_check():
                 sql_session.execute("DROP TABLE IF EXISTS old_history;")
                 sql_session.execute("DROP TABLE IF EXISTS old_queued;")
 
-                # set db to latest db version
+                # set db to current+1 db version
                 sql_session.execute("PRAGMA user_version = 3")
 
                 sql_session.execute("VACUUM")
@@ -7786,6 +7819,28 @@ def launch_default_browser():
 
 # required to prevent seperate process (search index) from trying to load parent process (webui)
 if __name__ == '__main__':
+
+    # read skin_theme name and pass to paths
+    skin_theme = config_instance.config_obj["general"]["skin_theme"]
+
+    # define path to cheetah templates
+    templates_dir = os.path.join(moviegrabber_root_dir, u"interfaces/%s/templates" % skin_theme)
+    templates_dir = os.path.normpath(templates_dir)
+
+    # encode templates directory - required for cherrypy
+    templates_dir = uni_to_byte(templates_dir)
+
+    # define path to history thumbnail images
+    history_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/history")
+    history_thumbnails_dir = os.path.normpath(history_thumbnails_dir)
+
+    # define path to queued thumbnail images
+    queued_thumbnails_dir = os.path.join(moviegrabber_root_dir, u"images/posters/thumbnails/queued")
+    queued_thumbnails_dir = os.path.normpath(queued_thumbnails_dir)
+
+    # define path to static images
+    images_dir = os.path.join(moviegrabber_root_dir, u"images")
+    images_dir = os.path.normpath(images_dir)
 
     # create queue to send poison pill to post processing thread
     post_processing_poison_queue = Queue.Queue()
