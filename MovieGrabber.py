@@ -370,16 +370,15 @@ def metadata_download(url, user_agent):
         # if status code not OK then raise exception
         status_code = response.status_code
 
-        if status_code != 200:
+        if status_code == 200:
 
-            mg_log.warning(u"Status code %s is not 200, download failed" % status_code)
-            raise requests.exceptions.HTTPError
+            status_message = u"Status code %s, download succeeded for %s" % (status_code, url)
 
         else:
 
-            mg_log.info(u"Status code %s is 200, succesful download" % status_code)
+            status_message = u"Status code %s != 200, download failed for %s" % (status_code, url)
 
-        return data
+        return status_code, status_message, data
 
     except socket.timeout:
 
@@ -1363,13 +1362,14 @@ class Download(object):
 
     def download_read_watched(self):
 
-        try:
+        # this reads the nzb/torrent file from the download link
+        status_code, status_message, self.download_read_url = metadata_download(self.download_url_item, user_agent_moviegrabber)
 
-            # this reads the nzb/torrent file from the download link
-            self.download_read_url = metadata_download(self.download_url_item, user_agent_moviegrabber)
-            mg_log.info(u"Read of nzb/torrent successful for url %s" % self.download_url_item)
+        if status_code == 200:
 
-        except Exception:
+            mg_log.info(status_message)
+
+        else:
 
             # set result to downloaded for history/queue status
             self.dlstatus_msg = "Failed"
@@ -1377,13 +1377,11 @@ class Download(object):
             # run function to write status
             self.download_status()
 
-            mg_log.info(u"Read of nzb/torrent failed for url %s" % self.download_url_item)
+            mg_log.warning(status_message)
             return
 
         # run download write method to blackhole
         self.download_write_watched()
-
-        mg_log.info(u"Download nzb/torrent to watched folder finished")
 
     def download_write_watched(self):
 
@@ -1460,7 +1458,7 @@ class Download(object):
                 # run function to write status
                 self.download_status()
 
-                mg_log.info(u"write of nzb/torrent to %s failed" % download_path_filename)
+                mg_log.info(u"Write of nzb/torrent failed, whilst writing to %s" % download_path_filename)
                 return
 
             # set result to downloaded for history/queue status
@@ -1469,7 +1467,7 @@ class Download(object):
             # run function to write status
             self.download_status()
 
-            mg_log.info(u"Write of nzb/torrent file successful for file  %s" % download_path_filename)
+            mg_log.info(u"Write of nzb/torrent successful for file %s" % download_path_filename)
 
         else:
 
@@ -1479,7 +1477,7 @@ class Download(object):
             # run function to write status
             self.download_status()
 
-            mg_log.info(u"Nzb/torrent already exists in watched folder %s" % download_path_filename)
+            mg_log.warning(u"Write of nzb/torrent failed, already exists in watched folder %s" % download_path_filename)
             return 0
 
         # if item was queued then delete from queued table amd shrink db
@@ -2565,23 +2563,32 @@ class SearchIndex(object):
         omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri, self.index_post_movie_year)
         mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name, omdb_find_tt_json_url))
 
-        # pass to urllib2 retry function - decorator
+        # download omdb json (used for iphone/android)
+        status_code, status_message, omdb_find_tt_json_request = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
+
+        if status_code == 200:
+
+            mg_log.info(status_message)
+
+        else:
+
+            mg_log.warning(status_message)
+            return
+
         try:
 
-            # download omdb json (used for iphone/android)
-            omdb_find_tt_json_request = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
             omdb_find_tt_json = json.loads(omdb_find_tt_json_request)
 
-        except Exception:
+        except (ValueError, TypeError, KeyError):
 
-            mg_log.warning(u"%s Index - Failed to download OMDb json page %s" % (site_name, omdb_find_tt_json_url))
-            return None
+            mg_log.warning(u"%s Index - Site feed parse failed for OMDb" % site_name)
+            return
 
         # if resulting omdb json page is blank then return
         if omdb_find_tt_json == {}:
 
             mg_log.info(u"%s Index - No match for movie title %s on OMDb json" % (site_name, self.index_post_movie_title))
-            return None
+            return
 
         # find imdb id
         try:
@@ -2602,17 +2609,26 @@ class SearchIndex(object):
         tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=1d93addd6def495cec493845cd3b2788" % (self.index_post_movie_title_uri, self.index_post_movie_year)
         mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name, tmdb_find_id_json_url))
 
-        # pass to urllib2 retry function - decorator
+        # download tmdb json (used for iphone/android)
+        status_code, status_message, tmdb_find_id_json_request = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
+
+        if status_code == 200:
+
+            mg_log.info(status_message)
+
+        else:
+
+            mg_log.warning(status_message)
+            return
+
         try:
 
-            # download tmdb json (used for iphone/android)
-            tmdb_find_id_json_request = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
             tmdb_find_id_json = json.loads(tmdb_find_id_json_request)
 
-        except Exception:
+        except (ValueError, TypeError, KeyError):
 
-            mg_log.warning(u"%s Index - Failed to download TMDb json page %s" % (site_name, tmdb_find_id_json_url))
-            return None
+            mg_log.warning(u"%s Index - Site feed parse failed for TMDb" % site_name)
+            return
 
         # if resulting tmdb json page is blank then continue
         if tmdb_find_id_json == {}:
@@ -2635,23 +2651,32 @@ class SearchIndex(object):
         tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=7b5e30851a9285340e78c201c4e4ab99" % tmdb_movie_id
         mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name, tmdb_find_tt_json_url))
 
-        # pass to urllib2 retry function - decorator
+        # download tmdb json (used for iphone/android)
+        status_code, status_message, tmdb_find_tt_json_request = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
+
+        if status_code == 200:
+
+            mg_log.info(status_message)
+
+        else:
+
+            mg_log.warning(status_message)
+            return
+
         try:
 
-            # download tmdb json (used for iphone/android)
-            tmdb_find_tt_json_request = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
             tmdb_find_tt_json = json.loads(tmdb_find_tt_json_request)
 
-        except Exception:
+        except (ValueError, TypeError, KeyError):
 
-            mg_log.warning(u"%s Index - Failed to download TMDb json page %s" % (site_name, tmdb_find_tt_json_url))
-            return None
+            mg_log.warning(u"%s Index - Site feed parse failed for TMDb" % site_name)
+            return
 
         # if resulting tmdb json page is blank then continue
         if tmdb_find_tt_json == {}:
 
             mg_log.info(u"%s Index - No IMDb ID for movie title %s on TMDb json" % (site_name, self.index_post_movie_title))
-            return None
+            return
 
         # find imdb id
         try:
@@ -2662,7 +2687,7 @@ class SearchIndex(object):
         except KeyError:
 
             mg_log.info(u"%s Index - Cannot find IMDb ID for movie" % site_name)
-            return None
+            return
 
         return imdb_tt_number
 
@@ -2945,19 +2970,18 @@ class SearchIndex(object):
             # if poster image doesnt exist then proceed
             if not uni_to_byte(os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % imdb_movie_title_ascii))):
 
-                try:
+                # download poster image from imdb
+                status_code, status_message, poster_image = metadata_download(self.imdb_movie_poster, user_agent_iphone)
 
-                    # download poster image from imdb
-                    poster_image = metadata_download(self.imdb_movie_poster, user_agent_iphone)
+                if status_code == 200:
+
                     self.poster_image_file = ""
+                    mg_log.info(status_message)
 
-                    mg_log.info(u"Poster Download - Downloaded succeeded, url %s" % self.imdb_movie_poster)
-
-                except Exception:
+                else:
 
                     self.poster_image_file = u"default.jpg"
-
-                    mg_log.info(u"Poster Download - Downloaded failed, url %s" % self.imdb_movie_poster)
+                    mg_log.warning(status_message)
                     return
 
                 self.poster_image_file = u"%s.jpg" % imdb_movie_title_ascii
@@ -3632,14 +3656,15 @@ class SearchIndex(object):
 
     def feed_details(self, site_name):
 
-        # pass to urllib2 retry function - decorator
-        try:
+        status_code, status_message, site_feed = metadata_download(self.site_feed, self.user_agent)
 
-            site_feed = metadata_download(self.site_feed, self.user_agent)
+        if status_code == 200:
 
-        except Exception:
+            mg_log.info(status_message)
 
-            mg_log.warning(u"%s Index - Site feed download failed" % site_name)
+        else:
+
+            mg_log.warning(status_message)
             return
 
         if site_name == u"Newznab":
@@ -4717,17 +4742,25 @@ class SearchIndex(object):
         self.imdb_link = u"http://www.imdb.com/title/%s" % self.imdb_tt_number
         mg_log.info(u"Post IMDb link %s" % self.imdb_link)
 
-        # pass to urllib2 retry function - decorator
+        # download imdb json (used for iphone/android)
+        status_code, status_message, imdb_json_page_request = metadata_download(imdb_json, user_agent_iphone)
+
+        if status_code == 200:
+
+            mg_log.info(status_message)
+
+        else:
+
+            mg_log.warning(status_message)
+            return
+
         try:
 
-            # download imdb json (used for iphone/android)
-            imdb_json_page_request = metadata_download(imdb_json, user_agent_iphone)
             self.imdb_json_page = json.loads(imdb_json_page_request)
-            mg_log.info(u"IMDb JSON Up %s" % imdb_json)
 
-        except Exception:
+        except (ValueError, TypeError, KeyError):
 
-            mg_log.warning(u"IMDb JSON down %s" % imdb_json)
+            mg_log.warning(u"IMDb - Site feed parse failed for IMDb")
             return
 
         # run function to create imdb details
