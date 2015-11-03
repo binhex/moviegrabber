@@ -2,6 +2,12 @@
 latest_mg_version = "2.2.1.0"
 latest_db_version = "3"
 
+# TODO put in support for deluge magnet links
+# TODO test and verify all cli options working
+# TODO put in better validation of config.ibi to stop crash on bad entries through webui
+# TODO put all globals in functions and return values, use *args for input if required
+# TODO detect 404 and other errors when downloading torrents/nzbs
+
 import os
 import sys
 
@@ -341,7 +347,7 @@ def metadata_download(url, user_agent):
             'User-Agent': user_agent,
         }
 
-        # set connection timeout value (max time to wait for connection
+        # set connection timeout value (max time to wait for connection)
         connect_timeout = 10.0
 
         # set read timeout value (max time to wait between each byte)
@@ -360,6 +366,18 @@ def metadata_download(url, user_agent):
         # request url get with timeouts and custom headers
         response = session.get(url, timeout=(connect_timeout, read_timeout), headers=headers)
         data = response.content
+
+        # if status code not OK then raise exception
+        status_code = response.status_code
+
+        if status_code != 200:
+
+            mg_log.warning(u"Status code %s is not 200, download failed" % status_code)
+            raise requests.exceptions.HTTPError
+
+        else:
+
+            mg_log.info(u"Status code %s is 200, succesful download" % status_code)
 
         return data
 
@@ -443,6 +461,7 @@ class Config(object):
 
     def __init__(self):
 
+        self.config_ini = None
         self.config_dir = None
         self.certs_dir = None
         self.logs_dir = None
@@ -1577,11 +1596,60 @@ class SearchIndex(object):
     # create instance variables to pass between search index methods
     def __init__(self, download_method, index_site_item, user_agent):
 
-        # define attributes for init
+        # define instance variables from arguments
         self.site_feed = None
         self.download_method = download_method
         self.index_site_item = index_site_item
         self.user_agent = user_agent
+
+        # define instance variables for methods
+        self.filter_check_status = 0
+        self.filter_imdb_fav_title_result = 0
+        self.filter_imdb_fav_char_result = 0
+        self.filter_imdb_fav_actor_result = 0
+        self.filter_imdb_fav_writer_result = 0
+        self.filter_imdb_fav_dir_result = 0
+        self.filter_imdb_good_date_result = 0
+        self.filter_imdb_good_genre_result = 0
+        self.filter_imdb_good_votes_result = 0
+        self.filter_imdb_good_ratings_result = 0
+        self.filter_index_preferred_group_result = 0
+        self.filter_index_special_cut_result = 0
+        self.filter_imdb_bad_title_result = 0
+        self.filter_os_completed_result = 0
+        self.filter_os_archive_result = 0
+        self.filter_os_movies_replace_result = 0
+        self.filter_os_movies_downloaded_result = 0
+        self.filter_os_queued_result = 0
+        self.filter_os_watched_result = 0
+        self.filter_index_bad_report_result = 0
+
+        self.imdb_movie_cert = None
+        self.imdb_movie_genres = None
+        self.imdb_movie_genres_str = ""
+        self.imdb_movie_description = None
+        self.imdb_movie_chars_str = ""
+        self.imdb_movie_chars = None
+        self.imdb_movie_actors_str = ""
+        self.imdb_movie_actors = None
+        self.imdb_movie_writers_str = ""
+        self.imdb_movie_writers = None
+        self.imdb_movie_directors_str = ""
+        self.imdb_movie_directors = None
+        self.imdb_movie_votes_str = ""
+        self.imdb_movie_votes_int = None
+        self.imdb_movie_rating_str = ""
+        self.imdb_movie_rating_dec = None
+        self.imdb_movie_runtime_str = ""
+        self.imdb_movie_runtime_int = None
+        self.imdb_movie_year_str = ""
+        self.imdb_movie_year_int = None
+        self.imdb_movie_title = None
+        self.imdb_movie_title_year = None
+        self.imdb_movie_title_strip = None
+        self.imdb_movie_poster = None
+        self.site_feed = None
+        self.movies_downloaded_filename_list = []
 
         # read folder paths from config.ini
         self.config_watch_dir = config_instance.config_obj["folders"]["%s_watch_dir" % download_method]
