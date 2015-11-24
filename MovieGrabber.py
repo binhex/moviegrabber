@@ -6,7 +6,9 @@ latest_db_version = "3"
 # TODO test and verify all cli options working
 # TODO put in better validation of config.ibi to stop crash on bad entries through webui
 # TODO put all globals in functions and return values, use *args for input if required
-# TODO detect 404 and other errors when downloading torrents/nzbs
+# TODO at top of download class echo out movie name and url to download and details
+# TODO split large search index class into multiple classes
+# TODO bug with pref group, picks up hyphen in title, e.g. ant-man thinks groupname is man
 
 import os
 import sys
@@ -367,7 +369,7 @@ def metadata_download(url, user_agent):
         response = session.get(url, timeout=(connect_timeout, read_timeout), headers=headers)
         data = response.content
 
-        # if status code not OK then raise exception
+        # if status code not 200 (OK) then raise exception
         status_code = response.status_code
 
         if status_code == 200:
@@ -1495,7 +1497,7 @@ class Download(object):
 
             mg_log.info(u"Deleted queued item from database")
 
-        mg_log.info(u"Write of nzb/torrent successful for movie %s" % self.sqlite_row.dlname)
+        mg_log.info(u"Download successful for movie %s" % self.sqlite_row.dlname)
 
     def download_status(self):
 
@@ -2076,45 +2078,51 @@ class SearchIndex(object):
                 if movies_downloaded_extension in movies_valid_extensions:
 
                     # generate group name from end (first) or start (second) of filename using hyphen as marker
-                    movies_downloaded_group_search = re.compile(ur"(?<=-)[^\s\-\.]+$|^[^\s\-\.]+(?=-)").search(movies_downloaded_filename)
+                    movies_downloaded_group_search = re.compile(ur"(?<=-)[^\s\-\.]+$").search(movies_downloaded_filename)
 
-                    if movies_downloaded_group_search is not None:
+                    if movies_downloaded_group_search is None:
 
-                        movies_downloaded_group = movies_downloaded_group_search.group()
+                        movies_downloaded_group_search = re.compile(ur"^[^\s\-\.]+(?=-)").search(movies_downloaded_filename)
 
-                        # convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-                        config_preferred_group_list = [x.strip() for x in self.config_preferred_group.split(',')]
+                        if movies_downloaded_group_search is None:
+
+                            continue
+
+                    movies_downloaded_group = movies_downloaded_group_search.group()
+
+                    # convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+                    config_preferred_group_list = [x.strip() for x in self.config_preferred_group.split(',')]
+
+                    # use regex to escape characters
+                    regex = re.escape(movies_downloaded_group)
+
+                    # look for case insensitive string in list using list comprehension
+                    matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
+
+                    # if group name for downloaded movie filename is already in preferrred list then return
+                    if matching_items:
+
+                        mg_log.info(u"Filter Index - Filename post group %s is in config preferred group list, skip" % movies_downloaded_group)
+                        return 0
+
+                    else:
 
                         # use regex to escape characters
-                        regex = re.escape(movies_downloaded_group)
+                        regex = re.escape(self.index_post_group)
 
                         # look for case insensitive string in list using list comprehension
                         matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
 
-                        # if group name for downloaded movie filename is already in preferrred list then return
                         if matching_items:
 
-                            mg_log.info(u"Filter Index - Filename post group %s is in config preferred group list, skip" % movies_downloaded_group)
-                            return 0
+                            self.download_details_dict["filter_index_preferred_group_result"] = [1, "Preferred Group", "Index - Post group is in Preferred Group list"]
+                            mg_log.info(u"Filter Index - Index post group %s is in config preferred group list, force" % self.index_post_group)
+                            return 1
 
                         else:
 
-                            # use regex to escape characters
-                            regex = re.escape(self.index_post_group)
-
-                            # look for case insensitive string in list using list comprehension
-                            matching_items = [item for item in config_preferred_group_list if re.match(regex.lower(), item.lower())]
-
-                            if matching_items:
-
-                                self.download_details_dict["filter_index_preferred_group_result"] = [1, "Preferred Group", "Index - Post group is in Preferred Group list"]
-                                mg_log.info(u"Filter Index - Index post group %s is in config preferred group list, force" % self.index_post_group)
-                                return 1
-
-                            else:
-
-                                mg_log.info(u"Filter Index - Index post group %s is NOT in config preferred group list, skip" % self.index_post_group)
-                                return 0
+                            mg_log.info(u"Filter Index - Index post group %s is NOT in config preferred group list, skip" % self.index_post_group)
+                            return 0
 
         return 0
 
