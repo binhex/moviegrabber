@@ -15,7 +15,7 @@ CREATE INDEX
 <form action="add_config_torrent" method="post" id="add_config_torrent_form">
 </form>
 
-<fieldset class="EntryFieldSet">				
+<fieldset class="EntryFieldSet">
 	<legend>Index Settings</legend>
 	
 	<a title="Allows you to add torrent index sites you wish to use - note some indexers require payment as well as registration or will have API restrictions for free accounts."><strong>(?)</strong></a><strong>Index Site:</strong><br>
@@ -54,7 +54,7 @@ EDIT/DELETE INDEX
 	<fieldset class="EntryFieldSet">
 		<legend>$index_site_item settings</legend>
 
-		<!--#set $edit_config_torrent = "edit_config_torrent_%s" % (str($index_site_item))#-->		
+		<!--#set $edit_config_torrent = "edit_config_torrent_%s" % (str($index_site_item))#-->
 		<!--#set $delete_config_torrent = "delete_config_torrent_%s" % (str($index_site_item))#-->
 
 		<form action="edit_config_torrent" method="post" id="$edit_config_torrent">
@@ -63,17 +63,17 @@ EDIT/DELETE INDEX
 		<form action="delete_config_torrent" method="post" id="$delete_config_torrent">
 		</form>
 
-		<a title="Allows you to enable/disable selected index site."><strong>(?)</strong></a><strong>Enabled:</strong>	
+		<a title="Allows you to enable/disable selected index site."><strong>(?)</strong></a><strong>Enabled:</strong>
 		
-		<!--#set $torrent_enabled = $config_obj["torrent"]["%s_enabled" % ($index_site_item)]#-->		
+		<!--#set $torrent_enabled = $config_obj["torrent"]["%s_enabled" % ($index_site_item)]#-->
 		
 		<select name="torrent_enabled2" form="$edit_config_torrent">
 		<!--#if $torrent_enabled == "yes"#-->
 			<option value="yes" selected>yes</option>
-			<option value="no">no</option>		
-		<!--#else#-->		
-			<option value="yes">yes</option>					
-			<option value="no" selected>no</option>				
+			<option value="no">no</option>
+		<!--#else#-->
+			<option value="yes">yes</option>
+			<option value="no" selected>no</option>
 		<!--#end if#-->
 		</select>
 		
@@ -103,35 +103,39 @@ EDIT/DELETE INDEX
 		
 		<!--#set $torrent_cat = $config_obj["torrent"]["%s_cat" % ($index_site_item)]#-->
 		
-		<select name="torrent_cat2" form="$edit_config_torrent">		
+		<select name="torrent_cat2" form="$edit_config_torrent">
 		
 			<!--#if "kickass" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "other", "divx/xvid", "hd/x264", "foreign"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 			
 			<!--#if "piratebay" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "dvdr", "hd/x264"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "bitsnoop" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "extratorrent" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["all movies"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "demonoid" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 			
 			<!--#if "monova" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "dvdr", "hd", "other"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
+
+			<!--#if "torrenthound" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["all movies"]#-->
+			<!--#end if#-->
 
 			<!--#if "limetorrents" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["all movies"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 			
 			<!--#for $torrent_cat_item in $torrent_cat_list#-->
 				<!--#if $torrent_cat_item.lower() == $torrent_cat.lower()#-->
@@ -156,45 +160,49 @@ EDIT/DELETE INDEX
 		
 			<!--#if "kickass" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 			
 			<!--#if "piratebay" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "bitsnoop" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "extratorrent" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "demonoid" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
 
 			<!--#if "monova" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+			<!--#end if#-->
+
+			<!--#if "torrenthound" in $index_site_item#-->
+<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->
 
 			<!--#if "limetorrents" in $index_site_item#-->
-				<!--#set $torrent_lang_list = ["any"]#-->
-			<!--#end if#-->				
+<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->
 			
 			<!--#for $torrent_lang_item in $torrent_lang_list#-->
-				<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
-					<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
-				<!--#else#-->
-					<option value="$torrent_lang_item">$torrent_lang_item</option>
-				<!--#end if#-->
+<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
+	<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
+<!--#else#-->
+	<option value="$torrent_lang_item">$torrent_lang_item</option>
+<!--#end if#-->
 			<!--#end for#-->
 			
 		</select>
 		
 		<br>
 		<br>
-				
+
 		<strong>Search Criteria:</strong><br>
 		<a title="Allows you to specify what you want to search for within the chosen category, ALL search terms entered in this field MUST be present in the post title to produce a match e.g. 720p,bluray - match only if 720p and bluray in the post title."><strong>(?)</strong></a>MUST exist in the post title.<br/>
 
@@ -246,6 +254,6 @@ EDIT/DELETE INDEX
 		
 	</fieldset>
 		
-<!--#end for#-->		
+<!--#end for#-->
 
 #include "%s/inc_bottom.tmpl" % ($templates_dir)

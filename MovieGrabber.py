@@ -9,6 +9,7 @@ latest_db_version = "3"
 # TODO at top of download class echo out movie name and url to download and details
 # TODO split large search index class into multiple classes
 # TODO bug with pref group, picks up hyphen in title, e.g. ant-man thinks groupname is man
+# TODO add in api.torrentsapi.com to list of torrent index sites
 
 import os
 import sys
@@ -353,21 +354,21 @@ def metadata_download(url, user_agent):
         connect_timeout = 10.0
 
         # set read timeout value (max time to wait between each byte)
-        read_timeout = 1.0
+        read_timeout = 5.0
 
         # set max number of retries
-        max_retries = 3
+        max_retry = 3
 
         # use a session instance to customize how "requests" handles making http requests
         session = requests.Session()
 
         # mount a custom adapter that retries failed connections for http and https requests
-        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=max_retries))
-        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=max_retries))
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=max_retry))
+        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=max_retry))
 
         # request url get with timeouts and custom headers
-        response = session.get(url, timeout=(connect_timeout, read_timeout), headers=headers)
-        data = response.content
+        response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
+        content = response.content
 
         # if status code not 200 (OK) then raise exception
         status_code = response.status_code
@@ -375,12 +376,11 @@ def metadata_download(url, user_agent):
         if status_code == 200:
 
             status_message = u"Status code %s, download succeeded for %s" % (status_code, url)
-
+            return 0, content
         else:
 
             status_message = u"Status code %s != 200, download failed for %s" % (status_code, url)
-
-        return status_code, status_message, data
+            return 1
 
     except socket.timeout:
 
@@ -1365,13 +1365,10 @@ class Download(object):
     def download_read_watched(self):
 
         # this reads the nzb/torrent file from the download link
-        status_code, status_message, self.download_read_url = metadata_download(self.download_url_item, user_agent_moviegrabber)
+        response = metadata_download(self.download_url_item, user_agent_moviegrabber)
+        status_code = response[0]
 
-        if status_code == 200:
-
-            mg_log.info(status_message)
-
-        else:
+        if status_code == 1:
 
             # set result to downloaded for history/queue status
             self.dlstatus_msg = "Failed"
@@ -1379,13 +1376,15 @@ class Download(object):
             # run function to write status
             self.download_status()
 
-            mg_log.warning(status_message)
+            mg_log.warning(u"Failed to download metadata from Index Site")
             return
 
-        # run download write method to blackhole
-        self.download_write_watched()
+        content = response[1]
 
-    def download_write_watched(self):
+        # run download write method to blackhole
+        self.download_write_watched(content)
+
+    def download_write_watched(self,content):
 
         # check if download type is torrent or nzb
         if self.download_type_item == "nzb":
@@ -1449,7 +1448,7 @@ class Download(object):
 
                 # write nzb/torrent to file in watched folder
                 download_write = open(download_path_filename, "wb")
-                download_write.write(self.download_read_url)
+                download_write.write(content)
                 download_write.close()
 
             except Exception:
@@ -2572,20 +2571,19 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name, omdb_find_tt_json_url))
 
         # download omdb json (used for iphone/android)
-        status_code, status_message, omdb_find_tt_json_request = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
+        response = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
+        status_code = response[0]
 
-        if status_code == 200:
+        if status_code == 1:
 
-            mg_log.info(status_message)
-
-        else:
-
-            mg_log.warning(status_message)
+            mg_log.warning(u"%s Index - Cannot download metadata from OMDb" % site_name)
             return
+
+        content = response[1]
 
         try:
 
-            omdb_find_tt_json = json.loads(omdb_find_tt_json_request)
+            omdb_find_tt_json = json.loads(content)
 
         except (ValueError, TypeError, KeyError):
 
@@ -2618,20 +2616,19 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name, tmdb_find_id_json_url))
 
         # download tmdb json (used for iphone/android)
-        status_code, status_message, tmdb_find_id_json_request = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
+        response = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
+        status_code = response[0]
 
-        if status_code == 200:
+        if status_code == 1:
 
-            mg_log.info(status_message)
-
-        else:
-
-            mg_log.warning(status_message)
+            mg_log.warning(u"%s Index - Site feed download failed for TMDb" % site_name)
             return
+
+        content = response[1]
 
         try:
 
-            tmdb_find_id_json = json.loads(tmdb_find_id_json_request)
+            tmdb_find_id_json = json.loads(content)
 
         except (ValueError, TypeError, KeyError):
 
@@ -2660,20 +2657,19 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name, tmdb_find_tt_json_url))
 
         # download tmdb json (used for iphone/android)
-        status_code, status_message, tmdb_find_tt_json_request = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
+        response = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
+        status_code = response[0]
 
-        if status_code == 200:
+        if status_code == 1:
 
-            mg_log.info(status_message)
-
-        else:
-
-            mg_log.warning(status_message)
+            mg_log.warning(u"%s Index - Site feed download failed for TMDb" % site_name)
             return
+
+        content = response[1]
 
         try:
 
-            tmdb_find_tt_json = json.loads(tmdb_find_tt_json_request)
+            tmdb_find_tt_json = json.loads(content)
 
         except (ValueError, TypeError, KeyError):
 
@@ -2979,18 +2975,20 @@ class SearchIndex(object):
             if not uni_to_byte(os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % imdb_movie_title_ascii))):
 
                 # download poster image from imdb
-                status_code, status_message, poster_image = metadata_download(self.imdb_movie_poster, user_agent_iphone)
+                response = metadata_download(self.imdb_movie_poster, user_agent_iphone)
+                status_code = response[0]
 
-                if status_code == 200:
+                if status_code == 0:
 
                     self.poster_image_file = ""
-                    mg_log.info(status_message)
 
                 else:
 
                     self.poster_image_file = u"default.jpg"
-                    mg_log.warning(status_message)
+                    mg_log.warning(u"Poster download failed from IMDb")
                     return
+
+                content = response[1]
 
                 self.poster_image_file = u"%s.jpg" % imdb_movie_title_ascii
 
@@ -2999,7 +2997,7 @@ class SearchIndex(object):
 
                 # save poster image to history folder
                 poster_image_write = open(self.poster_image_path, "wb")
-                poster_image_write.write(poster_image)
+                poster_image_write.write(content)
                 poster_image_write.close()
 
             else:
@@ -3608,6 +3606,55 @@ class SearchIndex(object):
         # generate feed details
         self.feed_details(site_name)
 
+    def torrenthound_index(self):
+
+        site_name = u"TorrentHound"
+
+        mg_log.info(u"%s Index - Search index started" % site_name)
+
+        # remove slash at end of hostname if present
+        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+        # add http:// to hostname if hostname not prefixed with either http or https
+        if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
+
+            self.config_hostname = u"http://%s" % self.config_hostname
+
+        # use server side search term for rss feed
+        if self.config_search_and != "":
+
+            search_term = self.config_search_and
+
+        else:
+
+            search_term = ""
+
+        if search_term != "":
+
+            # convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
+            search_term = [x.strip() for x in search_term.split(',')]
+
+            # convert list back to string
+            search_term = ','.join(search_term)
+
+            # replace comma with spaces to seperate search terms
+            search_term = re.sub(ur",", " ", search_term)
+
+            # construct site rss feed
+            site_feed = u"%s:%s/rss.php?s=%s" % (self.config_hostname, self.config_portnumber, search_term)
+
+        else:
+
+            mg_log.warning(u"%s Index - Search Index site requires search terms, none given" % site_name)
+            return
+
+        # convert to uri for feed
+        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/?=')
+        mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
+
+        # generate feed details
+        self.feed_details(site_name)
+
     def limetorrents_index(self):
 
         site_name = u"LimeTorrents"
@@ -3664,23 +3711,22 @@ class SearchIndex(object):
 
     def feed_details(self, site_name):
 
-        status_code, status_message, site_feed = metadata_download(self.site_feed, self.user_agent)
+        response = metadata_download(self.site_feed, self.user_agent)
+        status_code = response[0]
 
-        if status_code == 200:
+        if status_code == 1:
 
-            mg_log.info(status_message)
-
-        else:
-
-            mg_log.warning(status_message)
+            mg_log.warning(u"%s Index - Site feed download failed" % site_name)
             return
+
+        content = response[1]
 
         if site_name == u"Newznab":
 
             try:
 
                 # parse json formatted feed
-                site_feed_parse = json.loads(site_feed)
+                site_feed_parse = json.loads(content)
                 site_feed_parse = site_feed_parse["channel"]["item"]
 
             except (ValueError, TypeError, KeyError):
@@ -3693,7 +3739,7 @@ class SearchIndex(object):
             try:
 
                 # parse xml formatted feed
-                site_feed_parse = xmltodict.parse(site_feed)
+                site_feed_parse = xmltodict.parse(content)
                 site_feed_parse = site_feed_parse["rss"]["channel"]["item"]
 
             except (xmltodict.expat.ExpatError, KeyError, TypeError):
@@ -3781,6 +3827,16 @@ class SearchIndex(object):
                     post_title = None
 
             if site_name == u"Monova":
+
+                try:
+
+                    post_title = node["title"]
+
+                except (IndexError, AttributeError):
+
+                    post_title = None
+
+            if site_name == u"TorrentHound":
 
                 try:
 
@@ -3963,6 +4019,19 @@ class SearchIndex(object):
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
 
+            if site_name == u"TorrentHound":
+
+                try:
+
+                    hash_value = node["info_hash"]
+                    self.index_download_dict["torrent"] = u"%s/torrent/%s" % (self.config_hostname, hash_value)
+                    mg_log.info(u"%s Index - Post download link %s" % (site_name, u"%s/torrent/%s" % (self.config_hostname, hash_value)))
+
+                except (IndexError, AttributeError):
+
+                    mg_log.info(u"%s Index - Post download link not found" % site_name)
+                    continue
+
             if site_name == u"LimeTorrents":
 
                 try:
@@ -4085,14 +4154,6 @@ class SearchIndex(object):
 
                     post_peers = None
 
-                if post_seeders == u"---":
-
-                    post_seeders = u"0"
-
-                if post_peers == u"---":
-
-                    post_peers = u"0"
-
             if site_name == u"Monova":
 
                 try:
@@ -4124,6 +4185,24 @@ class SearchIndex(object):
                     else:
 
                         post_peers = None
+
+                except (IndexError, AttributeError):
+
+                    post_peers = None
+
+            if site_name == u"TorrentHound":
+
+                try:
+
+                    post_seeders = node["seeders"]
+
+                except (IndexError, AttributeError):
+
+                    post_seeders = None
+
+                try:
+
+                    post_peers = node["leechers"]
 
                 except (IndexError, AttributeError):
 
@@ -4164,6 +4243,14 @@ class SearchIndex(object):
                 except (IndexError, AttributeError):
 
                     post_peers = None
+
+            if post_seeders == u"---":
+
+                post_seeders = u"0"
+
+            if post_peers == u"---":
+
+                post_peers = u"0"
 
             if post_seeders is not None:
 
@@ -4391,6 +4478,16 @@ class SearchIndex(object):
 
                     post_size = None
 
+            if site_name == u"TorrentHound":
+
+                try:
+
+                    post_size = node["size"]
+
+                except (IndexError, AttributeError):
+
+                    post_size = None
+
             if site_name == u"LimeTorrents":
 
                 try:
@@ -4509,6 +4606,16 @@ class SearchIndex(object):
                     post_date = None
 
             if site_name == u"Monova":
+
+                try:
+
+                    post_date = node["pubDate"]
+
+                except (IndexError, AttributeError):
+
+                    post_date = None
+
+            if site_name == u"TorrentHound":
 
                 try:
 
@@ -4653,6 +4760,16 @@ class SearchIndex(object):
 
                     post_details = None
 
+            if site_name == u"TorrentHound":
+
+                try:
+
+                    post_details = node["link"]
+
+                except (IndexError, AttributeError):
+
+                    post_details = None
+
             if site_name == u"LimeTorrents":
 
                 try:
@@ -4727,6 +4844,16 @@ class SearchIndex(object):
 
                     post_id = None
 
+            if site_name == u"TorrentHound":
+
+                try:
+
+                    post_id = node["info_hash"]
+
+                except (IndexError, AttributeError):
+
+                    post_id = None
+
             if post_id is not None:
 
                 self.index_post_id = post_id
@@ -4751,20 +4878,19 @@ class SearchIndex(object):
         mg_log.info(u"Post IMDb link %s" % self.imdb_link)
 
         # download imdb json (used for iphone/android)
-        status_code, status_message, imdb_json_page_request = metadata_download(imdb_json, user_agent_iphone)
+        response = metadata_download(imdb_json, user_agent_iphone)
+        status_code = response[0]
 
-        if status_code == 200:
+        if status_code == 1:
 
-            mg_log.info(status_message)
-
-        else:
-
-            mg_log.warning(status_message)
+            mg_log.warning(u"IMDb - Site feed download failed for IMDb")
             return
+
+        content = response[1]
 
         try:
 
-            self.imdb_json_page = json.loads(imdb_json_page_request)
+            self.imdb_json_page = json.loads(content)
 
         except (ValueError, TypeError, KeyError):
 
@@ -6269,7 +6395,7 @@ class ConfigTorrent(object):
             template.index_site_list = []
 
         # define list of supported torrent index sites
-        template.add_index_site_list = ["kickasstorrents", "piratebay", "bitsnoop", "extratorrent", "demonoid", "monova", "limetorrents"]
+        template.add_index_site_list = ["kickasstorrents", "piratebay", "bitsnoop", "extratorrent", "demonoid", "monova", "torrenthound", "limetorrents"]
 
         header()
 
@@ -6352,6 +6478,12 @@ class ConfigTorrent(object):
 
             config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "https://www.monova.org"
             config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "443"
+
+        # set hostname, path, and port number for known index sites
+        if add_torrent_site == "torrenthound":
+
+            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "http://www.torrenthound.com"
+            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "80"
 
         # set hostname, path, and port number for known index sites
         if add_torrent_site == "limetorrents":
@@ -7565,6 +7697,17 @@ class SearchIndexThread(object):
                         self.search_index_function = "monova_index"
                         self.download_method = "torrent"
                         self.user_agent = user_agent_moviegrabber
+
+                        if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                            self.run()
+
+                    if "torrenthound" in torrent_index_site_item:
+
+                        self.index_site_item = torrent_index_site_item
+                        self.search_index_function = "torrenthound_index"
+                        self.download_method = "torrent"
+                        self.user_agent = user_agent_chrome
 
                         if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
