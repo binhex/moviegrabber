@@ -84,6 +84,13 @@ else:
         # append full path to sys path
         sys.path.insert(1, sitepackages_modules_full_path)
 
+        # create full path to backoff module
+        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/backoff")
+        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
+
+        # append full path to sys path
+        sys.path.insert(1, sitepackages_modules_full_path)
+
         # create full path to argparse module
         sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
         sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
@@ -147,11 +154,11 @@ import base64
 # -------------------- 3rd party -----------------------------
 
 import requests
+import backoff
 import configobj
 import validate
 import xmltodict
 import cherrypy
-from requests import adapters
 from cherrypy.lib import auth_basic
 from dateutil.parser import parse
 from Cheetah.Template import Template
@@ -340,77 +347,37 @@ def uni_to_byte(name):
     return name
 
 
+@backoff.on_exception(backoff.expo, (requests.exceptions.RequestException, socket.timeout), max_tries=5)
 def metadata_download(url, user_agent):
 
-    try:
+    # add headers for gzip support and custom user agent string
+    headers = {
+        'Accept-encoding': 'gzip',
+        'User-Agent': user_agent,
+    }
 
-        # add headers for gzip support and custom user agent string
-        headers = {
-            'Accept-encoding': 'gzip',
-            'User-Agent': user_agent,
-        }
+    # set connection timeout value (max time to wait for connection)
+    connect_timeout = 10.0
 
-        # set connection timeout value (max time to wait for connection)
-        connect_timeout = 10.0
+    # set read timeout value (max time to wait between each byte)
+    read_timeout = 5.0
 
-        # set read timeout value (max time to wait between each byte)
-        read_timeout = 5.0
+    # use a session instance to customize how "requests" handles making http requests
+    session = requests.Session()
 
-        # set max number of retries
-        max_retry = 3
+    # request url get with timeouts and custom headers
+    response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
 
-        # use a session instance to customize how "requests" handles making http requests
-        session = requests.Session()
+    # get status code and content downloaded
+    status_code = response.status_code
+    content = None
 
-        # mount a custom adapter that retries failed connections for http and https requests
-        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=max_retry))
-        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=max_retry))
+    if status_code == 200:
 
-        # request url get with timeouts and custom headers
-        response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
+        mg_log.info(u"Status code %s, download succeeded for %s" % (status_code, url))
         content = response.content
 
-        # if status code not 200 (OK) then raise exception
-        status_code = response.status_code
-
-        if status_code == 200:
-
-            status_message = u"Status code %s, download succeeded for %s" % (status_code, url)
-            return 0, content
-        else:
-
-            status_message = u"Status code %s != 200, download failed for %s" % (status_code, url)
-            return 1
-
-    except socket.timeout:
-
-        # timeout occured, retry download
-        mg_log.warning(u"Index site feed/api download timed out")
-
-    except requests.exceptions.Timeout:
-
-        # timeout occured, retry download
-        mg_log.warning(u"Index site feed/api download timed out")
-
-    except requests.exceptions.ConnectionError:
-
-        # a connection error occurred
-        mg_log.warning(u"Index site feed/api download connection error")
-
-    except requests.exceptions.HTTPError:
-
-        # an http error occurred
-        mg_log.warning(u"Index site feed/api download http error")
-
-    except requests.exceptions.TooManyRedirects:
-
-        # too many retries, probably a bad url
-        mg_log.warning(u"Index site feed/api download too many retries")
-
-    except requests.exceptions.RequestException as e:
-
-        # catch any other exceptions
-        mg_log.warning(u"Index site feed/api download exception %s" % e)
+    return status_code, content
 
 
 def decode_html_entities(text_input):
@@ -820,6 +787,7 @@ cherrypy_log = os.path.join(config_instance.logs_dir, u"cherrypy.log")
 cherrypy_access_log = os.path.join(config_instance.logs_dir, u"cherrypy_access.log")
 cherrypy_error_log = os.path.join(config_instance.logs_dir, u"cherrypy_error.log")
 moviegrabber_log = os.path.join(config_instance.logs_dir, u"moviegrabber.log")
+backoff_log = os.path.join(config_instance.logs_dir, u"backoff.log")
 sqlite_log = os.path.join(config_instance.logs_dir, u"sqlite.log")
 results_db = os.path.join(config_instance.results_dir, "results.db")
 
@@ -1109,9 +1077,45 @@ def sqlite_logging():
 
     return sqlite_logger
 
+def backoff_logging():
+
+    # read log levels
+    log_level = config_instance.config_obj["general"]["log_level"]
+
+    # setup formatting for log messages
+    backoff_formatter = logging.Formatter("%(asctime)s %(levelname)s %(threadName)s %(module)s %(funcName)s :: %(message)s")
+
+    # setup logger for backoff module
+    backoff_logger = logging.getLogger("backoff")
+
+    # setup logging to console
+    console_streamhandler = logging.StreamHandler()
+
+    # set formatter for console
+    console_streamhandler.setFormatter(backoff_formatter)
+
+    # add handler for formatter to the console
+    backoff_logger.addHandler(console_streamhandler)
+
+    # set level of logging from config
+    if log_level == "INFO":
+
+        console_streamhandler.setLevel(logging.INFO)
+
+    elif log_level == "WARNING":
+
+        console_streamhandler.setLevel(logging.WARNING)
+
+    elif log_level == "exception":
+
+        console_streamhandler.setLevel(logging.ERROR)
+
+    return backoff_logger
+
 # store the logger instances
 mg_log = moviegrabber_logging()
 sql_log = sqlite_logging()
+dl_log = backoff_logging()
 cherrypy_logging()
 
 # sqlite check
@@ -1365,10 +1369,9 @@ class Download(object):
     def download_read_watched(self):
 
         # this reads the nzb/torrent file from the download link
-        response = metadata_download(self.download_url_item, user_agent_moviegrabber)
-        status_code = response[0]
+        status_code, content = metadata_download(self.download_url_item, user_agent_moviegrabber)
 
-        if status_code == 1:
+        if status_code != 200:
 
             # set result to downloaded for history/queue status
             self.dlstatus_msg = "Failed"
@@ -1379,12 +1382,10 @@ class Download(object):
             mg_log.warning(u"Failed to download metadata from Index Site")
             return
 
-        content = response[1]
-
         # run download write method to blackhole
         self.download_write_watched(content)
 
-    def download_write_watched(self,content):
+    def download_write_watched(self, content):
 
         # check if download type is torrent or nzb
         if self.download_type_item == "nzb":
@@ -2571,15 +2572,12 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name, omdb_find_tt_json_url))
 
         # download omdb json (used for iphone/android)
-        response = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
-        status_code = response[0]
+        status_code, content = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
 
-        if status_code == 1:
+        if status_code != 200:
 
             mg_log.warning(u"%s Index - Cannot download metadata from OMDb" % site_name)
             return
-
-        content = response[1]
 
         try:
 
@@ -2616,15 +2614,12 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name, tmdb_find_id_json_url))
 
         # download tmdb json (used for iphone/android)
-        response = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
-        status_code = response[0]
+        status_code, content = metadata_download(tmdb_find_id_json_url, user_agent_iphone)
 
-        if status_code == 1:
+        if status_code != 200:
 
             mg_log.warning(u"%s Index - Site feed download failed for TMDb" % site_name)
             return
-
-        content = response[1]
 
         try:
 
@@ -2657,15 +2652,12 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name, tmdb_find_tt_json_url))
 
         # download tmdb json (used for iphone/android)
-        response = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
-        status_code = response[0]
+        status_code, content = metadata_download(tmdb_find_tt_json_url, user_agent_iphone)
 
-        if status_code == 1:
+        if status_code != 200:
 
             mg_log.warning(u"%s Index - Site feed download failed for TMDb" % site_name)
             return
-
-        content = response[1]
 
         try:
 
@@ -2975,10 +2967,9 @@ class SearchIndex(object):
             if not uni_to_byte(os.path.exists(os.path.join(history_thumbnails_dir, u"%s.jpg" % imdb_movie_title_ascii))):
 
                 # download poster image from imdb
-                response = metadata_download(self.imdb_movie_poster, user_agent_iphone)
-                status_code = response[0]
+                status_code, content = metadata_download(self.imdb_movie_poster, user_agent_iphone)
 
-                if status_code == 0:
+                if status_code == 200:
 
                     self.poster_image_file = ""
 
@@ -2987,8 +2978,6 @@ class SearchIndex(object):
                     self.poster_image_file = u"default.jpg"
                     mg_log.warning(u"Poster download failed from IMDb")
                     return
-
-                content = response[1]
 
                 self.poster_image_file = u"%s.jpg" % imdb_movie_title_ascii
 
@@ -3711,15 +3700,12 @@ class SearchIndex(object):
 
     def feed_details(self, site_name):
 
-        response = metadata_download(self.site_feed, self.user_agent)
-        status_code = response[0]
+        status_code, content = metadata_download(self.site_feed, self.user_agent)
 
-        if status_code == 1:
+        if status_code != 200:
 
             mg_log.warning(u"%s Index - Site feed download failed" % site_name)
             return
-
-        content = response[1]
 
         if site_name == u"Newznab":
 
@@ -4878,15 +4864,12 @@ class SearchIndex(object):
         mg_log.info(u"Post IMDb link %s" % self.imdb_link)
 
         # download imdb json (used for iphone/android)
-        response = metadata_download(imdb_json, user_agent_iphone)
-        status_code = response[0]
+        status_code, content = metadata_download(imdb_json, user_agent_iphone)
 
-        if status_code == 1:
+        if status_code != 200:
 
             mg_log.warning(u"IMDb - Site feed download failed for IMDb")
             return
-
-        content = response[1]
 
         try:
 
