@@ -377,6 +377,11 @@ def metadata_download(url, user_agent):
         mg_log.info(u"Status code %s, download succeeded for %s" % (status_code, url))
         content = response.content
 
+    else:
+
+        mg_log.warning(u"Status code %s != 200, download failed for %s" % (status_code, url))
+        raise requests.exceptions.RequestException
+
     return status_code, content
 
 
@@ -1077,6 +1082,7 @@ def sqlite_logging():
 
     return sqlite_logger
 
+
 def backoff_logging():
 
     # read log levels
@@ -1111,6 +1117,7 @@ def backoff_logging():
         console_streamhandler.setLevel(logging.ERROR)
 
     return backoff_logger
+
 
 # store the logger instances
 mg_log = moviegrabber_logging()
