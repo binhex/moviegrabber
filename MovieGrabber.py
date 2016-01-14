@@ -109,7 +109,7 @@ try:
 
     import sqlite3
 
-except Exception:
+except ImportError:
 
     sys.stderr.write("WARNING - Required SQLite Python module missing, please install before running MovieGrabber\n")
     sys.exit(1)
@@ -258,17 +258,26 @@ def config_ip():
 
 
 # function to find out external ip address
-def external_ip():
+def external_ip(site_url):
+
+    site_url = "http://jsonip.com"
+
+    # download omdb json (used for iphone/android)
+    status_code, content = metadata_download(site_url, user_agent_iphone)
+
+    if status_code != 200:
+
+        mg_log.warning(u"%s Index - Cannot download IP address info from jsonip" % site_name)
+        return
 
     try:
 
         # download external ip in json format
-        external_ip_json_page_request = urllib2.urlopen("http://jsonip.com/", timeout=2.0).read()
-        external_ip_json_page = json.loads(external_ip_json_page_request)
+        external_ip_json_page = json.loads(content)
 
         return external_ip_json_page["ip"]
 
-    except Exception:
+    except ValueError:
 
         try:
 
@@ -278,7 +287,7 @@ def external_ip():
 
             return external_ip_json_page["ip_addr"]
 
-        except Exception:
+        except ValueError:
 
             pass
 
@@ -347,7 +356,7 @@ def uni_to_byte(name):
     return name
 
 
-@backoff.on_exception(backoff.expo, (requests.exceptions.RequestException, socket.timeout), max_tries=5)
+@backoff.on_exception(backoff.expo, (socket.timeout, requests.exceptions.Timeout, requests.exceptions.HTTPError), max_tries=5)
 def metadata_download(url, user_agent):
 
     # add headers for gzip support and custom user agent string
@@ -365,22 +374,43 @@ def metadata_download(url, user_agent):
     # use a session instance to customize how "requests" handles making http requests
     session = requests.Session()
 
-    # request url get with timeouts and custom headers
-    response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
-
-    # get status code and content downloaded
-    status_code = response.status_code
+    # set status_code and content to None incase nothing returned
+    status_code = None
     content = None
 
-    if status_code == 200:
+    try:
 
-        mg_log.info(u"Status code %s, download succeeded for %s" % (status_code, url))
-        content = response.content
+        # request url get with timeouts and custom headers
+        response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
 
-    else:
+        # get status code and content downloaded
+        status_code = response.status_code
 
-        mg_log.warning(u"Status code %s != 200, download failed for %s" % (status_code, url))
-        raise requests.exceptions.RequestException
+        # if status code is not 200 and not 404 (file not found) then raise exception to cause backoff
+        if status_code == 200:
+
+            mg_log.info(u"Status code %s, download succeeded for %s" % (status_code, url))
+            content = response.content
+
+        elif status_code != 404:
+
+            mg_log.warning(u"Status code %s != 200, download failed for %s" % (status_code, url))
+            raise requests.exceptions.HTTPError
+
+    except requests.exceptions.ConnectionError:
+
+        # connection error occurred
+        mg_log.warning(u"Index site feed/api download connection error")
+
+    except requests.exceptions.TooManyRedirects:
+
+        # too many redirects, bad site or circular redirect
+        mg_log.warning(u"Index site feed/api download too many redirects")
+
+    except requests.exceptions.RequestException as e:
+
+        # catch any other exceptions thrown by requests
+        mg_log.warning(u"Index site feed/api download exception %s" % e)
 
     return status_code, content
 
@@ -3057,7 +3087,7 @@ class SearchIndex(object):
             </p>
 
             <p>
-            <b>Size:</b> %s""" % (uni_to_byte(self.index_post_size)) + """
+            <b>Size:</b> %s""" % (uni_to_byte(self.index_post_size_str)) + """
             </p>"""
 
             # check to make sure movie is queue and not download (queue release not required if set to download)
@@ -3176,7 +3206,7 @@ class SearchIndex(object):
         self.last_run_sort = int(time.strftime("%Y%m%d%H%M%S", time.localtime()))
 
         # insert details into history table (note sqlite requires decimal values as text)
-        sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+        sqlite_insert = ResultsDBHistory(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size_str, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
         # add the record to the session object
         sql_session.add(sqlite_insert)
@@ -3211,7 +3241,7 @@ class SearchIndex(object):
         if self.download_result_str == "Queued":
 
             # insert details into queued table (note sqlite requires decimal values as text)
-            sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
+            sqlite_insert = ResultsDBQueued(self.poster_image_file, self.imdb_link, self.imdb_movie_description, self.imdb_movie_directors_str, self.imdb_movie_writers_str, self.imdb_movie_actors_str, self.imdb_movie_chars_str, self.imdb_movie_genres_str, self.imdb_movie_title_strip, self.imdb_movie_year_int, self.imdb_movie_runtime_int, self.imdb_movie_rating_str, self.imdb_movie_votes_int, self.imdb_movie_cert, self.index_post_date, self.index_post_date_sort, self.index_post_size_str, self.index_post_size_sort, self.index_post_nfo, self.index_post_details, self.index_post_title, self.index_post_title_strip, self.index_download_dict, self.download_result_str, self.imdb_movie_title, self.download_method, self.download_details_dict, self.last_run, self.last_run_sort)
 
             # add the record to the session object
             sql_session.add(sqlite_insert)
@@ -3564,25 +3594,9 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - Search index started" % site_name)
 
         # substitute friendly names for real values for categories
-        if self.config_cat == u"any":
-
-            self.config_cat = u"0"
-
         if self.config_cat == u"all movies":
 
-            self.config_cat = u"1"
-
-        if self.config_cat == u"dvdr":
-
-            self.config_cat = u"3"
-
-        if self.config_cat == u"hd":
-
-            self.config_cat = u"173"
-
-        if self.config_cat == u"other":
-
-            self.config_cat = u"34"
+            self.config_cat = u"video"
 
         # remove slash at end of hostname if present
         self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -3593,7 +3607,7 @@ class SearchIndex(object):
             self.config_hostname = u"http://%s" % self.config_hostname
 
         # generate url for site using category only (category hard set to movies)
-        site_feed = u"%s:%s/rss.php?type=catname&id=%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+        site_feed = u"%s:%s/rss/category/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
         # convert to url for feed
         self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?&')
@@ -3999,10 +4013,10 @@ class SearchIndex(object):
 
                     download_link = node["enclosure"]["@url"]
 
-                    if "https" not in download_link:
+                    if "http" not in download_link:
 
-                        # need to prepend https: to url
-                        download_link = u"https:%s" % download_link
+                        # need to prepend http: to url
+                        download_link = u"http:%s" % download_link
 
                     self.index_download_dict["torrent"] = download_link
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, download_link))
@@ -4151,16 +4165,7 @@ class SearchIndex(object):
 
                 try:
 
-                    post_description = node["description"]
-                    post_seeders_search = re.compile(ur"(?i)(?<=Seeds:\s)[\d]+").search(post_description)
-
-                    if post_seeders_search is not None:
-
-                        post_seeders = post_seeders_search.group()
-
-                    else:
-
-                        post_seeders = None
+                    post_seeders = node["torrent:seeds"]
 
                 except (IndexError, AttributeError):
 
@@ -4168,16 +4173,7 @@ class SearchIndex(object):
 
                 try:
 
-                    post_description = node["description"]
-                    post_peers_search = re.compile(ur"(?i)(?<=Peers:\s)[\d]+").search(post_description)
-
-                    if post_peers_search is not None:
-
-                        post_peers = post_peers_search.group()
-
-                    else:
-
-                        post_peers = None
+                    post_peers = node["torrent:peers"]
 
                 except (IndexError, AttributeError):
 
@@ -4286,25 +4282,6 @@ class SearchIndex(object):
                 try:
 
                     imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
-
-                except (IndexError, AttributeError):
-
-                    imdb_tt_number = None
-
-            if site_name == u"Monova":
-
-                try:
-
-                    post_description = node["description"]
-                    imdb_tt_number_search = re.compile(ur"(?i)(?<=title/tt)[\d]+").search(post_description)
-
-                    if imdb_tt_number_search is not None:
-
-                        imdb_tt_number = imdb_tt_number_search.group()
-
-                    else:
-
-                        imdb_tt_number = None
 
                 except (IndexError, AttributeError):
 
@@ -4465,7 +4442,7 @@ class SearchIndex(object):
 
                 try:
 
-                    post_size = node["enclosure"]["@length"]
+                    post_size = node["torrent:contentLength"]
 
                 except (IndexError, AttributeError):
 
@@ -4497,33 +4474,32 @@ class SearchIndex(object):
                 self.index_post_size_sort = int(post_size)
 
                 # generate size in mb for GoodSize checks
-                self.index_post_size_int = int(post_size) / 1000000
+                index_post_size_mb_int = int(post_size) / 1048576
 
                 # if size is greater than 999 mb then convert to gb format
-                if int(post_size) > 999999999:
+                if index_post_size_mb_int > 999:
 
                     # limit decimal precision to x.xx
                     decimal.getcontext().prec = 3
 
                     # generate size in gb
-                    post_size_int = decimal.Decimal(int(post_size)) / 1000000000
+                    index_post_size_gb_int = decimal.Decimal(int(post_size)) / 1073741824
 
                     # append string GB for History/Queue
-                    self.index_post_size = u"%s GB" % (str(post_size_int))
-                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size))
+                    self.index_post_size_str = u"%s GB" % (str(index_post_size_gb_int))
+                    self.index_post_size_int = index_post_size_gb_int
+                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size_str))
 
                 else:
 
-                    # generate size in mb
-                    post_size_int = int(post_size) / 1000000
-
                     # append string mb for History/Queue
-                    self.index_post_size = u"%s MB" % (str(post_size_int))
-                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size))
+                    self.index_post_size_str = u"%s MB" % (str(index_post_size_mb_int))
+                    self.index_post_size_int = index_post_size_mb_int
+                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size_str))
 
             else:
 
-                self.index_post_size = ""
+                self.index_post_size_str = ""
                 self.index_post_size_sort = 0
                 self.index_post_size_int = 0
                 mg_log.info(u"%s Index - Post size not found" % site_name)
@@ -4602,7 +4578,7 @@ class SearchIndex(object):
 
                 try:
 
-                    post_date = node["pubDate"]
+                    post_date = node["added"]
 
                 except (IndexError, AttributeError):
 
@@ -4744,6 +4720,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
+
                     if "https" not in post_details:
 
                         # need to prepend https: to url
@@ -4802,6 +4779,16 @@ class SearchIndex(object):
                 try:
 
                     post_id = node["torrent"]["infoHash"]
+
+                except (IndexError, AttributeError):
+
+                    post_id = None
+
+            if site_name == u"Monova":
+
+                try:
+
+                    post_id = node["torrent:infoHash"]
 
                 except (IndexError, AttributeError):
 
@@ -6466,8 +6453,8 @@ class ConfigTorrent(object):
         # set hostname, path, and port number for known index sites
         if add_torrent_site == "monova":
 
-            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "https://www.monova.org"
-            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "443"
+            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "http://monova.org"
+            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "80"
 
         # set hostname, path, and port number for known index sites
         if add_torrent_site == "torrenthound":
