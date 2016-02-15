@@ -400,17 +400,17 @@ def metadata_download(url, user_agent):
     except requests.exceptions.ConnectionError:
 
         # connection error occurred
-        mg_log.warning(u"Index site feed/api download connection error")
+        mg_log.warning(u"Index site feed/api download connection error for %s" % url)
 
     except requests.exceptions.TooManyRedirects:
 
         # too many redirects, bad site or circular redirect
-        mg_log.warning(u"Index site feed/api download too many redirects")
+        mg_log.warning(u"Index site feed/api download too many redirects for %s" % url)
 
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
 
         # catch any other exceptions thrown by requests
-        mg_log.warning(u"Index site feed/api download exception %s" % e)
+        mg_log.warning(u"Index site feed/api download failed, giving up for %s" % url)
 
     return status_code, content
 
@@ -1468,7 +1468,7 @@ class Download(object):
                 os.remove(download_path_filename)
                 mg_log.info(u"Deleted zero byte file %s" % download_path_filename)
 
-            except Exception:
+            except OSError:
 
                 # set result to downloaded for history/queue status
                 self.dlstatus_msg = "Failed"
@@ -1489,7 +1489,7 @@ class Download(object):
                 download_write.write(content)
                 download_write.close()
 
-            except Exception:
+            except IOError:
 
                 # set result to downloaded for history/queue status
                 self.dlstatus_msg = "Failed"
@@ -3594,9 +3594,13 @@ class SearchIndex(object):
         mg_log.info(u"%s Index - Search index started" % site_name)
 
         # substitute friendly names for real values for categories
-        if self.config_cat == u"all movies":
+        if self.config_cat == u"any":
 
             self.config_cat = u"video"
+
+        if self.config_cat == u"all movies":
+
+            self.config_cat = u"1"
 
         # remove slash at end of hostname if present
         self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
@@ -4473,29 +4477,28 @@ class SearchIndex(object):
                 # generate size for history/queue sort order
                 self.index_post_size_sort = int(post_size)
 
-                # generate size in mb for GoodSize checks
-                index_post_size_mb_int = int(post_size) / 1048576
+                # generate size in MB for GoodSize checks
+                self.index_post_size_int = int(post_size) / 1048576
+                mg_log.info(u"%s Index - Post size check is %s" % (site_name, self.index_post_size_int))
 
-                # if size is greater than 999 mb then convert to gb format
-                if index_post_size_mb_int > 999:
+                # if size is greater than 999 MB then convert to GB format
+                if self.index_post_size_int > 999:
 
                     # limit decimal precision to x.xx
                     decimal.getcontext().prec = 3
 
-                    # generate size in gb
+                    # generate size in GB
                     index_post_size_gb_int = decimal.Decimal(int(post_size)) / 1073741824
 
                     # append string GB for History/Queue
                     self.index_post_size_str = u"%s GB" % (str(index_post_size_gb_int))
-                    self.index_post_size_int = index_post_size_gb_int
-                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size_str))
+                    mg_log.info(u"%s Index - Post size is %s" % (site_name, self.index_post_size_str))
 
                 else:
 
                     # append string mb for History/Queue
                     self.index_post_size_str = u"%s MB" % (str(index_post_size_mb_int))
-                    self.index_post_size_int = index_post_size_mb_int
-                    mg_log.info(u"%s Index - Post size %s" % (site_name, self.index_post_size_str))
+                    mg_log.info(u"%s Index - Post size is %s" % (site_name, self.index_post_size_str))
 
             else:
 
@@ -8035,14 +8038,14 @@ def launch_default_browser():
         # open client browser
         webbrowser.open("%s%s:%s" % (website_protocol, config_webconfig_address, config_webconfig_port), 2, 1)
 
-    except Exception:
+    except webbrowser.Error:
 
         try:
 
             # open client browser
             webbrowser.open("%s%s:%s" % (website_protocol, config_webconfig_address, config_webconfig_port), 1, 1)
 
-        except Exception:
+        except webbrowser.Error:
 
             mg_log.warning(u"Cannot launch browser")
 
@@ -8118,7 +8121,7 @@ if __name__ == '__main__':
                 cherrypy.server.ssl_certificate = ssl_host_cert
                 cherrypy.server.ssl_private_key = ssl_host_key
 
-            except Exception:
+            except ImportError:
 
                 # if openssl not installed, disable ssl
                 config_instance.config_obj["webconfig"]["enable_ssl"] = "no"
