@@ -148,3 +148,7 @@ Known Issues
 - ie cannot force download/release using either checkbox or button - ie does not support input "form="
 - release group filter is doing partial matching, need to use match
 - retry for urllib2 does not work correctly for download watched - urlerror works httperror does not, wrong number of arguments? 2/6
+
+If you appreciate my work, then please consider buying me a beer  :D
+
+[![PayPal donation](https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=H8PWP3RLBDCBQ)
