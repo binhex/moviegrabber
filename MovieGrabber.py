@@ -258,38 +258,41 @@ def config_ip():
 
 
 # function to find out external ip address
-def external_ip(site_url):
+def external_ip(*site_url_list):
 
-    site_url = "http://jsonip.com"
-
-    # download omdb json (used for iphone/android)
-    status_code, content = metadata_download(site_url, user_agent_iphone)
-
-    if status_code != 200:
-
-        mg_log.warning(u"%s Index - Cannot download IP address info from jsonip" % site_name)
-        return
-
-    try:
+    for site_url_item in site_url_list:
 
         # download external ip in json format
-        external_ip_json_page = json.loads(content)
+        status_code, content = metadata_download(site_url_item, user_agent_iphone)
 
-        return external_ip_json_page["ip"]
+        if status_code != 200:
 
-    except ValueError:
+            mg_log.warning(u"Cannot download external IP address info from %s" % site_url_item)
+            continue
 
-        try:
+        else:
 
-            # download external ip in json format
-            external_ip_json_page_request = urllib2.urlopen("http://ifconfig.me/all.json", timeout=2.0).read()
-            external_ip_json_page = json.loads(external_ip_json_page_request)
+            try:
 
-            return external_ip_json_page["ip_addr"]
+                # download external ip in json format
+                external_ip_json_page = json.loads(content)
 
-        except ValueError:
+                if "jsonip" in site_url_item:
 
-            pass
+                    external_ip_address = external_ip_json_page["ip"]
+                    return external_ip_address
+
+                elif "ifconfig" in site_url_item:
+
+                    external_ip_address = external_ip_json_page["ip_addr"]
+                    return external_ip_address
+
+            except (ValueError, TypeError, KeyError):
+
+                mg_log.warning(u"JSON format error for external IP address info from %s" % site_url_item)
+                continue
+
+    return 1
 
 
 # function to remove comma's, periods and spaces from begining and end of strings
@@ -1804,7 +1807,7 @@ class SearchIndex(object):
         if self.config_enable_email_notify == "yes":
 
             # run external_ip() and store return value
-            self.external_ip_address = external_ip()
+            self.external_ip_address = external_ip("http://jsonip.com", "http://ifconfig.me/all.json")
 
     # os filters
     ###
@@ -4497,7 +4500,7 @@ class SearchIndex(object):
                 else:
 
                     # append string mb for History/Queue
-                    self.index_post_size_str = u"%s MB" % (str(index_post_size_mb_int))
+                    self.index_post_size_str = u"%s MB" % (str(self.index_post_size_int))
                     mg_log.info(u"%s Index - Post size is %s" % (site_name, self.index_post_size_str))
 
             else:
