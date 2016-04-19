@@ -10,6 +10,7 @@ latest_db_version = "3"
 # TODO split large search index class into multiple classes
 # TODO bug with pref group, picks up hyphen in title, e.g. ant-man thinks groupname is man
 # TODO add in api.torrentsapi.com to list of torrent index sites
+# TODO add in rarbg to list of torrent index sites
 
 import os
 import sys
@@ -111,6 +112,7 @@ try:
 
 except ImportError:
 
+    sqlite3 = None
     sys.stderr.write("WARNING - Required SQLite Python module missing, please install before running MovieGrabber\n")
     sys.exit(1)
 
@@ -8125,6 +8127,8 @@ if __name__ == '__main__':
                 cherrypy.server.ssl_private_key = ssl_host_key
 
             except ImportError:
+
+                OpenSSL = None
 
                 # if openssl not installed, disable ssl
                 config_instance.config_obj["webconfig"]["enable_ssl"] = "no"
