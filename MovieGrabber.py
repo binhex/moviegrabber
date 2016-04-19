@@ -178,7 +178,7 @@ import email.iterators
 socket.setdefaulttimeout(240)
 
 # user agent strings
-user_agent_chrome = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36"
+user_agent_chrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36"
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % latest_mg_version
 
@@ -384,7 +384,7 @@ def metadata_download(url, user_agent):
     try:
 
         # request url get with timeouts and custom headers
-        response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers)
+        response = session.get(url=url, timeout=(connect_timeout, read_timeout), headers=headers, allow_redirects=True, verify=False)
 
         # get status code and content downloaded
         status_code = response.status_code
@@ -3486,7 +3486,7 @@ class SearchIndex(object):
         site_feed = u"%s:%s/usearch/%scategory:%s language:%s seeds:1/?rss=1" % (self.config_hostname, self.config_portnumber, search_term, self.config_cat, self.config_lang)
 
         # convert to url for feed
-        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=')
+        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?')
         mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
         # generate feed details
@@ -3786,7 +3786,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3796,7 +3796,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3806,7 +3806,7 @@ class SearchIndex(object):
 
                     post_title = node["torrent:fileName"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3816,7 +3816,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3826,7 +3826,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3836,7 +3836,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3846,7 +3846,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3856,7 +3856,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3866,7 +3866,7 @@ class SearchIndex(object):
 
                     post_title = node["title"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_title = None
 
@@ -3930,7 +3930,7 @@ class SearchIndex(object):
                     self.index_download_dict["nzb"] = node["link"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["link"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -3942,7 +3942,7 @@ class SearchIndex(object):
                     self.index_download_dict["magnet"] = node["torrent"]["magnetURI"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["torrent"]["magnetURI"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     pass
 
@@ -3951,7 +3951,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["enclosure"]["@url"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     pass
 
@@ -3962,7 +3962,7 @@ class SearchIndex(object):
                     self.index_download_dict["magnet"] = node["torrent:magnetURI"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["torrent:magnetURI"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     pass
 
@@ -3971,7 +3971,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["enclosure"]["@url"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     pass
 
@@ -3982,7 +3982,7 @@ class SearchIndex(object):
                     self.index_download_dict["magnet"] = node["link"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["link"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -3997,7 +3997,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = index_download_link
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, index_download_link))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -4009,7 +4009,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["enclosure"]["@url"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -4028,7 +4028,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = download_link
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, download_link))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -4041,7 +4041,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = u"%s/torrent/%s" % (self.config_hostname, hash_value)
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, u"%s/torrent/%s" % (self.config_hostname, hash_value)))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -4053,7 +4053,7 @@ class SearchIndex(object):
                     self.index_download_dict["torrent"] = node["enclosure"]["@url"]
                     mg_log.info(u"%s Index - Post download link %s" % (site_name, node["enclosure"]["@url"]))
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
@@ -4120,7 +4120,7 @@ class SearchIndex(object):
 
                     post_seeders = node["numSeeders"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4128,7 +4128,7 @@ class SearchIndex(object):
 
                     post_peers = node["numLeechers"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4138,7 +4138,7 @@ class SearchIndex(object):
 
                     post_seeders = node["torrent:seeds"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4146,7 +4146,7 @@ class SearchIndex(object):
 
                     post_peers = node["torrent:peers"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4156,7 +4156,7 @@ class SearchIndex(object):
 
                     post_seeders = node["seeders"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4164,7 +4164,7 @@ class SearchIndex(object):
 
                     post_peers = node["leechers"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4174,7 +4174,7 @@ class SearchIndex(object):
 
                     post_seeders = node["torrent:seeds"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4182,7 +4182,7 @@ class SearchIndex(object):
 
                     post_peers = node["torrent:peers"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4192,7 +4192,7 @@ class SearchIndex(object):
 
                     post_seeders = node["seeders"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4200,7 +4200,7 @@ class SearchIndex(object):
 
                     post_peers = node["leechers"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4219,7 +4219,7 @@ class SearchIndex(object):
 
                         post_seeders = None
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_seeders = None
 
@@ -4236,7 +4236,7 @@ class SearchIndex(object):
 
                         post_peers = None
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_peers = None
 
@@ -4290,7 +4290,7 @@ class SearchIndex(object):
 
                     imdb_tt_number = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "imdb").next()
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     imdb_tt_number = None
 
@@ -4368,7 +4368,7 @@ class SearchIndex(object):
 
                     post_size = (node_item["@attributes"]["value"] for node_item in node["attr"] if node_item["@attributes"]["name"] == "size").next()
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4378,7 +4378,7 @@ class SearchIndex(object):
 
                     post_size = node["size"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4388,7 +4388,7 @@ class SearchIndex(object):
 
                     post_size = node["torrent:contentLength"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4398,7 +4398,7 @@ class SearchIndex(object):
 
                     post_size = node["torrent"]["contentLength"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4431,7 +4431,7 @@ class SearchIndex(object):
 
                         post_size = None
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4441,7 +4441,7 @@ class SearchIndex(object):
 
                     post_size = node["size"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4451,7 +4451,7 @@ class SearchIndex(object):
 
                     post_size = node["torrent:contentLength"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4461,7 +4461,7 @@ class SearchIndex(object):
 
                     post_size = node["size"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4471,7 +4471,7 @@ class SearchIndex(object):
 
                     post_size = node["size"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_size = None
 
@@ -4526,7 +4526,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4536,7 +4536,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4546,7 +4546,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4556,7 +4556,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4566,7 +4566,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4576,7 +4576,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4586,7 +4586,7 @@ class SearchIndex(object):
 
                     post_date = node["added"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4596,7 +4596,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4606,7 +4606,7 @@ class SearchIndex(object):
 
                     post_date = node["pubDate"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_date = None
 
@@ -4642,7 +4642,7 @@ class SearchIndex(object):
 
                     post_nfo = node["comments"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_nfo = None
 
@@ -4666,7 +4666,7 @@ class SearchIndex(object):
 
                     post_details = node["comments"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4676,7 +4676,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4686,7 +4686,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4696,7 +4696,7 @@ class SearchIndex(object):
 
                     post_details = node["comments"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4706,7 +4706,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4716,7 +4716,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4732,7 +4732,7 @@ class SearchIndex(object):
                         # need to prepend https: to url
                         post_details = u"https:%s" % post_details
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4742,7 +4742,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4752,7 +4752,7 @@ class SearchIndex(object):
 
                     post_details = node["link"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_details = None
 
@@ -4776,7 +4776,7 @@ class SearchIndex(object):
 
                     post_id = node["guid"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4786,7 +4786,7 @@ class SearchIndex(object):
 
                     post_id = node["torrent"]["infoHash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4796,7 +4796,7 @@ class SearchIndex(object):
 
                     post_id = node["torrent:infoHash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4806,7 +4806,7 @@ class SearchIndex(object):
 
                     post_id = node["torrent:infoHash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4816,7 +4816,7 @@ class SearchIndex(object):
 
                     post_id = node["torrent"]["infoHash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4826,7 +4826,7 @@ class SearchIndex(object):
 
                     post_id = node["info_hash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -4836,7 +4836,7 @@ class SearchIndex(object):
 
                     post_id = node["info_hash"]
 
-                except (IndexError, AttributeError):
+                except (TypeError, IndexError, AttributeError):
 
                     post_id = None
 
@@ -7635,7 +7635,7 @@ class SearchIndexThread(object):
                         self.index_site_item = torrent_index_site_item
                         self.search_index_function = "kickasstorrents_index"
                         self.download_method = "torrent"
-                        self.user_agent = user_agent_moviegrabber
+                        self.user_agent = user_agent_chrome
 
                         if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
