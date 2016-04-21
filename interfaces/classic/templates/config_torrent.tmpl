@@ -108,6 +108,10 @@ EDIT/DELETE INDEX
 			<!--#if "kickass" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "other", "divx/xvid", "hd/x264", "foreign"]#-->
 			<!--#end if#-->
+
+			<!--#if "torrentsapi" in $index_site_item#-->
+				<!--#set $torrent_cat_list = ["any"]#-->
+			<!--#end if#-->
 			
 			<!--#if "piratebay" in $index_site_item#-->
 				<!--#set $torrent_cat_list = ["any", "all movies", "dvdr", "hd/x264"]#-->
@@ -162,6 +166,10 @@ EDIT/DELETE INDEX
 				<!--#set $torrent_lang_list = ["any", "english", "Albanian", "Arabic", "Basque", "Brazilian", "Bulgarian", "Chinese", "Croatian", "Czech", "Danish", "Dutch", "Filipino", "Finnish", "French", "German", "Greek", "Hebrew", "Hindi", "Hungarian", "Italian", "Japanese", "Korean", "Lithuanian", "Malayalam", "Mandarin", "Norwegian", "Persian", "Polish", "Portuguese", "Punjabi", "Romanian", "Russian", "Serbian", "Slovenian", "Spanish", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"]#-->
 			<!--#end if#-->
 			
+			<!--#if "torrentsapi" in $index_site_item#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
+			<!--#end if#-->
+			
 			<!--#if "piratebay" in $index_site_item#-->
 				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->
@@ -183,19 +191,19 @@ EDIT/DELETE INDEX
 			<!--#end if#-->
 
 			<!--#if "torrenthound" in $index_site_item#-->
-<!--#set $torrent_lang_list = ["any"]#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->
 
 			<!--#if "limetorrents" in $index_site_item#-->
-<!--#set $torrent_lang_list = ["any"]#-->
+				<!--#set $torrent_lang_list = ["any"]#-->
 			<!--#end if#-->
 			
 			<!--#for $torrent_lang_item in $torrent_lang_list#-->
-<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
-	<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
-<!--#else#-->
-	<option value="$torrent_lang_item">$torrent_lang_item</option>
-<!--#end if#-->
+				<!--#if $torrent_lang_item.lower() == $torrent_lang.lower()#-->
+					<option value="$torrent_lang_item" selected>$torrent_lang_item</option>
+				<!--#else#-->
+					<option value="$torrent_lang_item">$torrent_lang_item</option>
+				<!--#end if#-->
 			<!--#end for#-->
 			
 		</select>

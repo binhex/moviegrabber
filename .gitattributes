@@ -58,3 +58,4 @@ Dockerfile text eol=lf
 *.pdf binary
 *.db binary
 *.xz binary
+*.whl binary

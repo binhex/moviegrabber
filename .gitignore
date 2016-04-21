@@ -3,3 +3,4 @@ todo.txt
 .idea
 # Ignore compiled Python scripts
 *.pyc
+venv

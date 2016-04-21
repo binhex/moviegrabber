@@ -34,77 +34,6 @@ else:
         sys.stderr.write("WARNING - You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (python_version,))
         sys.exit(1)
 
-    else:
-
-        # create full path to bundles modules
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to six module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/six")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to dateutil module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/dateutil")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to xmltodict module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/xmltodict")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to configobj module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/configobj")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to validate module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/validate")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to requests module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/requests")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to backoff module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/backoff")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to argparse module
-        sitepackages_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/site-packages/argparse")
-        sitepackages_modules_full_path = os.path.normpath(sitepackages_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, sitepackages_modules_full_path)
-
-        # create full path to moviegrabber modules
-        moviegrabber_modules_full_path = os.path.join(moviegrabber_root_dir, u"lib/moviegrabber")
-        moviegrabber_modules_full_path = os.path.normpath(moviegrabber_modules_full_path)
-
-        # append full path to sys path
-        sys.path.insert(1, moviegrabber_modules_full_path)
 
 try:
 
@@ -168,6 +97,10 @@ from sqlalchemy import create_engine, exc, Column, Integer, String, desc, asc, f
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import text
+
+# required to suppress ssl warning for urllib3 (requests uses urllib3)
+import requests.packages.urllib3
+requests.packages.urllib3.disable_warnings()
 
 # ---------------------- py2exe -------------------------------
 
@@ -361,7 +294,7 @@ def uni_to_byte(name):
     return name
 
 
-@backoff.on_exception(backoff.expo, (socket.timeout, requests.exceptions.Timeout, requests.exceptions.HTTPError), max_tries=5)
+@backoff.on_exception(backoff.expo, (socket.timeout, requests.exceptions.Timeout, requests.exceptions.HTTPError), max_tries=10)
 def metadata_download(url, user_agent):
 
     # add headers for gzip support and custom user agent string
@@ -402,8 +335,13 @@ def metadata_download(url, user_agent):
             mg_log.warning(u"Status code %s != 200, download failed for %s" % (status_code, url))
             raise requests.exceptions.HTTPError
 
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectTimeout:
 
+        # connect timeout occurred
+        mg_log.warning(u"Index site feed/api download connect timeout for %s" % url)
+
+    except requests.exceptions.ConnectionError as e:
+        print e
         # connection error occurred
         mg_log.warning(u"Index site feed/api download connection error for %s" % url)
 
@@ -3437,6 +3375,30 @@ class SearchIndex(object):
         # generate feed details
         self.feed_details(site_name)
 
+    def torrentsapi_index(self):
+
+        site_name = u"torrentsapi"
+
+        mg_log.info(u"%s Index - Search index started" % site_name)
+
+        # remove slash at end of hostname if present
+        self.config_hostname = re.sub(ur"/+$", "", self.config_hostname)
+
+        # add http:// to hostname if hostname not prefixed with either http or https
+        if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
+
+            self.config_hostname = u"http://%s" % self.config_hostname
+
+        # generate url for site
+        site_feed = u"%s:%s" % (self.config_hostname, self.config_portnumber)
+
+        # convert to url for feed
+        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/=?')
+        mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
+
+        # generate feed details
+        self.feed_details(site_name)
+
     def kickasstorrents_index(self):
 
         site_name = u"KickAssTorrents"
@@ -3750,6 +3712,19 @@ class SearchIndex(object):
                 mg_log.warning(u"%s Index - Site feed parse failed" % site_name)
                 return
 
+        elif site_name == u"torrentsapi":
+
+            try:
+
+                # parse json formatted feed
+                site_feed_parse = json.loads(content)
+                site_feed_parse = site_feed_parse["MovieList"]
+
+            except (ValueError, TypeError, KeyError):
+
+                mg_log.warning(u"%s Index - Site feed parse failed" % site_name)
+                return
+
         else:
 
             try:
@@ -3797,6 +3772,16 @@ class SearchIndex(object):
                 try:
 
                     post_title = node["title"]
+
+                except (TypeError, IndexError, AttributeError):
+
+                    post_title = None
+
+            if site_name == u"torrentsapi":
+
+                try:
+
+                    post_title = node["torrent_url"]
 
                 except (TypeError, IndexError, AttributeError):
 
@@ -6380,7 +6365,7 @@ class ConfigTorrent(object):
             template.index_site_list = []
 
         # define list of supported torrent index sites
-        template.add_index_site_list = ["kickasstorrents", "piratebay", "bitsnoop", "extratorrent", "demonoid", "monova", "torrenthound", "limetorrents"]
+        template.add_index_site_list = ["kickasstorrents", "torrentsapi", "piratebay", "bitsnoop", "extratorrent", "demonoid", "monova", "torrenthound", "limetorrents"]
 
         header()
 
@@ -6427,6 +6412,11 @@ class ConfigTorrent(object):
 
             # if config entry is empty then create first entry
             config_instance.config_obj["torrent"]["index_site"] = add_torrent_site_index
+
+        # set hostname, path, and port number for known index sites
+        if add_torrent_site == "torrentsapi":
+            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "https://api.torrentsapi.com"
+            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "443"
 
         # set hostname, path, and port number for known index sites
         if add_torrent_site == "bitsnoop":
@@ -7625,6 +7615,17 @@ class SearchIndexThread(object):
 
                         self.index_site_item = torrent_index_site_item
                         self.search_index_function = "bitsnoop_index"
+                        self.download_method = "torrent"
+                        self.user_agent = user_agent_chrome
+
+                        if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
+
+                            self.run()
+
+                    if "torrentsapi" in torrent_index_site_item:
+
+                        self.index_site_item = torrent_index_site_item
+                        self.search_index_function = "torrentsapi_index"
                         self.download_method = "torrent"
                         self.user_agent = user_agent_chrome
 
