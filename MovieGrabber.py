@@ -34,7 +34,6 @@ else:
         sys.stderr.write("WARNING - You need Python 2.6.x/2.7.x installed to run MovieGrabber, your running version %s" % (python_version,))
         sys.exit(1)
 
-
 try:
 
     import sqlite3
@@ -341,9 +340,9 @@ def metadata_download(url, user_agent):
         mg_log.warning(u"Index site feed/api download connect timeout for %s" % url)
 
     except requests.exceptions.ConnectionError as e:
-        print e
+
         # connection error occurred
-        mg_log.warning(u"Index site feed/api download connection error for %s" % url)
+        mg_log.warning(u"Index site feed/api download connection error %s for %s" % (e, url))
 
     except requests.exceptions.TooManyRedirects:
 
@@ -2627,8 +2626,11 @@ class SearchIndex(object):
             mg_log.info(u"%s Index - Cannot find TMDb ID for movie" % site_name)
             return None
 
+        # tmdb api key
+        tmdb_api_key = "1d93addd6def495cec493845cd3b2788"
+
         # generate url to find imdb tt number using tmdb id number from previous search
-        tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=7b5e30851a9285340e78c201c4e4ab99" % tmdb_movie_id
+        tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=%s" % (tmdb_movie_id, tmdb_api_key)
         mg_log.info(u"%s Index - TMDb find tt URL is %s" % (site_name, tmdb_find_tt_json_url))
 
         # download tmdb json (used for iphone/android)
