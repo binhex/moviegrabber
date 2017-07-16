@@ -1,3 +1,11 @@
 # Ignore comments file
 todo.txt
+# Ignore pycharms project files
+.idea
+# Ignore compiled Python scripts
 *.pyc
+# Ignore virtualenv environment
+venv
+
+# Ignore all log files
+*.log
