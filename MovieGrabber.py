@@ -2546,8 +2546,10 @@ class SearchIndex(object):
 
     def find_imdb_id_omdb(self, site_name):
 
+        omdb_apikey="516cf65b"
+
         # generate url to find imdb tt number using omdb
-        omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s" % (self.index_post_movie_title_uri, self.index_post_movie_year)
+        omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s&apikey=%s" % (self.index_post_movie_title_uri, self.index_post_movie_year, omdb_apikey)
         mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name, omdb_find_tt_json_url))
 
         # download omdb json (used for iphone/android)
@@ -2618,7 +2620,7 @@ class SearchIndex(object):
         # find tmdb id
         try:
 
-            tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
+            tmdb_movie_id = tmdb_find_id_json["id"]
             mg_log.info(u"%s Index - TMDb id is %s" % (site_name, tmdb_movie_id))
 
         except (IndexError, KeyError):
