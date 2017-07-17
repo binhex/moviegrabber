@@ -2544,42 +2544,40 @@ class SearchIndex(object):
     # Find IMDb ID
     ###
 
-    def find_imdb_id_omdb(self, site_name):
+    def find_imdb_tt(self, site_name, index_post_movie_title_uri, index_post_movie_year):
 
-        omdb_apikey="516cf65b"
+        # generate url to find imdb tt number using imdb json
+        find_imdb_tt_json_url = "http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q={%s %s}" % (index_post_movie_title_uri, index_post_movie_year)
+        mg_log.info(u"%s Index - IMDb find tt URL is %s" % (site_name, find_imdb_tt_json_url))
 
-        # generate url to find imdb tt number using omdb
-        omdb_find_tt_json_url = "http://www.omdbapi.com/?t=%s&y=%s&apikey=%s" % (self.index_post_movie_title_uri, self.index_post_movie_year, omdb_apikey)
-        mg_log.info(u"%s Index - OMDb find tt URL is %s" % (site_name, omdb_find_tt_json_url))
-
-        # download omdb json (used for iphone/android)
-        status_code, content = metadata_download(omdb_find_tt_json_url, user_agent_iphone)
+        # download imdb json (using fake agent)
+        status_code, content = metadata_download(find_imdb_tt_json_url, user_agent_chrome)
 
         if status_code != 200:
 
-            mg_log.warning(u"%s Index - Cannot download metadata from OMDb" % site_name)
+            mg_log.warning(u"%s Index - Cannot download metadata from IMDb" % site_name)
             return
 
         try:
 
-            omdb_find_tt_json = json.loads(content)
+            find_imdb_tt_json = json.loads(content)
 
         except (ValueError, TypeError, KeyError):
 
-            mg_log.warning(u"%s Index - Site feed parse failed for OMDb" % site_name)
+            mg_log.warning(u"%s Index - Site feed parse failed for IMDb" % site_name)
             return
 
-        # if resulting omdb json page is blank then return
-        if omdb_find_tt_json == {}:
+        # if resulting imdb json page is blank then return
+        if find_imdb_tt_json == {}:
 
-            mg_log.info(u"%s Index - No match for movie title %s on OMDb json" % (site_name, self.index_post_movie_title))
+            mg_log.info(u"%s Index - No match for movie title %s on IMDb json" % (site_name, self.index_post_movie_title))
             return
 
         # find imdb id
         try:
 
-            imdb_tt_number = omdb_find_tt_json["imdbID"]
-            mg_log.info(u"%s Index - IMDb ID from OMDb is %s" % (site_name, imdb_tt_number))
+            imdb_tt_number = find_imdb_tt_json["title_approx"][0]["id"]
+            mg_log.info(u"%s Index - IMDb tt from IMDb is %s" % (site_name, imdb_tt_number))
 
         except (IndexError, KeyError):
 
@@ -2588,10 +2586,13 @@ class SearchIndex(object):
 
         return imdb_tt_number
 
-    def find_imdb_id_tmdb(self, site_name):
+    def find_imdb_id_tmdb(self, site_name, index_post_movie_title_uri, index_post_movie_year):
+
+        # tmdb api key
+        tmdb_api_key = "1d93addd6def495cec493845cd3b2788"
 
         # generate url to find tmdb id number
-        tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=1d93addd6def495cec493845cd3b2788" % (self.index_post_movie_title_uri, self.index_post_movie_year)
+        tmdb_find_id_json_url = "https://api.themoviedb.org/3/search/movie?query=%s&year=%s&api_key=%s" % (index_post_movie_title_uri, index_post_movie_year, tmdb_api_key)
         mg_log.info(u"%s Index - TMDb find id URL is %s" % (site_name, tmdb_find_id_json_url))
 
         # download tmdb json (used for iphone/android)
@@ -2625,11 +2626,15 @@ class SearchIndex(object):
 
         except (IndexError, KeyError):
 
-            mg_log.info(u"%s Index - Cannot find TMDb ID for movie" % site_name)
-            return None
+            try:
 
-        # tmdb api key
-        tmdb_api_key = "1d93addd6def495cec493845cd3b2788"
+                tmdb_movie_id = tmdb_find_id_json["results"][0]["id"]
+                mg_log.info(u"%s Index - TMDb id is %s" % (site_name, tmdb_movie_id))
+
+            except (IndexError, KeyError):
+
+                mg_log.info(u"%s Index - Cannot find TMDb ID for movie" % site_name)
+                return None
 
         # generate url to find imdb tt number using tmdb id number from previous search
         tmdb_find_tt_json_url = "https://api.themoviedb.org/3/movie/%s?api_key=%s" % (tmdb_movie_id, tmdb_api_key)
@@ -4305,16 +4310,23 @@ class SearchIndex(object):
                     self.imdb_tt_number = None
                     mg_log.info(u"%s Index - Malformed IMDb number %s from index site" % (site_name, imdb_tt_number))
 
-            # if imdb id not found from index site or post description then use omdb or tmdb
+            # if imdb id not found from index site or post description then use imdb or tmdb
             else:
 
-                mg_log.info(u"%s Index - Cannot find IMDb number from index site, using OMDb/TMDb to generate IMDb number" % site_name)
+                mg_log.info(u"%s Index - Cannot find IMDb number from index site, using IMDb/TMDb to generate IMDb number" % site_name)
 
                 # remove everything from movie year in post title
                 self.index_post_movie_title = re.sub(ur"[\.\-_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
                 # replace dots, hyphens and underscores with spaces
                 self.index_post_movie_title = re.sub(ur"[\.\-_]", " ", self.index_post_movie_title)
+
+                # remove any other additional formatting etc, as we then use this clean title to search on imdb/tmdb for the tt number
+                self.index_post_movie_title = re.sub(ur"(\(?\d{4}|dvdrip|xvid|bluray|aac|3d|[\d]+p|dts|x26[\d]+).*$", "", self.index_post_movie_title, flags=re.IGNORECASE)
+
+                # remove spaces from end of string
+                self.index_post_movie_title = re.sub(ur"\s+$", "", self.index_post_movie_title, flags=re.IGNORECASE)
+                mg_log.info(u"%s Index - Clean Post title (used by imdb/tmdb) is %s" % (site_name, self.index_post_movie_title))
 
                 # generate year excluding numbers from start of post title
                 index_post_movie_year_search = re.compile(ur"(?<!^)(20[0-9][0-9]|19[0-9][0-9])").search(self.index_post_title)
@@ -4332,18 +4344,18 @@ class SearchIndex(object):
                 # convert to uri for html find_id
                 self.index_post_movie_title_uri = urllib.quote(uni_to_byte(self.index_post_movie_title))
 
-                # attempt to get imdb id using omdb
-                self.imdb_tt_number = self.find_imdb_id_omdb(site_name)
+                # attempt to get imdb id using imdb
+                self.imdb_tt_number = self.find_imdb_id_tmdb(site_name, self.index_post_movie_title_uri, self.index_post_movie_year)
 
                 # if no imdb id then fallback to tmdb (slower)
                 if self.imdb_tt_number is None:
 
-                    mg_log.info(u"%s Index - Failed to get IMDb number from OMDb for post %s, falling back to TMDb" % (site_name, self.index_post_title))
+                    mg_log.info(u"%s Index - Failed to get IMDb number from TMDb for post %s, falling back to TMDb" % (site_name, self.index_post_title))
 
                     # attempt to get imdb id using tmdb
-                    self.imdb_tt_number = self.find_imdb_id_tmdb(site_name)
+                    self.imdb_tt_number = self.find_imdb_tt(site_name, self.index_post_movie_title_uri, self.index_post_movie_year)
 
-                    # if no imdb id from omdb or tmdb then skip post
+                    # if no imdb id from imdb or tmdb then skip post
                     if self.imdb_tt_number is None:
 
                         mg_log.warning(u"%s Index - Failed to get IMDb number for post %s, skipping post" % (site_name, self.index_post_title))
