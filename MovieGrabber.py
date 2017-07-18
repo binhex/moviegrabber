@@ -1950,6 +1950,12 @@ class SearchIndex(object):
 
     def filter_index_good_size(self):
 
+        # if index post size cannot be determined (value of 0) then return success
+        if self.index_post_size_int == 0:
+
+            mg_log.info(u"Filter Index - Post Size cannot be determined, proceed")
+            return 1
+
         # if min and maxsize not defined then return 1config_enable_group_filter
         if self.config_minsize_int == 0 and self.config_maxsize_int == 0:
 
@@ -3539,9 +3545,9 @@ class SearchIndex(object):
         # generate feed details
         self.feed_details(site_name)
 
-    def extratorrent_index(self):
+    def rarbg_index(self):
 
-        site_name = u"ExtraTorrent"
+        site_name = u"RARBG"
 
         mg_log.info(u"%s Index - Search index started" % site_name)
 
@@ -3551,13 +3557,13 @@ class SearchIndex(object):
         # add http:// to hostname if hostname not prefixed with either http or https
         if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-            self.config_hostname = u"http://%s" % self.config_hostname
+            self.config_hostname = u"https://%s" % self.config_hostname
 
         # construct site rss feed
-        site_feed = u"%s:%s/rss.xml?cid=4&type=last" % (self.config_hostname, self.config_portnumber)
+        site_feed = u"%s:%s/rssdd.php?categories=42;44;45;46;47;48" % (self.config_hostname, self.config_portnumber)
 
         # convert to uri for feed
-        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
+        self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/;=?')
         mg_log.info(u"%s Index - Site feed %s" % (site_name, self.site_feed))
 
         # generate feed details
@@ -3826,7 +3832,7 @@ class SearchIndex(object):
 
                     post_title = None
 
-            if site_name == u"ExtraTorrent":
+            if site_name == u"RARBG":
 
                 try:
 
@@ -3998,12 +4004,12 @@ class SearchIndex(object):
                     mg_log.info(u"%s Index - Post download link not found" % site_name)
                     continue
 
-            if site_name == u"ExtraTorrent":
+            if site_name == u"RARBG":
 
                 try:
 
-                    self.index_download_dict["torrent"] = node["enclosure"]["@url"]
-                    mg_log.info(u"%s Index - Post download link %s" % (site_name, node["enclosure"]["@url"]))
+                    self.index_download_dict["torrent"] = node["link"]
+                    mg_log.info(u"%s Index - Post download link %s" % (site_name, node["link"]))
 
                 except (TypeError, IndexError, AttributeError):
 
@@ -4141,24 +4147,6 @@ class SearchIndex(object):
                 try:
 
                     post_peers = node["torrent:peers"]
-
-                except (TypeError, IndexError, AttributeError):
-
-                    post_peers = None
-
-            if site_name == u"ExtraTorrent":
-
-                try:
-
-                    post_seeders = node["seeders"]
-
-                except (TypeError, IndexError, AttributeError):
-
-                    post_seeders = None
-
-                try:
-
-                    post_peers = node["leechers"]
 
                 except (TypeError, IndexError, AttributeError):
 
@@ -4438,16 +4426,6 @@ class SearchIndex(object):
 
                     post_size = None
 
-            if site_name == u"ExtraTorrent":
-
-                try:
-
-                    post_size = node["size"]
-
-                except (TypeError, IndexError, AttributeError):
-
-                    post_size = None
-
             if site_name == u"Monova":
 
                 try:
@@ -4573,7 +4551,7 @@ class SearchIndex(object):
 
                     post_date = None
 
-            if site_name == u"ExtraTorrent":
+            if site_name == u"RARBG":
 
                 try:
 
@@ -4713,16 +4691,6 @@ class SearchIndex(object):
 
                     post_details = None
 
-            if site_name == u"ExtraTorrent":
-
-                try:
-
-                    post_details = node["link"]
-
-                except (TypeError, IndexError, AttributeError):
-
-                    post_details = None
-
             if site_name == u"Monova":
 
                 try:
@@ -4818,16 +4786,6 @@ class SearchIndex(object):
                 try:
 
                     post_id = node["torrent"]["infoHash"]
-
-                except (TypeError, IndexError, AttributeError):
-
-                    post_id = None
-
-            if site_name == u"ExtraTorrent":
-
-                try:
-
-                    post_id = node["info_hash"]
 
                 except (TypeError, IndexError, AttributeError):
 
@@ -6381,7 +6339,7 @@ class ConfigTorrent(object):
             template.index_site_list = []
 
         # define list of supported torrent index sites
-        template.add_index_site_list = ["kickasstorrents", "torrentsapi", "piratebay", "bitsnoop", "extratorrent", "demonoid", "monova", "torrenthound", "limetorrents"]
+        template.add_index_site_list = ["kickasstorrents", "torrentsapi", "piratebay", "bitsnoop", "rarbg", "demonoid", "monova", "torrenthound", "limetorrents"]
 
         header()
 
@@ -6459,10 +6417,10 @@ class ConfigTorrent(object):
             config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "80"
 
         # set hostname, path, and port number for known index sites
-        if add_torrent_site == "extratorrent":
+        if add_torrent_site == "rarbg":
 
-            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "http://extratorrent.cc"
-            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "80"
+            config_instance.config_obj["torrent"]["%s_hostname" % add_torrent_site_index] = "https://rarbg.to"
+            config_instance.config_obj["torrent"]["%s_portnumber" % add_torrent_site_index] = "443"
 
         # set hostname, path, and port number for known index sites
         if add_torrent_site == "monova":
@@ -7682,10 +7640,10 @@ class SearchIndexThread(object):
 
                             self.run()
 
-                    if "extratorrent" in torrent_index_site_item:
+                    if "rarbg" in torrent_index_site_item:
 
                         self.index_site_item = torrent_index_site_item
-                        self.search_index_function = "extratorrent_index"
+                        self.search_index_function = "rarbg_index"
                         self.download_method = "torrent"
                         self.user_agent = user_agent_moviegrabber
 
