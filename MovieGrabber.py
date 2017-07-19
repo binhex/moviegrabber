@@ -3670,33 +3670,8 @@ class SearchIndex(object):
 
             self.config_hostname = u"http://%s" % self.config_hostname
 
-        # use server side search term for rss feed
-        if self.config_search_and != "":
-
-            search_term = self.config_search_and
-
-        else:
-
-            search_term = ""
-
-        if search_term != "":
-
-            # convert comma seperated string into list and remove spaces from comma seperated values using list comprehension
-            search_term = [x.strip() for x in search_term.split(',')]
-
-            # convert list back to string
-            search_term = ','.join(search_term)
-
-            # replace comma with spaces to seperate search terms
-            search_term = re.sub(ur",", " ", search_term)
-
-            # construct site rss feed
-            site_feed = u"%s:%s/searchrss/%s" % (self.config_hostname, self.config_portnumber, search_term)
-
-        else:
-
-            # construct site rss feed
-            site_feed = u"%s:%s/rss/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
+        # construct site rss feed
+        site_feed = u"%s:%s/rss/%s" % (self.config_hostname, self.config_portnumber, self.config_cat)
 
         # convert to uri for feed
         self.site_feed = urllib.quote(uni_to_byte(site_feed), safe=':/')
