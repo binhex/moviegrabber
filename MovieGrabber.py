@@ -112,7 +112,7 @@ import email.iterators
 socket.setdefaulttimeout(240)
 
 # user agent strings
-user_agent_chrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36"
+user_agent_chrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 user_agent_iphone = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 user_agent_moviegrabber = "moviegrabber/%s; https://sourceforge.net/projects/moviegrabber" % latest_mg_version
 
@@ -303,10 +303,10 @@ def metadata_download(url, user_agent):
     }
 
     # set connection timeout value (max time to wait for connection)
-    connect_timeout = 10.0
+    connect_timeout = 5.0
 
     # set read timeout value (max time to wait between each byte)
-    read_timeout = 5.0
+    read_timeout = 10.0
 
     # use a session instance to customize how "requests" handles making http requests
     session = requests.Session()
@@ -3533,7 +3533,7 @@ class SearchIndex(object):
         # add http:// to hostname if hostname not prefixed with either http or https
         if not re.compile(ur"^http://", re.IGNORECASE).search(self.config_hostname) and not re.compile(ur"^https://", re.IGNORECASE).search(self.config_hostname):
 
-            self.config_hostname = u"http://%s" % self.config_hostname
+            self.config_hostname = u"https://%s" % self.config_hostname
 
         # construct site rss feed, note demonoid does NOT support specification of port number
         site_feed = u"%s/rss/%s.xml" % (self.config_hostname, self.config_cat)
@@ -4278,14 +4278,14 @@ class SearchIndex(object):
 
                 mg_log.info(u"%s Index - Cannot find IMDb number from index site, using IMDb/TMDb to generate IMDb number" % site_name)
 
-                # remove everything from movie year in post title
+                # remove everything from movie year in post title to end
                 self.index_post_movie_title = re.sub(ur"[\.\-_\s\(]+(20[0-9][0-9]|19[0-9][0-9]).*$", "", self.index_post_title)
 
                 # replace dots, hyphens and underscores with spaces
                 self.index_post_movie_title = re.sub(ur"[\.\-_]", " ", self.index_post_movie_title)
 
                 # remove any other additional formatting etc, as we then use this clean title to search on imdb/tmdb for the tt number
-                self.index_post_movie_title = re.sub(ur"(\(?\d{4}|dvdrip|xvid|bluray|aac|3d|[\d]+p|dts|x26[\d]+).*$", "", self.index_post_movie_title, flags=re.IGNORECASE)
+                self.index_post_movie_title = re.sub(ur"(multi|directors|\d{3,4}p|bdrip|brrip|dvdrip|webrip|web-dl|xvid).*$", "", self.index_post_movie_title, flags=re.IGNORECASE)
 
                 # remove spaces from end of string
                 self.index_post_movie_title = re.sub(ur"\s+$", "", self.index_post_movie_title, flags=re.IGNORECASE)
@@ -7609,7 +7609,7 @@ class SearchIndexThread(object):
                         self.index_site_item = torrent_index_site_item
                         self.search_index_function = "demonoid_index"
                         self.download_method = "torrent"
-                        self.user_agent = user_agent_moviegrabber
+                        self.user_agent = user_agent_chrome
 
                         if torrent_watch_dir and torrent_archive_dir and torrent_completed_dir:
 
