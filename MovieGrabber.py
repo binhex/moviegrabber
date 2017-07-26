@@ -3883,6 +3883,9 @@ class SearchIndex(object):
                 # remove seperator from start and end of post title
                 post_title = re.sub(ur"^[\s\._\-]+|[\s\._\-]+$", "", post_title)
 
+                # remove known release group names from end of post title (torrents)
+                post_title = re.sub(ur"(?i)(\s?)+(rarbg|ethd)", "", post_title)
+
                 self.index_post_title = post_title
                 mg_log.info(u"%s Index - Post title is %s" % (site_name, self.index_post_title))
 
@@ -4055,8 +4058,7 @@ class SearchIndex(object):
             self.index_post_title_strip = self.index_post_title_strip.lower()
 
             # check if post title strip is in sqlite db
-            sqlite_postnamestrip = sql_session.query(ResultsDBHistory).filter(
-                ResultsDBHistory.postnamestrip == self.index_post_title_strip).first()
+            sqlite_postnamestrip = sql_session.query(ResultsDBHistory).filter(ResultsDBHistory.postnamestrip == self.index_post_title_strip).first()
 
             # remove scoped session
             sql_session.remove()
