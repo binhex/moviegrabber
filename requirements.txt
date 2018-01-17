@@ -7,6 +7,7 @@ CherryPy==5.1.0
 configobj==4.7.0
 enum34==1.1.1
 ipaddress==1.0.16
+imdbpie
 Markdown==2.6.6
 meld3==1.0.0
 ndg-httpsclient==0.4.0

@@ -106,6 +106,10 @@ requests.packages.urllib3.disable_warnings()
 import email.generator
 import email.iterators
 
+# -------------------- mg modules -----------------------------
+
+import lib.moviegrabber.mg_imdb
+
 # -------------------------------------------------------------
 
 # sets timeout period for retrieve (in seconds)
@@ -2687,8 +2691,10 @@ class SearchIndex(object):
 
     def imdb(self):
 
+        imdb_api = lib.moviegrabber.mg_imdb.imdb_json_api(self.imdb_tt_number)
+
         # imdb movie title
-        imdb_json_title = self.imdb_json_page["data"]["title"]
+        imdb_json_title = [d.get('imdb_title') for d in imdb_api if 'imdb_title' in d][0]
         imdb_movie_title = decode_html_entities(imdb_json_title)
 
         # replace illegal characers from imdb title with hyphens
@@ -2705,10 +2711,10 @@ class SearchIndex(object):
         # imdb movie poster url
         try:
 
-            self.imdb_movie_poster = self.imdb_json_page["data"]["image"]["url"]
+            imdb_movie_poster = [d.get('imdb_poster_url') for d in imdb_api if 'imdb_poster_url' in d][0]
 
             # convert url for thumbnail images (214 x 317)
-            self.imdb_movie_poster = re.sub(ur"_V1_.jpg", "_V1_SY317_CR12,0,214,317_.jpg", self.imdb_movie_poster)
+            self.imdb_movie_poster = re.sub(ur"_V1_.jpg", "_V1_SY317_CR12,0,214,317_.jpg", imdb_movie_poster)
 
         except (KeyError, TypeError):
 
@@ -2717,15 +2723,9 @@ class SearchIndex(object):
         # imdb movie release date
         try:
 
-            imdb_movie_year = self.imdb_json_page["data"]["year"]
+            self.imdb_movie_year_str = [d.get('imdb_year') for d in imdb_api if 'imdb_year' in d][0]
+            self.imdb_movie_year_int = int(self.imdb_movie_year_str)
 
-            # empty year is string ???? thus raise exception and set defaults
-            if str(imdb_movie_year) == "????":
-
-                raise KeyError
-
-            self.imdb_movie_year_int = int(imdb_movie_year)
-            self.imdb_movie_year_str = str(imdb_movie_year)
 
         except (KeyError, TypeError):
 
@@ -2752,9 +2752,8 @@ class SearchIndex(object):
         # imdb movie runtime
         try:
 
-            imdb_movie_runtime = self.imdb_json_page["data"]["runtime"]["time"]
-            self.imdb_movie_runtime_int = int(imdb_movie_runtime) / 60
-            self.imdb_movie_runtime_str = str(self.imdb_movie_runtime_int)
+            self.imdb_movie_runtime_str = [d.get('imdb_runtime') for d in imdb_api if 'imdb_runtime' in d][0]
+            self.imdb_movie_runtime_int = int(self.imdb_movie_runtime_str)
 
         except (KeyError, TypeError):
 
@@ -2764,9 +2763,8 @@ class SearchIndex(object):
         # imdb movie rating
         try:
 
-            imdb_movie_rating = self.imdb_json_page["data"]["rating"]
-            self.imdb_movie_rating_dec = decimal.Decimal(str(imdb_movie_rating)).quantize(decimal.Decimal('.1'))
-            self.imdb_movie_rating_str = str(imdb_movie_rating)
+            self.imdb_movie_rating_str = [d.get('imdb_rating') for d in imdb_api if 'imdb_rating' in d][0]
+            self.imdb_movie_rating_dec = int(self.imdb_movie_rating_str)
 
         except (KeyError, TypeError):
 
@@ -2776,9 +2774,8 @@ class SearchIndex(object):
         # imdb movie votes
         try:
 
-            imdb_movie_votes = self.imdb_json_page["data"]["num_votes"]
-            self.imdb_movie_votes_int = int(imdb_movie_votes)
-            self.imdb_movie_votes_str = str(imdb_movie_votes)
+            self.imdb_movie_votes_str = [d.get('imdb_rating_count') for d in imdb_api if 'imdb_rating_count' in d][0]
+            self.imdb_movie_votes_int = int(self.imdb_movie_votes_str)
 
         except (KeyError, TypeError):
 
@@ -2788,15 +2785,7 @@ class SearchIndex(object):
         # imdb movie director
         try:
 
-            self.imdb_movie_directors = []
-            imdb_movie_directors = self.imdb_json_page["data"]["directors_summary"]
-
-            for imdb_movie_directors_item in imdb_movie_directors:
-
-                imdb_movie_director = imdb_movie_directors_item["name"]["name"]
-                imdb_movie_director = decode_html_entities(imdb_movie_director)
-                self.imdb_movie_directors.append(imdb_movie_director)
-
+            self.imdb_movie_directors = [d.get('imdb_directors') for d in imdb_api if 'imdb_directors' in d][0]
             self.imdb_movie_directors_str = ", ".join(self.imdb_movie_directors)
 
         except (KeyError, TypeError):
@@ -2807,15 +2796,7 @@ class SearchIndex(object):
         # imdb movie writers
         try:
 
-            self.imdb_movie_writers = []
-            imdb_movie_writers = self.imdb_json_page["data"]["writers_summary"]
-
-            for imdb_movie_writers_item in imdb_movie_writers:
-
-                imdb_movie_writer = imdb_movie_writers_item["name"]["name"]
-                imdb_movie_writer = decode_html_entities(imdb_movie_writer)
-                self.imdb_movie_writers.append(imdb_movie_writer)
-
+            self.imdb_movie_writers = [d.get('imdb_writers') for d in imdb_api if 'imdb_writers' in d][0]
             self.imdb_movie_writers_str = ", ".join(self.imdb_movie_writers)
 
         except (KeyError, TypeError):
@@ -2826,15 +2807,7 @@ class SearchIndex(object):
         # imdb movie actor
         try:
 
-            self.imdb_movie_actors = []
-            imdb_movie_actors = self.imdb_json_page["data"]["cast_summary"]
-
-            for imdb_movie_actors_item in imdb_movie_actors:
-
-                imdb_movie_actor = imdb_movie_actors_item["name"]["name"]
-                imdb_movie_actor = decode_html_entities(imdb_movie_actor)
-                self.imdb_movie_actors.append(imdb_movie_actor)
-
+            self.imdb_movie_actors = [d.get('imdb_actors') for d in imdb_api if 'imdb_actors' in d][0]
             self.imdb_movie_actors_str = ", ".join(self.imdb_movie_actors)
 
         except (KeyError, TypeError):
@@ -2845,15 +2818,7 @@ class SearchIndex(object):
         # imdb movie characters
         try:
 
-            self.imdb_movie_chars = []
-            imdb_movie_chars = self.imdb_json_page["data"]["cast_summary"]
-
-            for imdb_movie_chars_item in imdb_movie_chars:
-
-                imdb_movie_char = imdb_movie_chars_item["char"]
-                imdb_movie_char = decode_html_entities(imdb_movie_char)
-                self.imdb_movie_chars.append(imdb_movie_char)
-
+            self.imdb_movie_chars = [d.get('imdb_characters') for d in imdb_api if 'imdb_characters' in d][0]
             self.imdb_movie_chars_str = ", ".join(self.imdb_movie_chars)
 
         except (KeyError, TypeError):
@@ -2864,7 +2829,7 @@ class SearchIndex(object):
         # imdb movie description
         try:
 
-            self.imdb_movie_description = self.imdb_json_page["data"]["plot"]["outline"]
+            self.imdb_movie_description = [d.get('imdb_plot') for d in imdb_api if 'imdb_plot' in d][0]
 
         except (KeyError, TypeError):
 
@@ -2873,7 +2838,7 @@ class SearchIndex(object):
         # imdb movie genres
         try:
 
-            self.imdb_movie_genres = self.imdb_json_page["data"]["genres"]
+            self.imdb_movie_genres = [d.get('imdb_genres') for d in imdb_api if 'imdb_genres' in d][0]
             self.imdb_movie_genres_str = ", ".join(self.imdb_movie_genres)
 
         except (KeyError, TypeError):
@@ -2884,8 +2849,7 @@ class SearchIndex(object):
         # imdb movie certificate
         try:
 
-            self.imdb_movie_cert = self.imdb_json_page["data"]["certificate"]["certificate"]
-            self.cert_system()
+            self.imdb_movie_cert = "-"
 
         except (KeyError, TypeError):
 
@@ -4830,30 +4794,9 @@ class SearchIndex(object):
 
     def imdb_details_json(self):
 
-        # create imdb json feed (used for iphone/android)
-        imdb_json = u"http://app.imdb.com/title/maindetails?api=v1&appid=iphone1&locale=en_US&timestamp=1286888328&tconst=%s&sig=app1" % self.imdb_tt_number
-        mg_log.info(u"IMDb JSON URL is %s" % imdb_json)
-
         # generate imdb links for history/queued/email
         self.imdb_link = u"http://www.imdb.com/title/%s" % self.imdb_tt_number
         mg_log.info(u"Post IMDb link %s" % self.imdb_link)
-
-        # download imdb json (used for iphone/android)
-        status_code, content = metadata_download(imdb_json, user_agent_iphone)
-
-        if status_code != 200:
-
-            mg_log.warning(u"IMDb - Site feed download failed for IMDb")
-            return
-
-        try:
-
-            self.imdb_json_page = json.loads(content)
-
-        except (ValueError, TypeError, KeyError):
-
-            mg_log.warning(u"IMDb - Site feed parse failed for IMDb")
-            return
 
         # run function to create imdb details
         self.imdb()
