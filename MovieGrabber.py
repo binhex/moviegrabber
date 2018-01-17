@@ -2764,7 +2764,7 @@ class SearchIndex(object):
         try:
 
             self.imdb_movie_rating_str = [d.get('imdb_rating') for d in imdb_api if 'imdb_rating' in d][0]
-            self.imdb_movie_rating_dec = int(self.imdb_movie_rating_str)
+            self.imdb_movie_rating_dec = decimal.Decimal(self.imdb_movie_rating_str).quantize(decimal.Decimal('.1'))
 
         except (KeyError, TypeError):
 
