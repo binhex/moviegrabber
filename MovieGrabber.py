@@ -2691,7 +2691,7 @@ class SearchIndex(object):
 
     def imdb(self):
 
-        imdb_api = lib.moviegrabber.mg_imdb.imdb_json_api(self.imdb_tt_number)
+        imdb_api = lib.moviegrabber.mg_imdb.imdb_json_api(mg_log, self.imdb_tt_number)
 
         # imdb movie title
         imdb_json_title = [d.get('imdb_title') for d in imdb_api if 'imdb_title' in d][0]
