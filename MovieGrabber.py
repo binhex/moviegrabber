@@ -108,7 +108,25 @@ import email.iterators
 
 # -------------------- mg modules -----------------------------
 
-import lib.moviegrabber.mg_imdb
+try:
+
+    import lib.moviegrabber.mg_imdb_imdbpie as mg_imdb_imdbpie
+
+except ImportError:
+
+    # check if app root directory is already on path, if not then append.
+    # this is req to allow import of local modules (pex bug):-
+    # https://github.com/pantsbuild/pex/issues/340#issuecomment-358775440
+    sys.path.append('%s/lib/moviegrabber/' % moviegrabber_root_dir)
+
+    try:
+
+        import mg_imdb_imdbpie
+
+    except ImportError:
+
+        print("cannot import moviegrabber modules, exiting...")
+        sys.exit(1)
 
 # -------------------------------------------------------------
 
@@ -2691,7 +2709,7 @@ class SearchIndex(object):
 
     def imdb(self):
 
-        imdb_api = lib.moviegrabber.mg_imdb.imdb_json_api(mg_log, self.imdb_tt_number)
+        imdb_api = mg_imdb_imdbpie.imdb_json_api(mg_log, self.imdb_tt_number)
 
         # imdb movie title
         imdb_json_title = [d.get('imdb_title') for d in imdb_api if 'imdb_title' in d][0]
